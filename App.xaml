@@ -13,6 +13,7 @@
                 <ResourceDictionary Source="pack://application:,,,/Assets/Styles/Buttons.xaml"/>
                 <ResourceDictionary Source="pack://application:,,,/Assets/Styles/TextStyles.xaml"/>
                 <ResourceDictionary Source="pack://application:,,,/Assets/Styles/ControlTemplates.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
             
             <!-- Converters -->
             <converters:BoolToCompletionBrushConverter x:Key="BoolToCompletionBrushConverter"/>
