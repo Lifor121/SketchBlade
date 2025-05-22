@@ -12,8 +12,8 @@ namespace SketchBlade.Helpers.Converters
             if (value is bool isCompleted)
             {
                 return isCompleted 
-                    ? new SolidColorBrush(Color.FromRgb(76, 175, 80))  // Green for completed
-                    : new SolidColorBrush(Color.FromRgb(158, 158, 158));  // Gray for not completed
+                    ? new SolidColorBrush(Color.FromRgb(76, 175, 80))  
+                    : new SolidColorBrush(Color.FromRgb(158, 158, 158));
             }
             
             return new SolidColorBrush(Color.FromRgb(158, 158, 158));  // Default to gray

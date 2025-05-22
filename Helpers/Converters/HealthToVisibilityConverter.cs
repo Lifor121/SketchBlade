@@ -9,13 +9,11 @@ namespace SketchBlade.Helpers.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            // Если здоровье больше 0, то элемент видим
             if (value is int health)
             {
                 bool invert = parameter != null && parameter.ToString() == "inverse";
                 bool isVisible = health > 0;
                 
-                // Инвертируем видимость при необходимости
                 if (invert)
                 {
                     isVisible = !isVisible;
@@ -29,7 +27,6 @@ namespace SketchBlade.Helpers.Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            // Этот метод не нужен для односторонней привязки
             throw new NotImplementedException();
         }
     }

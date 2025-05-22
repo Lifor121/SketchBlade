@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SketchBlade.Models;
+using System.Windows.Forms;
 
 namespace SketchBlade.Services
 {
@@ -36,24 +37,24 @@ namespace SketchBlade.Services
             { LocationType.Castle, new EnemyBaseStats { Health = 100, Attack = 18, Defense = 10 } }
         };
         
-        // База для названий врагов
-        private static readonly Dictionary<LocationType, string[]> EnemyNames = new Dictionary<LocationType, string[]>
+        // База для названий врагов (используем для путей к спрайтам)
+        private static readonly Dictionary<LocationType, string> EnemySpriteNames = new Dictionary<LocationType, string>
         {
-            { LocationType.Village, new[] { "Бандит", "Разбойник", "Вор", "Грабитель", "Мародёр" } },
-            { LocationType.Forest, new[] { "Волк", "Медведь", "Лесной разбойник", "Кабан", "Лесной паук" } },
-            { LocationType.Cave, new[] { "Пещерный паук", "Летучая мышь", "Гоблин", "Троглодит", "Слизень" } },
-            { LocationType.Ruins, new[] { "Скелет", "Зомби", "Призрак", "Оживший труп", "Мумия" } },
-            { LocationType.Castle, new[] { "Тёмный рыцарь", "Прислужник тьмы", "Вампир", "Скелет-воин", "Личинка тьмы" } }
+            { LocationType.Village, "village_enemy" },
+            { LocationType.Forest, "forest_enemy" },
+            { LocationType.Cave, "cave_enemy" },
+            { LocationType.Ruins, "ruins_enemy" },
+            { LocationType.Castle, "castle_enemy" }
         };
         
-        // База для названий героев
-        private static readonly Dictionary<LocationType, string[]> HeroNames = new Dictionary<LocationType, string[]>
+        // База для названий героев (используем для путей к спрайтам)
+        private static readonly Dictionary<LocationType, string> HeroSpriteNames = new Dictionary<LocationType, string>
         {
-            { LocationType.Village, new[] { "Деревенский старейшина", "Глава деревни", "Сельский богатырь" } },
-            { LocationType.Forest, new[] { "Хранитель леса", "Лесной дух", "Древний медведь" } },
-            { LocationType.Cave, new[] { "Пещерный тролль", "Горный голем", "Владыка подземелья" } },
-            { LocationType.Ruins, new[] { "Древний голем", "Повелитель нежити", "Древний лич" } },
-            { LocationType.Castle, new[] { "Тёмный король", "Повелитель замка", "Тёмный рыцарь смерти" } }
+            { LocationType.Village, "village_hero" },
+            { LocationType.Forest, "forest_hero" },
+            { LocationType.Cave, "cave_hero" },
+            { LocationType.Ruins, "ruins_hero" },
+            { LocationType.Castle, "castle_hero" }
         };
         
         // Получение уровня сложности для локации
@@ -84,8 +85,11 @@ namespace SketchBlade.Services
             // Базовые параметры в зависимости от локации
             int baseHealth, baseAttack, baseDefense;
             
-            // Используем словари для выбора имени
-            string enemyName = GetEnemyName(locationType, isBoss);
+            // Получаем имя для спрайта
+            string spriteName = GetEnemySpriteName(locationType, isBoss);
+            
+            // Получаем локализованное имя
+            string localizedName = GetLocalizedEnemyName(locationType, isBoss);
             
             // Получаем базовые характеристики из словаря
             if (BaseEnemyStats.TryGetValue(locationType, out var stats))
@@ -124,7 +128,7 @@ namespace SketchBlade.Services
             // Создаем врага
             Character enemy = new Character
             {
-                Name = enemyName,
+                Name = localizedName,
                 MaxHealth = baseHealth,
                 CurrentHealth = baseHealth,
                 Attack = baseAttack,
@@ -134,7 +138,7 @@ namespace SketchBlade.Services
             };
             
             // Выбираем соответствующий спрайт
-            string imagePath = $"Assets/Images/Characters/{(isBoss ? "boss" : "enemy")}_{locationType.ToString().ToLower()}.png";
+            string imagePath = $"Assets/Images/Enemies/{spriteName}.png";
             enemy.ImagePath = imagePath;
             
             Console.WriteLine($"Created enemy: {enemy.Name}, HP: {enemy.MaxHealth}, Attack: {enemy.Attack}, Defense: {enemy.Defense}");
@@ -142,37 +146,64 @@ namespace SketchBlade.Services
             return enemy;
         }
         
-        // Случайный выбор имени врага
-        private string GetEnemyName(LocationType locationType, bool isBoss)
+        // Получение имени для спрайта
+        private string GetEnemySpriteName(LocationType locationType, bool isBoss)
         {
             if (isBoss)
             {
-                if (HeroNames.TryGetValue(locationType, out var names))
+                if (HeroSpriteNames.TryGetValue(locationType, out var name))
                 {
-                    return names[_random.Next(names.Length)];
+                    return name;
                 }
-                return "Герой локации";
+                return "village_hero"; // fallback
             }
             else
             {
-                if (EnemyNames.TryGetValue(locationType, out var names))
+                if (EnemySpriteNames.TryGetValue(locationType, out var name))
                 {
-                    return names[_random.Next(names.Length)];
+                    return name;
                 }
-                return "Враг";
+                return "village_enemy"; // fallback
+            }
+        }
+        
+        // Получение локализованного имени
+        private string GetLocalizedEnemyName(LocationType locationType, bool isBoss)
+        {
+            if (isBoss)
+            {
+                // Для боссов используем имена из секции Heroes
+                string heroKey = locationType switch
+                {
+                    LocationType.Village => "Characters.Heroes.VillageElder",
+                    LocationType.Forest => "Characters.Heroes.ForestGuardian",
+                    LocationType.Cave => "Characters.Heroes.CaveTroll",
+                    LocationType.Ruins => "Characters.Heroes.GuardianGolem",
+                    LocationType.Castle => "Characters.Heroes.DarkKing",
+                    _ => "Characters.Heroes.VillageElder"
+                };
+                string localizedName = LanguageService.GetTranslation(heroKey);
+                return localizedName;
+            }
+            else
+            {
+                // Для обычных врагов используем имена из секции Enemies
+                string key = $"Characters.Enemies.{locationType}.Regular";
+                string localizedName = LanguageService.GetTranslation(key);
+                return localizedName;
             }
         }
         
         // Публичный метод для получения случайного имени врага
         public string GetRandomEnemyName(LocationType locationType)
         {
-            return GetEnemyName(locationType, false);
+            return GetLocalizedEnemyName(locationType, false);
         }
         
         // Публичный метод для получения случайного имени героя
         public string GetRandomHeroName(LocationType locationType)
         {
-            return GetEnemyName(locationType, true);
+            return GetLocalizedEnemyName(locationType, true);
         }
         
         // Калькуляция характеристик предметов

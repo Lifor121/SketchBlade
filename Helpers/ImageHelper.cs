@@ -11,7 +11,6 @@ namespace SketchBlade.Helpers
 {
     public static class ImageHelper
     {
-        // Пути относительно exe файла в папке bin/Debug/net9.0-windows
         private const string DefaultImagePath = "Assets/Images/def.png";
         private const string LocationsFolder = "Assets/Images/Locations";
         private const string WeaponsFolder = "Assets/Images/items/weapons";
@@ -22,18 +21,15 @@ namespace SketchBlade.Helpers
         private const string EnemiesFolder = "Assets/Images/Enemies";
         private const string UIFolder = "Assets/Images/UI";
         
-        // Публичные константы для часто используемых путей
         public const string PlayerSpritePath = "Assets/Images/Characters/player.png";
         public const string NpcSpritePath = "Assets/Images/Characters/npc.png";
         public const string HeroSpritePath = "Assets/Images/Characters/hero.png";
         public const string DefaultSpritePath = "Assets/Images/def.png";
         
-        // Статический кэш изображений
         private static readonly Dictionary<string, BitmapImage> _imageCache = new Dictionary<string, BitmapImage>();
         private static BitmapImage _defaultImage;
         private static bool _isCacheInitialized = false;
         
-        // Статический конструктор для инициализации каталогов
         static ImageHelper()
         {
             try

@@ -9,6 +9,8 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Threading;
+using SketchBlade.Services;
+using SketchBlade.Models;
 
 namespace SketchBlade.Models
 {
@@ -309,7 +311,7 @@ namespace SketchBlade.Models
                 // Initialize with basic player stats
                 Player = new Character
                 {
-                    Name = "Hero",
+                    Name = LanguageService.GetTranslation("Characters.Player"),
                     CurrentHealth = 100,
                     MaxHealth = 100,
                     Attack = 10,
@@ -317,7 +319,8 @@ namespace SketchBlade.Models
                     Level = 1,
                     XP = 0,
                     XPToNextLevel = 100,
-                    Money = 50
+                    Money = 50,
+                    IsPlayer = true
                 };
                 
                 // Initialize inventory
@@ -999,29 +1002,20 @@ namespace SketchBlade.Models
             // Clear any existing enemies
             CurrentEnemies.Clear();
             
-            // Get the hero data for this location
-            var heroData = CurrentLocation.GetHeroData();
-            if (heroData == null)
+            // Create the hero enemy using GameBalanceService
+            var balanceService = new Services.GameBalanceService();
+            var heroEnemy = balanceService.GenerateEnemy(CurrentLocation.Type, true);
+            
+            if (heroEnemy != null)
             {
-                Console.WriteLine("No hero data for this location");
+                Console.WriteLine($"Added hero enemy: {heroEnemy.Name}, HP: {heroEnemy.CurrentHealth}/{heroEnemy.MaxHealth}");
+                CurrentEnemies.Add(heroEnemy);
+            }
+            else
+            {
+                Console.WriteLine("Failed to generate hero enemy!");
                 return;
             }
-            
-            // Create the hero enemy
-            var heroEnemy = new Character
-            {
-                Name = heroData.Name,
-                MaxHealth = heroData.Health,
-                CurrentHealth = heroData.Health,
-                Attack = heroData.Attack,
-                Defense = heroData.Defense,
-                Level = heroData.Level,
-                SpritePath = heroData.SpritePath,
-                IsBoss = true
-            };
-            
-            Console.WriteLine($"Added hero enemy: {heroEnemy.Name}, HP: {heroEnemy.CurrentHealth}/{heroEnemy.MaxHealth}");
-            CurrentEnemies.Add(heroEnemy);
             
             // Set the current screen to battle
             CurrentScreen = "BattleView";

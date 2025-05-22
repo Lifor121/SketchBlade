@@ -12,6 +12,9 @@ namespace SketchBlade.Services
         private static Dictionary<string, Dictionary<Language, string>> _translations = new Dictionary<string, Dictionary<Language, string>>();
         private static Language _currentLanguage = Language.Russian;
         
+        // Add event for language changes
+        public static event EventHandler? LanguageChanged;
+        
         // Пути к файлам локализации
         private static readonly string RussianLocalizationFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Localization", "russian.json");
         private static readonly string EnglishLocalizationFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Localization", "english.json");
@@ -25,6 +28,8 @@ namespace SketchBlade.Services
                 {
                     _currentLanguage = value;
                     UpdateCulture();
+                    // Raise event when language changes
+                    LanguageChanged?.Invoke(null, EventArgs.Empty);
                 }
             }
         }

@@ -1,11 +1,10 @@
 {
-  "Language": 0,
+  "Language": 1,
   "MusicVolume": 0.7,
   "SoundEffectsVolume": 0.8,
   "IsMusicEnabled": true,
   "AreSoundEffectsEnabled": true,
   "Difficulty": 1,
-  "ShowTutorials": true,
   "UIScale": 1,
   "ShowItemDescriptionsOnHover": true,
   "ShowCombatDamageNumbers": true

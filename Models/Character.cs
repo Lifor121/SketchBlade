@@ -257,6 +257,9 @@ namespace SketchBlade.Models
         public string SpritePath { get; set; } = string.Empty;
         public bool IsBoss { get; set; } = false;
         
+        // Add location type field
+        public LocationType LocationType { get; set; } = LocationType.Village;
+        
         // Translated name property that uses LanguageService
         [JsonIgnore]
         public string TranslatedName 
@@ -266,7 +269,15 @@ namespace SketchBlade.Models
                 // For heroes
                 if (IsHero)
                 {
-                    string heroKey = $"Characters.Heroes.{Name.Replace(" ", "")}";
+                    string heroKey = LocationType switch
+                    {
+                        LocationType.Village => "Characters.Heroes.VillageElder",
+                        LocationType.Forest => "Characters.Heroes.ForestGuardian",
+                        LocationType.Cave => "Characters.Heroes.CaveTroll",
+                        LocationType.Ruins => "Characters.Heroes.GuardianGolem",
+                        LocationType.Castle => "Characters.Heroes.DarkKing",
+                        _ => "Characters.Heroes.VillageElder"
+                    };
                     string heroTranslation = LanguageService.GetTranslation(heroKey);
                     
                     // If translation exists, return it
@@ -283,7 +294,7 @@ namespace SketchBlade.Models
                     
                     foreach (var location in locations)
                     {
-                        string enemyKey = $"Characters.Enemies.{location}.{Name}";
+                        string enemyKey = $"Characters.Enemies.{location}.Regular";
                         string enemyTranslation = LanguageService.GetTranslation(enemyKey);
                         
                         // If translation exists, return it

@@ -10,20 +10,16 @@ namespace SketchBlade.Helpers.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            // Если значение null или не enum, показываем меню
             if (value == null)
                 return Visibility.Visible;
             
-            // Пытаемся преобразовать в GameScreen
             if (value is GameScreen screen)
             {
-                // Скрываем меню на главном экране и в настройках, иначе показываем
                 return screen == GameScreen.MainMenu || screen == GameScreen.Settings
                     ? Visibility.Collapsed 
                     : Visibility.Visible;
             }
             
-            // В случае ошибки просто показываем меню
             return Visibility.Visible;
         }
 

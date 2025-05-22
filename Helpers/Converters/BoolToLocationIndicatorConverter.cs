@@ -12,11 +12,11 @@ namespace SketchBlade.Helpers.Converters
             if (value is bool isSelected)
             {
                 return isSelected 
-                    ? new SolidColorBrush(Color.FromRgb(255, 152, 0))  // Orange for selected
-                    : new SolidColorBrush(Color.FromRgb(224, 224, 224));  // Light gray for not selected
+                    ? new SolidColorBrush(Color.FromRgb(255, 152, 0)) 
+                    : new SolidColorBrush(Color.FromRgb(224, 224, 224));
             }
             
-            return new SolidColorBrush(Color.FromRgb(224, 224, 224));  // Default to light gray
+            return new SolidColorBrush(Color.FromRgb(224, 224, 224));
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

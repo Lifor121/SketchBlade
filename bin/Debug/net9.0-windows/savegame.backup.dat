@@ -1,13 +1,13 @@
 {
-  "Gold": 40,
+  "Gold": 0,
   "CurrentLocationIndex": 0,
-  "CurrentScreen": "BattleView",
+  "CurrentScreen": "WorldMapView",
   "Player": {
     "Name": "Hero",
-    "MaxHealth": 50,
-    "CurrentHealth": 0,
-    "Attack": 9,
-    "Defense": 3,
+    "MaxHealth": 100,
+    "CurrentHealth": 100,
+    "Attack": 14,
+    "Defense": 5,
     "Level": 1,
     "XP": 0,
     "XPToNextLevel": 100,
@@ -15,8 +15,8 @@
     "ImagePath": "Assets/Images/Characters/npc.png",
     "EquippedItems": {
       "MainHand": {
-        "Name": "\u0414\u0435\u0440\u0435\u0432\u044F\u043D\u043D\u044B\u0439 \u043C\u0435\u0447",
-        "Description": "\u041F\u0440\u043E\u0441\u0442\u043E\u0439 \u043C\u0435\u0447 \u0438\u0437 \u0434\u0435\u0440\u0435\u0432\u0430",
+        "Name": "Wooden Sword",
+        "Description": "Basic sword made of wood",
         "Type": 3,
         "Rarity": 0,
         "Value": 0,
@@ -38,8 +38,8 @@
   },
   "InventoryItems": [
     {
-      "Name": "\u0414\u0435\u0440\u0435\u0432\u043E",
-      "Description": "\u0411\u0430\u0437\u043E\u0432\u044B\u0439 \u043C\u0430\u0442\u0435\u0440\u0438\u0430\u043B \u0434\u043B\u044F \u043A\u0440\u0430\u0444\u0442\u0430",
+      "Name": "Wood",
+      "Description": "Basic crafting material",
       "Type": 6,
       "Rarity": 0,
       "Value": 5,
@@ -55,8 +55,8 @@
       "Weight": 1
     },
     {
-      "Name": "\u0422\u0440\u0430\u0432\u0430",
-      "Description": "\u0420\u0430\u0441\u0442\u0435\u043D\u0438\u0435 \u0441 \u0446\u0435\u043B\u0435\u0431\u043D\u044B\u043C\u0438 \u0441\u0432\u043E\u0439\u0441\u0442\u0432\u0430\u043C\u0438",
+      "Name": "Herb",
+      "Description": "Plant with healing properties",
       "Type": 6,
       "Rarity": 0,
       "Value": 10,
@@ -72,8 +72,8 @@
       "Weight": 0.1
     },
     {
-      "Name": "\u0422\u043A\u0430\u043D\u044C",
-      "Description": "\u041C\u044F\u0433\u043A\u0438\u0439 \u043C\u0430\u0442\u0435\u0440\u0438\u0430\u043B \u0434\u043B\u044F \u043A\u0440\u0430\u0444\u0442\u0430",
+      "Name": "Cloth",
+      "Description": "Soft material used in crafting",
       "Type": 6,
       "Rarity": 0,
       "Value": 8,
@@ -89,8 +89,8 @@
       "Weight": 0.3
     },
     {
-      "Name": "\u0424\u043B\u044F\u0433\u0430",
-      "Description": "\u041A\u043E\u043D\u0442\u0435\u0439\u043D\u0435\u0440 \u0434\u043B\u044F \u0437\u0435\u043B\u0438\u0439",
+      "Name": "Flask",
+      "Description": "Container for potions",
       "Type": 6,
       "Rarity": 0,
       "Value": 15,
@@ -106,8 +106,8 @@
       "Weight": 0.3
     },
     {
-      "Name": "\u0417\u0435\u043B\u044C\u0435 \u043B\u0435\u0447\u0435\u043D\u0438\u044F",
-      "Description": "\u0412\u043E\u0441\u0441\u0442\u0430\u043D\u0430\u0432\u043B\u0438\u0432\u0430\u0435\u0442 \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u043F\u0440\u0438 \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u043D\u0438\u0438",
+      "Name": "Healing Potion",
+      "Description": "Restores health when consumed",
       "Type": 5,
       "Rarity": 0,
       "Value": 25,
@@ -288,7 +288,7 @@
     "MusicVolume": 0.7,
     "SoundEffectsVolume": 0.8,
     "Difficulty": 1,
-    "Language": 0,
+    "Language": 1,
     "UIScale": 1,
     "ShowDamageNumbers": true
   }

@@ -4,16 +4,12 @@ using System.Windows.Data;
 
 namespace SketchBlade.Helpers.Converters
 {
-    /// <summary>
-    /// Converter to select text based on boolean value.
-    /// </summary>
     public class BoolToTextConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value is bool boolValue)
             {
-                // Parameter format: "TrueText|FalseText"
                 if (parameter is string textOptions)
                 {
                     string[] options = textOptions.Split('|');
@@ -24,7 +20,6 @@ namespace SketchBlade.Helpers.Converters
                     }
                 }
                 
-                // Default values if parameter format is incorrect
                 return boolValue ? "True" : "False";
             }
             

@@ -57,6 +57,9 @@ public partial class MainWindow : Window
             // Initialize language service
             InitializeLanguageService();
             
+            // Subscribe to language changes
+            LanguageService.LanguageChanged += OnLanguageChanged;
+            
             Console.WriteLine($"MainWindow DataContext set to MainViewModel, CurrentScreen = {_mainViewModel.CurrentScreen}");
             
             // Use the InventoryViewModel from MainViewModel instead of creating a new instance
@@ -447,6 +450,28 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             Console.WriteLine($"Error in RefreshCurrentScreen: {ex.Message}");
+        }
+    }
+
+    // Handle language changes
+    private void OnLanguageChanged(object? sender, EventArgs e)
+    {
+        try
+        {
+            // Force UI update
+            RefreshCurrentScreen();
+            
+            // Update navigation buttons
+            if (ContentFrame.Content is UserControl currentView)
+            {
+                currentView.InvalidateVisual();
+            }
+            
+            Console.WriteLine("UI updated after language change");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating UI after language change: {ex.Message}");
         }
     }
 }

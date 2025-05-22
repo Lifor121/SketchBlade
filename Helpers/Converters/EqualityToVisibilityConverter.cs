@@ -17,14 +17,11 @@ namespace SketchBlade.Helpers.Converters
                 
             bool isEqual = value.ToString() == parameter.ToString();
             
-            // Returns Collapsed if the values are equal (hide nav bar on main menu)
-            // Returns Visible if they are different (show nav bar on other screens)
             return isEqual ? Visibility.Collapsed : Visibility.Visible;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            // Not implemented as it's not needed for this feature
             throw new NotImplementedException();
         }
     }

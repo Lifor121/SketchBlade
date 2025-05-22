@@ -1,13 +1,13 @@
 {
-  "Gold": 40,
+  "Gold": 0,
   "CurrentLocationIndex": 0,
-  "CurrentScreen": "BattleView",
+  "CurrentScreen": "MainMenuView",
   "Player": {
-    "Name": "Hero",
-    "MaxHealth": 50,
-    "CurrentHealth": 0,
-    "Attack": 9,
-    "Defense": 3,
+    "Name": "\u0413\u0435\u0440\u043E\u0439",
+    "MaxHealth": 100,
+    "CurrentHealth": 100,
+    "Attack": 14,
+    "Defense": 5,
     "Level": 1,
     "XP": 0,
     "XPToNextLevel": 100,
@@ -155,7 +155,7 @@
       "Type": 0,
       "IsCompleted": false,
       "IsUnlocked": true,
-      "IsAvailable": true,
+      "IsAvailable": false,
       "Difficulty": 0,
       "MinPlayerLevel": 1,
       "MaxCompletions": 10,
@@ -288,7 +288,7 @@
     "MusicVolume": 0.7,
     "SoundEffectsVolume": 0.8,
     "Difficulty": 1,
-    "Language": 0,
+    "Language": 1,
     "UIScale": 1,
     "ShowDamageNumbers": true
   }

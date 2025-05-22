@@ -52,11 +52,11 @@
                     </Style.Triggers>
                 </Style>
             </StackPanel.Style>
-            <Button Content="Инвентарь" 
+            <Button Content="{Binding Source='Navigation.Inventory', Converter={StaticResource TranslationConverter}}" 
                     Style="{StaticResource NavButtonStyle}"
                     Command="{Binding NavigateCommand}" 
                     CommandParameter="InventoryView"/>
-            <Button Content="Карта мира" 
+            <Button Content="{Binding Source='Navigation.WorldMap', Converter={StaticResource TranslationConverter}}" 
                     Style="{StaticResource NavButtonStyle}"
                     Command="{Binding NavigateCommand}" 
                     CommandParameter="WorldMapView"/>

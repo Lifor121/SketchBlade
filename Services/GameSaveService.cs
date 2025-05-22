@@ -422,7 +422,7 @@ namespace SketchBlade.Services
                         switch (property.Name)
                         {
                             case "Name":
-                                gameState.Player.Name = property.Value.GetString() ?? "Hero";
+                                gameState.Player.Name = LanguageService.GetTranslation("Characters.Player");
                                 break;
                             case "MaxHealth":
                                 gameState.Player.MaxHealth = property.Value.GetInt32();

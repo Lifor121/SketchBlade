@@ -17,7 +17,6 @@ namespace SketchBlade.Helpers.Converters
             string enumType = value.GetType().Name;
             string enumValue = value.ToString();
             
-            // Generate the translation key based on the enum type and value
             string key = string.IsNullOrEmpty(prefix) 
                 ? $"{enumType}.{enumValue}" 
                 : $"{prefix}.{enumValue}";
