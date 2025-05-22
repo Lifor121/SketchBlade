@@ -1,0 +1,295 @@
+{
+  "Gold": 40,
+  "CurrentLocationIndex": 0,
+  "CurrentScreen": "BattleView",
+  "Player": {
+    "Name": "Hero",
+    "MaxHealth": 50,
+    "CurrentHealth": 0,
+    "Attack": 9,
+    "Defense": 3,
+    "Level": 1,
+    "XP": 0,
+    "XPToNextLevel": 100,
+    "Money": 50,
+    "ImagePath": "Assets/Images/Characters/npc.png",
+    "EquippedItems": {
+      "MainHand": {
+        "Name": "\u0414\u0435\u0440\u0435\u0432\u044F\u043D\u043D\u044B\u0439 \u043C\u0435\u0447",
+        "Description": "\u041F\u0440\u043E\u0441\u0442\u043E\u0439 \u043C\u0435\u0447 \u0438\u0437 \u0434\u0435\u0440\u0435\u0432\u0430",
+        "Type": 3,
+        "Rarity": 0,
+        "Value": 0,
+        "Damage": 4,
+        "Defense": 0,
+        "SpritePath": "Assets/Images/items/weapons/wood_sword.png",
+        "IsStackable": false,
+        "StackSize": 1,
+        "MaxStackSize": 1,
+        "EquipSlot": 3,
+        "EffectPower": 0,
+        "Material": 1,
+        "Weight": 1,
+        "StatBonuses": {
+          "CriticalChance": 5
+        }
+      }
+    }
+  },
+  "InventoryItems": [
+    {
+      "Name": "\u0414\u0435\u0440\u0435\u0432\u043E",
+      "Description": "\u0411\u0430\u0437\u043E\u0432\u044B\u0439 \u043C\u0430\u0442\u0435\u0440\u0438\u0430\u043B \u0434\u043B\u044F \u043A\u0440\u0430\u0444\u0442\u0430",
+      "Type": 6,
+      "Rarity": 0,
+      "Value": 5,
+      "Damage": 0,
+      "Defense": 0,
+      "SpritePath": "Assets/Images/items/materials/wood.png",
+      "IsStackable": true,
+      "StackSize": 10,
+      "MaxStackSize": 50,
+      "EquipSlot": 3,
+      "EffectPower": 0,
+      "Material": 0,
+      "Weight": 1
+    },
+    {
+      "Name": "\u0422\u0440\u0430\u0432\u0430",
+      "Description": "\u0420\u0430\u0441\u0442\u0435\u043D\u0438\u0435 \u0441 \u0446\u0435\u043B\u0435\u0431\u043D\u044B\u043C\u0438 \u0441\u0432\u043E\u0439\u0441\u0442\u0432\u0430\u043C\u0438",
+      "Type": 6,
+      "Rarity": 0,
+      "Value": 10,
+      "Damage": 0,
+      "Defense": 0,
+      "SpritePath": "Assets/Images/items/materials/herb.png",
+      "IsStackable": true,
+      "StackSize": 8,
+      "MaxStackSize": 30,
+      "EquipSlot": 3,
+      "EffectPower": 0,
+      "Material": 0,
+      "Weight": 0.1
+    },
+    {
+      "Name": "\u0422\u043A\u0430\u043D\u044C",
+      "Description": "\u041C\u044F\u0433\u043A\u0438\u0439 \u043C\u0430\u0442\u0435\u0440\u0438\u0430\u043B \u0434\u043B\u044F \u043A\u0440\u0430\u0444\u0442\u0430",
+      "Type": 6,
+      "Rarity": 0,
+      "Value": 8,
+      "Damage": 0,
+      "Defense": 0,
+      "SpritePath": "Assets/Images/items/materials/cloth.png",
+      "IsStackable": true,
+      "StackSize": 5,
+      "MaxStackSize": 50,
+      "EquipSlot": 3,
+      "EffectPower": 0,
+      "Material": 0,
+      "Weight": 0.3
+    },
+    {
+      "Name": "\u0424\u043B\u044F\u0433\u0430",
+      "Description": "\u041A\u043E\u043D\u0442\u0435\u0439\u043D\u0435\u0440 \u0434\u043B\u044F \u0437\u0435\u043B\u0438\u0439",
+      "Type": 6,
+      "Rarity": 0,
+      "Value": 15,
+      "Damage": 0,
+      "Defense": 0,
+      "SpritePath": "Assets/Images/items/materials/flask.png",
+      "IsStackable": true,
+      "StackSize": 2,
+      "MaxStackSize": 20,
+      "EquipSlot": 3,
+      "EffectPower": 0,
+      "Material": 0,
+      "Weight": 0.3
+    },
+    {
+      "Name": "\u0417\u0435\u043B\u044C\u0435 \u043B\u0435\u0447\u0435\u043D\u0438\u044F",
+      "Description": "\u0412\u043E\u0441\u0441\u0442\u0430\u043D\u0430\u0432\u043B\u0438\u0432\u0430\u0435\u0442 \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u043F\u0440\u0438 \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u043D\u0438\u0438",
+      "Type": 5,
+      "Rarity": 0,
+      "Value": 25,
+      "Damage": 0,
+      "Defense": 0,
+      "SpritePath": "Assets/Images/items/consumables/healing_potion.png",
+      "IsStackable": true,
+      "StackSize": 2,
+      "MaxStackSize": 10,
+      "EquipSlot": 3,
+      "EffectPower": 0,
+      "Material": 0,
+      "Weight": 0.5
+    },
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+  ],
+  "QuickItems": [
+    null,
+    null
+  ],
+  "CraftItems": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+  ],
+  "Locations": [
+    {
+      "Name": "Village",
+      "Description": "A peaceful village with friendly inhabitants",
+      "Type": 0,
+      "IsCompleted": false,
+      "IsUnlocked": true,
+      "IsAvailable": true,
+      "Difficulty": 0,
+      "MinPlayerLevel": 1,
+      "MaxCompletions": 10,
+      "HeroDefeated": false,
+      "CompletionCount": 0,
+      "SpritePath": "Assets/Images/Locations/village.png",
+      "Hero": {
+        "Name": "Village Elder",
+        "MaxHealth": 120,
+        "CurrentHealth": 120,
+        "Attack": 12,
+        "Defense": 8,
+        "IsHero": true,
+        "Type": "Humanoid",
+        "ImagePath": "Assets/Images/Characters/npc.png"
+      }
+    },
+    {
+      "Name": "Forest",
+      "Description": "A dense forest filled with dangerous creatures",
+      "Type": 1,
+      "IsCompleted": false,
+      "IsUnlocked": false,
+      "IsAvailable": false,
+      "Difficulty": 1,
+      "MinPlayerLevel": 3,
+      "MaxCompletions": 8,
+      "HeroDefeated": false,
+      "CompletionCount": 0,
+      "SpritePath": "Assets/Images/Locations/forest.png",
+      "Hero": {
+        "Name": "Forest Guardian",
+        "MaxHealth": 200,
+        "CurrentHealth": 200,
+        "Attack": 20,
+        "Defense": 15,
+        "IsHero": true,
+        "Type": "Humanoid",
+        "ImagePath": "Assets/Images/Characters/npc.png"
+      },
+      "RequiredCompletedLocations": [
+        "Village"
+      ]
+    },
+    {
+      "Name": "Cave",
+      "Description": "A dark cave with precious minerals and lurking monsters",
+      "Type": 2,
+      "IsCompleted": false,
+      "IsUnlocked": false,
+      "IsAvailable": false,
+      "Difficulty": 2,
+      "MinPlayerLevel": 5,
+      "MaxCompletions": 6,
+      "HeroDefeated": false,
+      "CompletionCount": 0,
+      "SpritePath": "Assets/Images/Locations/cave.png",
+      "Hero": {
+        "Name": "Cave Troll",
+        "MaxHealth": 350,
+        "CurrentHealth": 350,
+        "Attack": 30,
+        "Defense": 25,
+        "IsHero": true,
+        "Type": "Humanoid",
+        "ImagePath": "Assets/Images/Characters/npc.png"
+      },
+      "RequiredCompletedLocations": [
+        "Forest"
+      ]
+    },
+    {
+      "Name": "Ancient Ruins",
+      "Description": "Mysterious ruins filled with ancient treasures and dangers",
+      "Type": 3,
+      "IsCompleted": false,
+      "IsUnlocked": false,
+      "IsAvailable": false,
+      "Difficulty": 3,
+      "MinPlayerLevel": 8,
+      "MaxCompletions": 4,
+      "HeroDefeated": false,
+      "CompletionCount": 0,
+      "SpritePath": "Assets/Images/Locations/ruins.png",
+      "Hero": {
+        "Name": "Guardian Golem",
+        "MaxHealth": 500,
+        "CurrentHealth": 500,
+        "Attack": 45,
+        "Defense": 40,
+        "IsHero": true,
+        "Type": "Humanoid",
+        "ImagePath": "Assets/Images/Characters/npc.png"
+      },
+      "RequiredCompletedLocations": [
+        "Cave"
+      ]
+    },
+    {
+      "Name": "Castle",
+      "Description": "A grand castle where the final hero awaits",
+      "Type": 4,
+      "IsCompleted": false,
+      "IsUnlocked": false,
+      "IsAvailable": false,
+      "Difficulty": 4,
+      "MinPlayerLevel": 10,
+      "MaxCompletions": 2,
+      "HeroDefeated": false,
+      "CompletionCount": 0,
+      "SpritePath": "Assets/Images/Locations/castle.png",
+      "Hero": {
+        "Name": "King of Darkness",
+        "MaxHealth": 1000,
+        "CurrentHealth": 1000,
+        "Attack": 70,
+        "Defense": 60,
+        "IsHero": true,
+        "Type": "Humanoid",
+        "ImagePath": "Assets/Images/Characters/npc.png"
+      },
+      "RequiredCompletedLocations": [
+        "Ancient Ruins"
+      ]
+    }
+  ],
+  "Settings": {
+    "IsMusicEnabled": true,
+    "AreSoundEffectsEnabled": true,
+    "MusicVolume": 0.7,
+    "SoundEffectsVolume": 0.8,
+    "Difficulty": 1,
+    "Language": 0,
+    "UIScale": 1,
+    "ShowDamageNumbers": true
+  }
+}

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:converters="clr-namespace:SketchBlade.Helpers.Converters">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/Assets/Styles/Colors.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+    
+    <!-- Конвертер для шрифтов -->
+    <converters:FontFamilyConverter x:Key="FontFamilyConverter"/>
+    
+    <!-- Base TextBlock Style -->
+    <Style x:Key="BaseTextBlockStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="FontFamily" Value="{Binding Source=main_font.ttf, Converter={StaticResource FontFamilyConverter}}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+        <Setter Property="LineHeight" Value="Auto"/>
+        <Setter Property="TextTrimming" Value="None"/>
+        <Setter Property="FontWeight" Value="Normal"/>
+        <Setter Property="FontStretch" Value="Normal"/>
+        <Setter Property="FontStyle" Value="Normal"/>
+    </Style>
+    
+    <!-- Title Styles -->
+    <Style x:Key="TitleTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
+        <Setter Property="FontSize" Value="28"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Margin" Value="0,10,0,15"/>
+        <Setter Property="FontFamily" Value="{Binding Source=title_font.ttf, Converter={StaticResource FontFamilyConverter}}"/>
+    </Style>
+    
+    <Style x:Key="SubtitleTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
+        <Setter Property="FontSize" Value="20"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Margin" Value="0,8,0,12"/>
+        <Setter Property="FontFamily" Value="{Binding Source=title_font.ttf, Converter={StaticResource FontFamilyConverter}}"/>
+    </Style>
+    
+    <Style x:Key="SectionHeaderTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
+        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Margin" Value="0,8,0,8"/>
+    </Style>
+    
+    <!-- Content Styles -->
+    <Style x:Key="BodyTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Margin" Value="0,4,0,4"/>
+        <Setter Property="LineHeight" Value="20"/>
+    </Style>
+    
+    <Style x:Key="CaptionTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+        <Setter Property="Margin" Value="0,2,0,2"/>
+    </Style>
+    
+    <Style x:Key="HighlightTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BodyTextBlockStyle}">
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+    
+    <!-- Special Text Styles -->
+    <Style x:Key="WarningTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BodyTextBlockStyle}">
+        <Setter Property="Foreground" Value="{StaticResource WarningBrush}"/>
+    </Style>
+    
+    <Style x:Key="ErrorTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BodyTextBlockStyle}">
+        <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
+    </Style>
+    
+    <Style x:Key="SuccessTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BodyTextBlockStyle}">
+        <Setter Property="Foreground" Value="{StaticResource SuccessBrush}"/>
+    </Style>
+    
+    <!-- Game-specific styles -->
+    <Style x:Key="StatLabelTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    
+    <Style x:Key="StatValueTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Margin" Value="5,0,0,0"/>
+    </Style>
+    
+    <Style x:Key="ItemNameTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+    </Style>
+    
+    <Style x:Key="LocationNameTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource SubtitleTextBlockStyle}">
+        <Setter Property="FontSize" Value="22"/>
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
+    </Style>
+</ResourceDictionary> 
