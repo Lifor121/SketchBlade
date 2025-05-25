@@ -1,0 +1,28 @@
+﻿<Application x:Class="SketchBlade.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SketchBlade"
+             xmlns:converters="clr-namespace:SketchBlade.Helpers.Converters"
+             xmlns:views="clr-namespace:SketchBlade.Views"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <!-- Converters -->
+            <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+            <converters:NullToTransparentConverter x:Key="NullToTransparentConverter"/>
+            <converters:StringToImageConverter x:Key="StringToImageConverter"/>
+            <converters:TranslationConverter x:Key="TranslationConverter"/>
+            
+            <!-- Global resources and styles -->
+            <Style x:Key="NavButtonStyle" TargetType="Button">
+                <Setter Property="Margin" Value="5"/>
+                <Setter Property="Padding" Value="10,5"/>
+                <Setter Property="Background" Value="#444444"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="BorderThickness" Value="0"/>
+            </Style>
+            
+            <!-- The InventoryViewModel will be added programmatically -->
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

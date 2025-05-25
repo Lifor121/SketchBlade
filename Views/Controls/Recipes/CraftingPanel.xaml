@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UserControl x:Class="SketchBlade.Views.Controls.Recipes.CraftingPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:SketchBlade.Views.Controls.Recipes"
+             xmlns:controls="clr-namespace:SketchBlade.Views.Controls"
+             xmlns:converters="clr-namespace:SketchBlade.Helpers.Converters"
+             mc:Ignorable="d">
+    
+    <UserControl.Resources>
+        <converters:TranslationConverter x:Key="TranslationConverter"/>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <converters:MaterialColorConverter x:Key="MaterialColorConverter"/>
+    </UserControl.Resources>
+    
+    <Border Background="#A4A4A4" Margin="0,15" Padding="15,10" BorderBrush="#808080" BorderThickness="1">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            
+            <Grid Grid.Row="0">
+                <TextBlock Text="{Binding Source='Crafting.Title', Converter={StaticResource TranslationConverter}}" 
+                           Foreground="#555555" FontWeight="Bold" Margin="0,0,0,12" HorizontalAlignment="Center" FontSize="16"/>
+            </Grid>
+            
+            <Grid Grid.Row="1" Margin="0,5,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                <!-- Text indicating how crafting works -->
+                <TextBlock Grid.Row="0" 
+                           Text="Доступные предметы для создания:" 
+                           Margin="0,0,0,10" 
+                           FontStyle="Italic" TextWrapping="Wrap"/>
+                
+                <!-- Grid of craftable items -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MaxHeight="200">
+                    <ItemsControl x:Name="CraftableItemsControl" ItemsSource="{Binding AvailableRecipes}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <!-- Container to preserve DataContext -->
+                                <Grid x:Name="SlotContainer" DataContext="{Binding}">
+                                    <controls:CoreInventorySlot 
+                                                   Item="{Binding Result}" 
+                                                   SlotType="CraftResult" 
+                                                   SlotIndex="0"
+                                                   Width="50" Height="50"
+                                                   Margin="3"
+                                                   Cursor="Hand"
+                                                   ToolTip="{Binding Name}"
+                                                   MouseDown="CraftableItem_MouseDown">
+                                        <!-- Добавляем визуальный индикатор возможности крафта -->
+                                        <controls:CoreInventorySlot.Style>
+                                            <Style TargetType="controls:CoreInventorySlot">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding CanCraft}" Value="False">
+                                                        <Setter Property="Opacity" Value="0.6"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </controls:CoreInventorySlot.Style>
+                                    </controls:CoreInventorySlot>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl> 

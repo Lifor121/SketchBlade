@@ -1,0 +1,421 @@
+{
+  "MainMenu": {
+    "NewGame": "Новая игра",
+    "ContinueGame": "Продолжить игру",
+    "Options": "Настройки",
+    "Exit": "Выход"
+  },
+  "Settings": {
+    "Title": "Настройки",
+    "Language": "Язык / Language",
+    "SelectLanguage": "Язык игры:",
+    "GameLanguage": "Язык игры:",
+    "Gameplay": "Геймплей",
+    "Difficulty": "Сложность:",
+    "Tutorial": "Обучение:",
+    "Interface": "Интерфейс",
+    "Tooltips": "Подсказки:",
+    "Combat": "Бой:",
+    "ResetDefaults": "Сбросить настройки",
+    "Save": "Сохранить",
+    "SavedStatus": "Сохранено",
+    "Applied": "Настройки применены успешно!",
+    "ApplyError": "Ошибка при применении настроек",
+    "ResetComplete": "Настройки сброшены к значениям по умолчанию",
+    "ResetError": "Ошибка при сбросе настроек",
+    "DifficultyChanged": "Сложность игры изменена на:",
+    "ShowTutorials": "Показывать подсказки",
+    "ShowItemTooltips": "Показывать описания предметов при наведении",
+    "ShowDamageNumbers": "Показывать числа урона",
+    "UnsavedChanges": "У вас есть несохраненные изменения. Сохранить перед выходом?",
+    "UnsavedChangesTitle": "Несохраненные изменения"
+  },
+  "Common": {
+    "Back": "Назад",
+    "Enable": "Включить",
+    "Yes": "Да",
+    "No": "Нет",
+    "Cancel": "Отмена",
+    "Apply": "Применить",
+    "Confirm": "Подтвердить"
+  },
+  "Language": {
+    "Russian": "Русский",
+    "English": "Английский"
+  },
+  "Difficulty": {
+    "Easy": "Легкий",
+    "Normal": "Нормальный",
+    "Hard": "Сложный"
+  },
+  "Navigation": {
+    "Inventory": "Инвентарь",
+    "WorldMap": "Карта мира"
+  },
+  "Inventory": {
+    "Title": "Инвентарь",
+    "Items": "Предметы",
+    "QuickAccess": "Быстрый доступ",
+    "Character": "Персонаж",
+    "Equipment": "Экипировка",
+    "Health": "Здоровье:",
+    "Damage": "Урон:",
+    "Defense": "Защита:",
+    "Helmet": "Шлем:",
+    "Chestplate": "Нагрудник:",
+    "Leggings": "Поножи:",
+    "Shield": "Щит:",
+    "Material": "Материал",
+    "MaxStack": "Макс. в стопке"
+  },
+  "Crafting": {
+    "Title": "Крафт",
+    "RecipeBook": "Книга рецептов",
+    "Craft": "Создать",
+    "RequiredMaterials": "Необходимые материалы",
+    "CraftingGrid": "Сетка крафта",
+    "Result": "Результат",
+    "SearchRecipes": "Поиск рецептов...",
+    "SelectRecipe": "Выберите рецепт",
+    "ItemName": "Название предмета",
+    "ItemDescription": "Описание предмета",
+    "Quantity": "Количество: 1",
+    "Type": "Тип:",
+    "TypeValue": "Тип предмета",
+    "Rarity": "Редкость:",
+    "RarityValue": "Редкость предмета",
+    "NoCraftableRecipes": "Нет доступных рецептов",
+    "NotEnoughMaterials": "Недостаточно материалов",
+    "CraftingSuccess": "Предмет создан!",
+    "OpenRecipeBook": "Открыть книгу рецептов"
+  },
+  "ItemTypes": {
+    "Helmet": "Шлем",
+    "Chestplate": "Нагрудник",
+    "Leggings": "Поножи",
+    "Weapon": "Оружие",
+    "Shield": "Щит",
+    "Consumable": "Расходуемый предмет",
+    "Material": "Материал"
+  },
+  "ItemMaterials": {
+    "Wood": "Дерево",
+    "Iron": "Железо",
+    "Gold": "Золото",
+    "Luminite": "Люминит"
+  },
+  "ItemRarity": {
+    "Common": "Обычный",
+    "Uncommon": "Необычный",
+    "Rare": "Редкий",
+    "Epic": "Эпический",
+    "Legendary": "Легендарный"
+  },
+  "Items": {
+    "WoodenSword": {
+      "Name": "Деревянный меч",
+      "Description": "Простой меч из дерева"
+    },
+    "IronSword": {
+      "Name": "Железный меч",
+      "Description": "Стандартный меч из железа"
+    },
+    "GoldenSword": {
+      "Name": "Золотой меч",
+      "Description": "Мощный меч из золота"
+    },
+    "LuminiteSword": {
+      "Name": "Люминитовый меч",
+      "Description": "Легендарный меч из люминита"
+    },
+    "WoodenHelmet": {
+      "Name": "Деревянный шлем",
+      "Description": "Простая защита из дерева для головы"
+    },
+    "WoodenChestplate": {
+      "Name": "Деревянный нагрудник",
+      "Description": "Простая защита из дерева для груди"
+    },
+    "WoodenLeggings": {
+      "Name": "Деревянные поножи",
+      "Description": "Простая защита из дерева для ног"
+    },
+    "IronHelmet": {
+      "Name": "Железный шлем",
+      "Description": "Крепкая защита из железа для головы"
+    },
+    "IronChestplate": {
+      "Name": "Железный нагрудник",
+      "Description": "Крепкая защита из железа для груди"
+    },
+    "IronLeggings": {
+      "Name": "Железные поножи",
+      "Description": "Крепкая защита из железа для ног"
+    },
+    "GoldenHelmet": {
+      "Name": "Золотой шлем",
+      "Description": "Красивая и прочная защита из золота для головы"
+    },
+    "GoldenChestplate": {
+      "Name": "Золотой нагрудник",
+      "Description": "Красивая и прочная защита из золота для груди"
+    },
+    "GoldenLeggings": {
+      "Name": "Золотые поножи",
+      "Description": "Красивая и прочная защита из золота для ног"
+    },
+    "LuminiteHelmet": {
+      "Name": "Люминитовый шлем",
+      "Description": "Мощная защита из люминита для головы"
+    },
+    "LuminiteChestplate": {
+      "Name": "Люминитовый нагрудник",
+      "Description": "Мощная защита из люминита для груди"
+    },
+    "LuminiteLeggings": {
+      "Name": "Люминитовые поножи",
+      "Description": "Мощная защита из люминита для ног"
+    },
+    "IronShield": {
+      "Name": "Железный щит",
+      "Description": "Стандартный щит из железа"
+    },
+    "GoldenShield": {
+      "Name": "Золотой щит",
+      "Description": "Мощный щит из золота"
+    },
+    "LuminiteShield": {
+      "Name": "Люминитовый щит",
+      "Description": "Легендарный щит из люминита"
+    },
+    "HealingPotion": {
+      "Name": "Зелье лечения",
+      "Description": "Восстанавливает здоровье при использовании"
+    },
+    "Pillow": {
+      "Name": "Подушка",
+      "Description": "Усыпляет врага на короткое время"
+    },
+    "PoisonedShuriken": {
+      "Name": "Отравленный сюрикен",
+      "Description": "Наносит урон и отравляет врага"
+    },
+    "Bomb": {
+      "Name": "Бомба",
+      "Description": "Наносит урон по площади всем врагам"
+    },
+    "RagePotion": {
+      "Name": "Зелье ярости",
+      "Description": "Увеличивает урон атаки на короткое время"
+    },
+    "InvulnerabilityPotion": {
+      "Name": "Зелье неуязвимости",
+      "Description": "Делает вас неуязвимым на короткое время"
+    },
+    "Wood": {
+      "Name": "Дерево",
+      "Description": "Базовый материал для крафта"
+    },
+    "Stick": {
+      "Name": "Палка",
+      "Description": "Используется в различных рецептах крафта"
+    },
+    "Cloth": {
+      "Name": "Ткань",
+      "Description": "Мягкий материал для крафта"
+    },
+    "Herb": {
+      "Name": "Трава",
+      "Description": "Растение с целебными свойствами"
+    },
+    "Feather": {
+      "Name": "Перо",
+      "Description": "Легкий материал для крафта"
+    },
+    "Flask": {
+      "Name": "Фляга",
+      "Description": "Контейнер для зелий"
+    },
+    "WaterFlask": {
+      "Name": "Фляга с водой",
+      "Description": "Фляга, наполненная водой"
+    },
+    "IronOre": {
+      "Name": "Железная руда",
+      "Description": "Необработанное железо, требующее переработки"
+    },
+    "IronIngot": {
+      "Name": "Железный слиток",
+      "Description": "Обработанное железо для крафта"
+    },
+    "CrystalDust": {
+      "Name": "Кристаллическая пыль",
+      "Description": "Магическая пыль с особыми свойствами"
+    },
+    "Gunpowder": {
+      "Name": "Порох",
+      "Description": "Взрывчатый материал для крафта"
+    },
+    "GoldOre": {
+      "Name": "Золотая руда",
+      "Description": "Необработанное золото, требующее переработки"
+    },
+    "GoldIngot": {
+      "Name": "Золотой слиток",
+      "Description": "Обработанное золото для крафта"
+    },
+    "PoisonExtract": {
+      "Name": "Экстракт яда",
+      "Description": "Концентрированный яд для крафта"
+    },
+    "LuminiteFragment": {
+      "Name": "Фрагмент люминита",
+      "Description": "Фрагмент редкого люминита"
+    },
+    "Luminite": {
+      "Name": "Люминит",
+      "Description": "Редкий материал с магическими свойствами"
+    }
+  },
+  "Battle": {
+    "Title": "Битва",
+    "Health": "Здоровье:",
+    "Attack": "Атака:",
+    "Defense": "Защита:",
+    "RewardItems": "Полученные предметы:",
+    "NoRewards": "Нет полученных предметов",
+    "CompleteMessage": "Нажмите 'Завершить бой', чтобы вернуться на карту мира",
+    "SelectTarget": "Выберите цель:",
+    "Defeated": "повержен",
+    "Items": "Предметы:",
+    "Use": "Использовать",
+    "Attack": "Атака",
+    "AttackSelected": "Атаковать",
+    "Complete": "Завершить бой",
+    "NextTurn": "Следующий ход",
+    "Defend": "Защита",
+    "UseItem": "Использовать предмет",
+    "Flee": "Бежать",
+    "Victory": "Победа!",
+    "Defeat": "Поражение!",
+    "EnemyTurn": "Ход противника",
+    "YourTurn": "Ваш ход",
+    "CriticalHit": "Критический удар!",
+    "Missed": "Промах!",
+    "Damage": "Урон"
+  },
+  "WorldMap": {
+    "Title": "Карта мира",
+    "Travel": "Путешествовать",
+    "LockedLocation": "Эта локация заблокирована",
+    "CurrentLocation": "Текущая локация",
+    "FightHero": "Сразиться с героем",
+    "FightMobs": "Сразиться с мобами",
+    "Status": "Статус:",
+    "Unlocked": "Разблокировано",
+    "Locked": "Заблокировано",
+    "Completion": "Завершение:",
+    "Completed": "Завершено",
+    "Available": "Доступно",
+    "UnlockRequirement": "Для разблокировки нужно завершить предыдущую локацию.",
+    "Legend": "Легенда:",
+    "Selected": "Выбрано"
+  },
+  "Locations": {
+    "Village": {
+      "Name": "Деревня",
+      "Description": "Мирная деревня с дружелюбными жителями"
+    },
+    "Forest": {
+      "Name": "Лес",
+      "Description": "Густой лес, полный опасных существ"
+    },
+    "Cave": {
+      "Name": "Пещера",
+      "Description": "Тёмная пещера с ценными минералами и притаившимися монстрами"
+    },
+    "Ancient Ruins": {
+      "Name": "Древние руины",
+      "Description": "Таинственные руины, полные древних сокровищ и опасностей"
+    },
+    "Dark Castle": {
+      "Name": "Тёмный замок",
+      "Description": "Внушительный замок, которым правят тёмные силы"
+    }
+  },
+  "Characters": {
+    "Player": "Герой",
+    "Enemies": {
+      "Village": {
+        "Regular": "Деревенский бандит"
+      },
+      "Forest": {
+        "Regular": "Лесной бандит"
+      },
+      "Cave": {
+        "Regular": "Пещерный бандит"
+      },
+      "Ruins": {
+        "Regular": "Бандит руин"
+      },
+      "Castle": {
+        "Regular": "Замковый бандит"
+      }
+    },
+    "Heroes": {
+      "VillageElder": "Старейшина деревни",
+      "ForestGuardian": "Лесной страж",
+      "CaveTroll": "Пещерный тролль",
+      "GuardianGolem": "Страж-голем",
+      "DarkKing": "Темный король"
+    }
+  },
+  "Heroes": {
+    "Village": {
+      "Name": "Страж деревни",
+      "Description": "Защитник мирной деревни"
+    },
+    "Forest": {
+      "Name": "Лесной страж",
+      "Description": "Древний хранитель леса"
+    },
+    "Cave": {
+      "Name": "Повелитель пещер",
+      "Description": "Владыка подземных пещер"
+    },
+    "Ancient Ruins": {
+      "Name": "Древний страж",
+      "Description": "Хранитель древних секретов"
+    },
+    "Dark Castle": {
+      "Name": "Тёмный лорд",
+      "Description": "Величайшее зло, которое должно быть повержено"
+    }
+  },
+  "Enemies": {
+    "Thief": {
+      "Name": "Вор",
+      "Description": "Подлый преступник"
+    },
+    "Bandit": {
+      "Name": "Бандит",
+      "Description": "Опасный разбойник"
+    },
+    "Wolf": {
+      "Name": "Волк",
+      "Description": "Дикий лесной волк"
+    },
+    "Goblin": {
+      "Name": "Гоблин",
+      "Description": "Вредный обитатель пещер"
+    },
+    "Skeleton": {
+      "Name": "Скелет",
+      "Description": "Нежить-воин"
+    },
+    "Orc": {
+      "Name": "Орк",
+      "Description": "Свирепый воин"
+    }
+  }
+} 

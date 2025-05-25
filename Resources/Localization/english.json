@@ -1,0 +1,421 @@
+{
+  "MainMenu": {
+    "NewGame": "New Game",
+    "ContinueGame": "Continue Game",
+    "Options": "Options",
+    "Exit": "Exit"
+  },
+  "Settings": {
+    "Title": "Settings",
+    "Language": "Language / Язык",
+    "SelectLanguage": "Game Language:",
+    "GameLanguage": "Game Language:",
+    "Gameplay": "Gameplay",
+    "Difficulty": "Difficulty:",
+    "Tutorial": "Tutorial:",
+    "Interface": "Interface",
+    "Tooltips": "Tooltips:",
+    "Combat": "Combat:",
+    "ResetDefaults": "Reset to Defaults",
+    "Save": "Save",
+    "SavedStatus": "Saved",
+    "Applied": "Settings applied successfully!",
+    "ApplyError": "Error applying settings",
+    "ResetComplete": "Settings reset to default values",
+    "ResetError": "Error resetting settings",
+    "DifficultyChanged": "Game difficulty changed to:",
+    "ShowTutorials": "Show tutorials",
+    "ShowItemTooltips": "Show item descriptions on hover",
+    "ShowDamageNumbers": "Show damage numbers",
+    "UnsavedChanges": "You have unsaved changes. Save before exiting?",
+    "UnsavedChangesTitle": "Unsaved Changes"
+  },
+  "Common": {
+    "Back": "Back",
+    "Enable": "Enable",
+    "Yes": "Yes",
+    "No": "No",
+    "Cancel": "Cancel",
+    "Apply": "Apply",
+    "Confirm": "Confirm"
+  },
+  "Language": {
+    "Russian": "Russian",
+    "English": "English"
+  },
+  "Difficulty": {
+    "Easy": "Easy",
+    "Normal": "Normal",
+    "Hard": "Hard"
+  },
+  "Navigation": {
+    "Inventory": "Inventory",
+    "WorldMap": "World Map"
+  },
+  "Inventory": {
+    "Title": "Inventory",
+    "Items": "Items",
+    "QuickAccess": "Quick Access",
+    "Character": "Character",
+    "Equipment": "Equipment",
+    "Health": "Health:",
+    "Damage": "Damage:",
+    "Defense": "Defense:",
+    "Helmet": "Helmet:",
+    "Chestplate": "Chestplate:",
+    "Leggings": "Leggings:",
+    "Shield": "Shield:",
+    "Material": "Material",
+    "MaxStack": "Max stack"
+  },
+  "Crafting": {
+    "Title": "Crafting",
+    "RecipeBook": "Recipe Book",
+    "Craft": "Craft",
+    "RequiredMaterials": "Required Materials",
+    "CraftingGrid": "Crafting Grid",
+    "Result": "Result",
+    "SearchRecipes": "Search recipes...",
+    "SelectRecipe": "Select a recipe",
+    "ItemName": "Item Name",
+    "ItemDescription": "Item Description",
+    "Quantity": "Quantity: 1",
+    "Type": "Type:",
+    "TypeValue": "Item Type",
+    "Rarity": "Rarity:",
+    "RarityValue": "Item Rarity",
+    "NoCraftableRecipes": "No available recipes",
+    "NotEnoughMaterials": "Not enough materials",
+    "CraftingSuccess": "Item crafted!",
+    "OpenRecipeBook": "Open recipe book"
+  },
+  "ItemTypes": {
+    "Helmet": "Helmet",
+    "Chestplate": "Chestplate",
+    "Leggings": "Leggings",
+    "Weapon": "Weapon",
+    "Shield": "Shield",
+    "Consumable": "Consumable",
+    "Material": "Material"
+  },
+  "ItemMaterials": {
+    "Wood": "Wood",
+    "Iron": "Iron",
+    "Gold": "Gold",
+    "Luminite": "Luminite"
+  },
+  "ItemRarity": {
+    "Common": "Common",
+    "Uncommon": "Uncommon",
+    "Rare": "Rare",
+    "Epic": "Epic",
+    "Legendary": "Legendary"
+  },
+  "Items": {
+    "WoodenSword": {
+      "Name": "Wooden Sword",
+      "Description": "Basic sword made of wood"
+    },
+    "IronSword": {
+      "Name": "Iron Sword",
+      "Description": "Standard sword made of iron"
+    },
+    "GoldenSword": {
+      "Name": "Golden Sword",
+      "Description": "Powerful sword made of gold"
+    },
+    "LuminiteSword": {
+      "Name": "Luminite Sword",
+      "Description": "Legendary sword made of luminite"
+    },
+    "WoodenHelmet": {
+      "Name": "Wooden Helmet",
+      "Description": "Simple wooden protection for your head"
+    },
+    "WoodenChestplate": {
+      "Name": "Wooden Chestplate",
+      "Description": "Simple wooden protection for your chest"
+    },
+    "WoodenLeggings": {
+      "Name": "Wooden Leggings",
+      "Description": "Simple wooden protection for your legs"
+    },
+    "IronHelmet": {
+      "Name": "Iron Helmet",
+      "Description": "Sturdy iron protection for your head"
+    },
+    "IronChestplate": {
+      "Name": "Iron Chestplate",
+      "Description": "Sturdy iron protection for your chest"
+    },
+    "IronLeggings": {
+      "Name": "Iron Leggings",
+      "Description": "Sturdy iron protection for your legs"
+    },
+    "GoldenHelmet": {
+      "Name": "Golden Helmet",
+      "Description": "Beautiful and strong golden protection for your head"
+    },
+    "GoldenChestplate": {
+      "Name": "Golden Chestplate",
+      "Description": "Beautiful and strong golden protection for your chest"
+    },
+    "GoldenLeggings": {
+      "Name": "Golden Leggings",
+      "Description": "Beautiful and strong golden protection for your legs"
+    },
+    "LuminiteHelmet": {
+      "Name": "Luminite Helmet",
+      "Description": "Powerful luminite protection for your head"
+    },
+    "LuminiteChestplate": {
+      "Name": "Luminite Chestplate",
+      "Description": "Powerful luminite protection for your chest"
+    },
+    "LuminiteLeggings": {
+      "Name": "Luminite Leggings",
+      "Description": "Powerful luminite protection for your legs"
+    },
+    "IronShield": {
+      "Name": "Iron Shield",
+      "Description": "Standard shield made of iron"
+    },
+    "GoldenShield": {
+      "Name": "Golden Shield",
+      "Description": "Powerful shield made of gold"
+    },
+    "LuminiteShield": {
+      "Name": "Luminite Shield",
+      "Description": "Legendary shield made of luminite"
+    },
+    "HealingPotion": {
+      "Name": "Healing Potion",
+      "Description": "Restores health when consumed"
+    },
+    "Pillow": {
+      "Name": "Pillow",
+      "Description": "Puts the enemy to sleep for a short time"
+    },
+    "PoisonedShuriken": {
+      "Name": "Poisoned Shuriken",
+      "Description": "Deals damage and poisons the enemy"
+    },
+    "Bomb": {
+      "Name": "Bomb",
+      "Description": "Deals area damage to all enemies"
+    },
+    "RagePotion": {
+      "Name": "Rage Potion",
+      "Description": "Increases attack damage for a short time"
+    },
+    "InvulnerabilityPotion": {
+      "Name": "Invulnerability Potion",
+      "Description": "Makes you invulnerable for a short time"
+    },
+    "Wood": {
+      "Name": "Wood",
+      "Description": "Basic crafting material"
+    },
+    "Stick": {
+      "Name": "Stick",
+      "Description": "Used in various crafting recipes"
+    },
+    "Cloth": {
+      "Name": "Cloth",
+      "Description": "Soft material for crafting"
+    },
+    "Herb": {
+      "Name": "Herb",
+      "Description": "Plant with healing properties"
+    },
+    "Feather": {
+      "Name": "Feather",
+      "Description": "Lightweight crafting material"
+    },
+    "Flask": {
+      "Name": "Flask",
+      "Description": "Container for potions"
+    },
+    "WaterFlask": {
+      "Name": "Water Flask",
+      "Description": "Flask filled with water"
+    },
+    "IronOre": {
+      "Name": "Iron Ore",
+      "Description": "Raw iron that needs to be processed"
+    },
+    "IronIngot": {
+      "Name": "Iron Ingot",
+      "Description": "Processed iron for crafting"
+    },
+    "CrystalDust": {
+      "Name": "Crystal Dust",
+      "Description": "Magical dust with special properties"
+    },
+    "Gunpowder": {
+      "Name": "Gunpowder",
+      "Description": "Explosive material for crafting"
+    },
+    "GoldOre": {
+      "Name": "Gold Ore",
+      "Description": "Raw gold that needs to be processed"
+    },
+    "GoldIngot": {
+      "Name": "Gold Ingot",
+      "Description": "Processed gold for crafting"
+    },
+    "PoisonExtract": {
+      "Name": "Poison Extract",
+      "Description": "Concentrated poison for crafting"
+    },
+    "LuminiteFragment": {
+      "Name": "Luminite Fragment",
+      "Description": "Fragment of rare luminite"
+    },
+    "Luminite": {
+      "Name": "Luminite",
+      "Description": "Rare material with magical properties"
+    }
+  },
+  "Battle": {
+    "Title": "Battle",
+    "Health": "Health:",
+    "Attack": "Attack:",
+    "Defense": "Defense:",
+    "RewardItems": "Reward Items:",
+    "NoRewards": "No reward items",
+    "CompleteMessage": "Click 'Complete Battle' to return to the world map",
+    "SelectTarget": "Select target:",
+    "Defeated": "defeated",
+    "Items": "Items:",
+    "Use": "Use",
+    "Attack": "Attack",
+    "AttackSelected": "Attack",
+    "Complete": "Complete Battle",
+    "NextTurn": "Next Turn",
+    "Defend": "Defend",
+    "UseItem": "Use Item",
+    "Flee": "Flee",
+    "Victory": "Victory!",
+    "Defeat": "Defeat!",
+    "EnemyTurn": "Enemy Turn",
+    "YourTurn": "Your Turn",
+    "CriticalHit": "Critical Hit!",
+    "Missed": "Missed!",
+    "Damage": "Damage"
+  },
+  "WorldMap": {
+    "Title": "World Map",
+    "Travel": "Travel",
+    "LockedLocation": "This location is locked",
+    "CurrentLocation": "Current location",
+    "FightHero": "Fight Hero",
+    "FightMobs": "Fight Mobs",
+    "Status": "Status:",
+    "Unlocked": "Unlocked",
+    "Locked": "Locked",
+    "Completion": "Completion:",
+    "Completed": "Completed",
+    "Available": "Available",
+    "UnlockRequirement": "Need to complete the previous location to unlock.",
+    "Legend": "Legend:",
+    "Selected": "Selected"
+  },
+  "Locations": {
+    "Village": {
+      "Name": "Village",
+      "Description": "A peaceful village where your journey begins"
+    },
+    "Forest": {
+      "Name": "Forest",
+      "Description": "A dark forest filled with dangers"
+    },
+    "Cave": {
+      "Name": "Cave",
+      "Description": "A mysterious cave with hidden treasures"
+    },
+    "Ancient Ruins": {
+      "Name": "Ancient Ruins",
+      "Description": "Ancient ruins with powerful artifacts"
+    },
+    "Dark Castle": {
+      "Name": "Dark Castle",
+      "Description": "The final challenge awaits in this dark fortress"
+    }
+  },
+  "Characters": {
+    "Player": "Hero",
+    "Enemies": {
+      "Village": {
+        "Regular": "Village Bandit"
+      },
+      "Forest": {
+        "Regular": "Forest Bandit"
+      },
+      "Cave": {
+        "Regular": "Cave Bandit"
+      },
+      "Ruins": {
+        "Regular": "Ruins Bandit"
+      },
+      "Castle": {
+        "Regular": "Castle Bandit"
+      }
+    },
+    "Heroes": {
+      "VillageElder": "Village Elder",
+      "ForestGuardian": "Forest Guardian",
+      "CaveTroll": "Cave Troll",
+      "GuardianGolem": "Guardian Golem",
+      "DarkKing": "Dark King"
+    }
+  },
+  "Heroes": {
+    "Village": {
+      "Name": "Village Guardian",
+      "Description": "Protector of the village"
+    },
+    "Forest": {
+      "Name": "Forest Guardian",
+      "Description": "Ancient guardian of the forest"
+    },
+    "Cave": {
+      "Name": "Cave Lord",
+      "Description": "Master of the underground caves"
+    },
+    "Ancient Ruins": {
+      "Name": "Ancient Guardian",
+      "Description": "Guardian of ancient secrets"
+    },
+    "Dark Castle": {
+      "Name": "Dark Lord",
+      "Description": "The ultimate evil that must be defeated"
+    }
+  },
+  "Enemies": {
+    "Thief": {
+      "Name": "Thief",
+      "Description": "A sneaky criminal"
+    },
+    "Bandit": {
+      "Name": "Bandit",
+      "Description": "A dangerous outlaw"
+    },
+    "Wolf": {
+      "Name": "Wolf",
+      "Description": "A wild forest wolf"
+    },
+    "Goblin": {
+      "Name": "Goblin",
+      "Description": "A mischievous cave dweller"
+    },
+    "Skeleton": {
+      "Name": "Skeleton",
+      "Description": "An undead warrior"
+    },
+    "Orc": {
+      "Name": "Orc",
+      "Description": "A fierce warrior"
+    }
+  }
+} 

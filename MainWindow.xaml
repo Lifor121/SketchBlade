@@ -1,0 +1,76 @@
+﻿<Window x:Class="SketchBlade.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SketchBlade"
+        xmlns:converters="clr-namespace:SketchBlade.Helpers.Converters"
+        mc:Ignorable="d"
+        Title="SketchBlade" Height="700" Width="1000" WindowStartupLocation="CenterScreen"
+        KeyDown="MainWindow_KeyDown">
+    <Window.Resources>
+        <!-- Converters -->
+        <converters:TranslationConverter x:Key="TranslationConverter"/>
+        
+        <!-- Style for navigation buttons -->
+        <Style x:Key="NavButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#444444"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="15,8"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#666666"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#222222"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Navigation Bar - Visible only on InventoryView and WorldMapView -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Background="#333333">
+            <StackPanel.Style>
+                <Style TargetType="StackPanel">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding CurrentScreen}" Value="InventoryView">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding CurrentScreen}" Value="WorldMapView">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </StackPanel.Style>
+            
+            <Button Content="{Binding Source='Navigation.Inventory', Converter={StaticResource TranslationConverter}}"                     
+                    Style="{StaticResource NavButtonStyle}"                    
+                    Command="{Binding NavigateCommand}"                     
+                    CommandParameter="InventoryView"/>
+                    
+            <Button Content="{Binding Source='Navigation.WorldMap', Converter={StaticResource TranslationConverter}}"                     
+                    Style="{StaticResource NavButtonStyle}"                    
+                    Command="{Binding NavigateCommand}"                     
+                    CommandParameter="WorldMapView"
+                    Click="WorldMapButton_Click"/>
+        </StackPanel>
+        
+        <!-- Content Frame -->
+        <Frame Grid.Row="1" x:Name="ContentFrame" NavigationUIVisibility="Hidden" 
+               KeyboardNavigation.TabNavigation="None" 
+               KeyboardNavigation.DirectionalNavigation="None"
+               IsTabStop="False"
+               Focusable="False"/>
+    </Grid>
+</Window>

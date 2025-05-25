@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UserControl x:Class="SketchBlade.Views.Controls.ItemTooltip"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:SketchBlade.Views.Controls"
+             xmlns:converters="clr-namespace:SketchBlade.Helpers.Converters"
+             mc:Ignorable="d" 
+             MaxWidth="250">
+    <UserControl.Resources>
+        <converters:TranslationConverter x:Key="TranslationConverter"/>
+    </UserControl.Resources>
+    
+    <Border Background="#333333" CornerRadius="4" BorderBrush="#666666" BorderThickness="1" Padding="8,6">
+        <StackPanel>
+            <!-- Item Name with rarity color -->
+            <TextBlock x:Name="ItemNameText" Text="Название предмета" 
+                     FontWeight="Bold" FontSize="14" Foreground="White" Margin="0,0,0,4"/>
+            
+            <!-- Item Type -->
+            <TextBlock x:Name="ItemTypeText" Text="Тип предмета" Foreground="#CCCCCC" FontSize="12" Margin="0,0,0,2"/>
+            
+            <!-- Material -->
+            <StackPanel x:Name="MaterialPanel" Orientation="Horizontal" Visibility="Collapsed" Margin="0,0,0,2">
+                <TextBlock Text="{Binding Source='Inventory.Material', Converter={StaticResource TranslationConverter}}" Foreground="#CCCCCC" FontSize="11"/>
+                <TextBlock Text=": " Foreground="#CCCCCC" FontSize="11"/>
+                <TextBlock x:Name="ItemMaterialText" Text="Материал" Foreground="White" FontSize="11"/>
+            </StackPanel>
+            
+            <!-- Stack Size -->
+            <StackPanel x:Name="StackSizePanel" Orientation="Horizontal" Visibility="Collapsed" Margin="0,0,0,2">
+                <TextBlock Text="{Binding Source='Inventory.MaxStack', Converter={StaticResource TranslationConverter}}" Foreground="#CCCCCC" FontSize="11"/>
+                <TextBlock Text=": " Foreground="#CCCCCC" FontSize="11"/>
+                <TextBlock x:Name="ItemMaxStackText" Text="1" Foreground="White" FontSize="11"/>
+            </StackPanel>
+            
+            <!-- Stats (conditional) -->
+            <StackPanel x:Name="StatsPanel" Margin="0,2,0,2">
+                <StackPanel x:Name="DamagePanel" Orientation="Horizontal" Visibility="Collapsed" Margin="0,0,0,2">
+                    <TextBlock Text="{Binding Source='Inventory.Damage', Converter={StaticResource TranslationConverter}}" Foreground="#CCCCCC" FontSize="11"/>
+                    <TextBlock Text=": " Foreground="#CCCCCC" FontSize="11"/>
+                    <TextBlock x:Name="ItemDamageText" Text="0" Foreground="#FF9966" FontSize="11"/>
+                </StackPanel>
+                
+                <StackPanel x:Name="DefensePanel" Orientation="Horizontal" Visibility="Collapsed" Margin="0,0,0,2">
+                    <TextBlock Text="{Binding Source='Inventory.Defense', Converter={StaticResource TranslationConverter}}" Foreground="#CCCCCC" FontSize="11"/>
+                    <TextBlock Text=": " Foreground="#CCCCCC" FontSize="11"/>
+                    <TextBlock x:Name="ItemDefenseText" Text="0" Foreground="#66CCFF" FontSize="11"/>
+                </StackPanel>
+            </StackPanel>
+            
+            <!-- Description -->
+            <TextBlock x:Name="ItemDescriptionText" Text="Описание предмета" 
+                     Foreground="#BBBBBB" TextWrapping="Wrap" FontSize="11" Margin="0,2,0,0"/>
+        </StackPanel>
+    </Border>
+</UserControl> 

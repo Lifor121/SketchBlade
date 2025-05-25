@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UserControl x:Class="SketchBlade.Views.Controls.CoreInventorySlot"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:SketchBlade.Views.Controls"
+             xmlns:converters="clr-namespace:SketchBlade.Helpers.Converters"
+             mc:Ignorable="d" 
+             Width="45" Height="45"
+             AllowDrop="True">
+    <UserControl.Resources>
+        <converters:NullToTransparentConverter x:Key="NullToTransparentConverter"/>
+        <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
+    </UserControl.Resources>
+    <Border x:Name="CoreSlotBorder" Background="#F0F0F0" BorderBrush="Gray" BorderThickness="1" CornerRadius="3"
+            MouseDown="SlotBorder_MouseDown"
+            MouseMove="SlotBorder_MouseMove"
+            MouseEnter="SlotBorder_MouseEnter"
+            MouseLeave="SlotBorder_MouseLeave"
+            AllowDrop="True"
+            DragEnter="SlotBorder_DragEnter"
+            DragOver="SlotBorder_DragOver"
+            DragLeave="SlotBorder_DragLeave"
+            Drop="SlotBorder_Drop">
+        <Grid>
+            <Rectangle x:Name="HighlightRect" Fill="#4FFFFFFF" Opacity="0"/>
+            <Rectangle x:Name="RarityIndicator" Height="3" VerticalAlignment="Top" Fill="Gray" Visibility="Collapsed"/>
+            <Image x:Name="CoreItemImage" Margin="3" Stretch="Uniform" Visibility="Collapsed"/>
+            <TextBlock x:Name="CoreItemCount" HorizontalAlignment="Right" VerticalAlignment="Bottom" 
+                     Margin="0,0,3,1" FontSize="10" Visibility="Collapsed"/>
+        </Grid>
+    </Border>
+</UserControl> 
