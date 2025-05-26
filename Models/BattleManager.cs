@@ -396,57 +396,41 @@ namespace SketchBlade.Models
         {
             int goldReward = 0;
             List<Item> loot = new List<Item>();
-            
-            LoggingService.LogDebug($"CalculateRewards: Starting reward calculation for battle with isVictory={isVictory}, enemies={enemies.Count}");
-            
+                        
             if (isVictory)
             {
                 int baseGold = 10;
                 
-                // Adjust rewards based on enemy count and type
                 goldReward = baseGold * enemies.Count;
                 
-                // Increase gold for boss enemies
                 foreach (var enemy in enemies)
                 {
                     if (enemy.IsHero)
                     {
-                        goldReward += 50; // Дополнительное золото за героя
-                        LoggingService.LogDebug($"CalculateRewards: Adding extra 50 gold for hero enemy {enemy.Name}");
+                        goldReward += 50;
                     }
                 }
                 
-                // Store gold reward
                 _goldReward = goldReward;
                 
-                // Generate loot if there's a current location
                 if (_gameState.CurrentLocation != null)
                 {
-                    // Use the CalculateBattleRewards method to get appropriate loot
                     bool isBossHeroBattle = enemies.Any(e => e.IsHero);
                     (_, loot) = CalculateBattleRewards(isBossHeroBattle, enemies.Count);
                     
-                    // Make sure we have at least some loot items
                     if (loot.Count == 0)
-                    {
-                        LoggingService.LogError("CalculateRewards: CRITICAL - No loot was generated, forcing fallback loot generation");
-                        
-                        // Fallback loot generation - minimum items based on battle type
+                    {                        
                         int minLootCount = isBossHeroBattle ? 3 : 2;
                         
                         try
                         {
-                            // Try to generate loot from location directly
                             if (_gameState.CurrentLocation.PossibleLoot != null && _gameState.CurrentLocation.PossibleLoot.Length > 0)
                             {
                                 loot = _gameState.CurrentLocation.GenerateLoot(minLootCount);
-                                LoggingService.LogDebug($"CalculateRewards: Generated {loot.Count} fallback loot items from location directly");
                             }
                             else
                             {
-                                // If we still can't generate loot, create some basic items
                                 loot = GenerateFallbackLoot(minLootCount, _gameState.CurrentLocation.Type);
-                                LoggingService.LogDebug($"CalculateRewards: Generated {loot.Count} basic fallback loot items");
                             }
                         }
                         catch (Exception ex)
@@ -454,47 +438,29 @@ namespace SketchBlade.Models
                             LoggingService.LogError($"CalculateRewards: Error in fallback loot generation: {ex.Message}", ex);
                         }
                     }
-                    
-                    // Log the final loot items
-                    LoggingService.LogDebug($"CalculateRewards: Generated {loot.Count} total loot items");
-                    
-                    foreach (var item in loot)
-                    {
-                        LoggingService.LogDebug($"CalculateRewards: Loot item: {item.Name} x{item.StackSize}");
-                    }
                 }
                 else
                 {
                     LoggingService.LogError("CalculateRewards: WARNING: No current location to generate loot from");
                 }
             }
-            else
-            {
-                LoggingService.LogDebug("CalculateRewards: Battle lost, no rewards generated");
-            }
-            
-            LoggingService.LogDebug($"CalculateRewards: Returning gold={goldReward}, items={loot.Count}");
-                
             return (goldReward, loot);
         }
         
-        // Generate some basic fallback loot when other methods fail
         private List<Item> GenerateFallbackLoot(int count, LocationType locationType)
         {
             List<Item> items = new List<Item>();
             Random random = new Random();
             
-            // Define basic item templates for each location
             for (int i = 0; i < count; i++)
             {
                 Item item = new Item
                 {
                     MaxStackSize = 10,
-                    StackSize = random.Next(1, 4), // 1-3 items
+                    StackSize = random.Next(1, 4),
                     Type = ItemType.Material
                 };
                 
-                // Set properties based on location
                 switch (locationType)
                 {
                     case LocationType.Village:
@@ -548,10 +514,8 @@ namespace SketchBlade.Models
                         break;
                 }
                 
-                // Set sprite path based on name
                 item.SpritePath = AssetPaths.Materials.GetMaterialPath(item.Name);
                 
-                // Set rarity and value based on location
                 switch (locationType)
                 {
                     case LocationType.Village:
@@ -576,7 +540,6 @@ namespace SketchBlade.Models
                         break;
                 }
                 
-                // Add description
                 item.Description = $"{item.Name} - {item.Rarity} материал из локации {locationType}";
                 
                 items.Add(item);
@@ -585,21 +548,17 @@ namespace SketchBlade.Models
             return items;
         }
 
-        // Mark battle as complete
         public void MarkBattleComplete(bool isVictory, List<Character> enemies)
         {
             _isVictory = isVictory;
             _enemies = enemies;
             
-            // Calculate rewards if the battle was won
             if (isVictory)
             {
                 var (gold, items) = CalculateRewards(isVictory, enemies);
                 
-                // Apply rewards
                 _gameState.Gold += gold;
                 
-                // Add items to inventory
                 if (items != null)
                 {
                     foreach (var item in items)
@@ -610,23 +569,18 @@ namespace SketchBlade.Models
             }
         }
 
-        // Calculate specific rewards for battle based on enemy type
         public int CalculateGoldReward(bool isBossHeroBattle)
         {
-            // Boss hero battles provide more rewards
             if (isBossHeroBattle)
             {
-                // Base rewards for boss battles
                 return 100;
             }
             else
             {
-                // Regular battle rewards
                 return 10 * _enemies.Count;
             }
         }
 
-        // Настройка новой битвы с данными вргами
         public void SetupBattle(List<Character> enemies, bool isHeroBattle = false)
         {
             if (enemies == null || enemies.Count == 0)
@@ -640,35 +594,25 @@ namespace SketchBlade.Models
             
             try
             {
-                // Инициализация свойств врагам
                 foreach (var enemy in _enemies)
                 {
-                    // Восстанавливаем здоровье любого выжившего врага
                     if (enemy.IsDefeated)
                     {
                         enemy.CurrentHealth = enemy.MaxHealth;
                     }
                     
-                    // Добавляем вариацию здоровья и атаки для больших боев
                     if (!enemy.IsHero && !isHeroBattle)
                     {
-                        // Добавляем случайные вариации для обычных боев (±10%)
                         Random random = new Random();
-                        double healthVariation = 0.9 + (random.NextDouble() * 0.2); // 0.9-1.1
-                        double attackVariation = 0.9 + (random.NextDouble() * 0.2); // 0.9-1.1
-                        double defenseVariation = 0.9 + (random.NextDouble() * 0.2); // 0.9-1.1
+                        double healthVariation = 0.9 + (random.NextDouble() * 0.2);
+                        double attackVariation = 0.9 + (random.NextDouble() * 0.2);
+                        double defenseVariation = 0.9 + (random.NextDouble() * 0.2);
                         
                         enemy.MaxHealth = (int)(enemy.MaxHealth * healthVariation);
                         enemy.CurrentHealth = enemy.MaxHealth;
                         enemy.Attack = (int)(enemy.Attack * attackVariation);
                         enemy.Defense = (int)(enemy.Defense * defenseVariation);
                     }
-                }
-                
-                LoggingService.LogDebug($"Battle setup complete with {_enemies.Count} enemies");
-                foreach (var enemy in _enemies)
-                {
-                    LoggingService.LogDebug($"Enemy: {enemy.Name}, HP: {enemy.CurrentHealth}/{enemy.MaxHealth}, ATK: {enemy.Attack}, DEF: {enemy.Defense}, IsHero: {enemy.IsHero}");
                 }
             }
             catch (Exception ex)

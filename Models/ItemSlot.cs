@@ -34,11 +34,8 @@ namespace SketchBlade.Models
             {
                 if (_item != value)
                 {
-                    // Verify that the item is valid for this slot type
                     if (value != null && !CanAcceptItem(value))
                     {
-                        // Log warning but don't crash the application
-                        LoggingService.LogDebug($"WARNING: Attempted to place invalid item {value.Name} into slot type {Type}");
                         return;
                     }
                     
@@ -84,7 +81,6 @@ namespace SketchBlade.Models
                 case SlotType.Inventory:
                 case SlotType.Trash:
                 case SlotType.Quick:
-                    // These slots can contain any item
                     return true;
                 case SlotType.Helmet:
                     return item.Type == ItemType.Helmet;
@@ -99,10 +95,8 @@ namespace SketchBlade.Models
                 case SlotType.Consumable:
                     return item.Type == ItemType.Consumable;
                 case SlotType.Craft:
-                    // Craft slots can contain materials or items that can be crafted with
                     return true;
                 case SlotType.CraftResult:
-                    // В слот результата крафта нельзя поместить предмет вручную
                     return false;
                 default:
                     return false;

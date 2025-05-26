@@ -8,14 +8,8 @@ using SketchBlade.Utilities;
 
 namespace SketchBlade.Services
 {
-    /// <summary>
-    /// Инициализатор игры - отвечает за настройку начальных данных
-    /// </summary>
     public class GameInitializer
     {
-        /// <summary>
-        /// Инициализирует новую игру
-        /// </summary>
         public void InitializeNewGame(GameData gameData)
         {
             InitializePlayer(gameData);
@@ -24,9 +18,6 @@ namespace SketchBlade.Services
             SetupStartingLocation(gameData);
         }
 
-        /// <summary>
-        /// Создает начального игрока
-        /// </summary>
         private void InitializePlayer(GameData gameData)
         {
             gameData.Player = new Character
@@ -42,25 +33,21 @@ namespace SketchBlade.Services
             LoggingService.LogInfo("Player character initialized");
         }
 
-        /// <summary>
-        /// Настраивает начальный инвентарь
-        /// </summary>
         private void InitializeInventory(GameData gameData)
         {
             LoggingService.LogInfo("=== ИНИЦИАЛИЗАЦИЯ СТАРТОВОГО ИНВЕНТАРЯ ===");
             
-            // Увеличенные количества для доступности большего числа рецептов
             var startingItems = new List<(string name, int quantity)>
             {
-                ("Дерево", 20),           // Увеличено с 1 до 20 - для деревянных предметов
-                ("Трава", 10),            // Увеличено с 1 до 10 - для зелий
-                ("Палка", 5),             // Увеличено с 1 до 5 - для оружия
-                ("Зелье лечения", 3),     // Оставляем 3
-                ("Ткань", 5),             // Увеличено с 1 до 5
-                ("Фляга", 3),             // Оставляем 3
-                ("Железная руда", 8),     // Увеличено с 1 до 8 - для выплавки слитков
-                ("Железный слиток", 4),   // Увеличено с 1 до 4 - для железного оружия/брони
-                ("Золотой слиток", 2)     // Увеличено с 1 до 2 - для золотого оружия
+                ("Дерево", 20),           
+                ("Трава", 10),            
+                ("Палка", 5),             
+                ("Зелье лечения", 3),     
+                ("Ткань", 5),          
+                ("Фляга", 3),           
+                ("Железная руда", 8),     
+                ("Железный слиток", 4),   
+                ("Золотой слиток", 2)  
             };
             
             foreach (var (itemName, quantity) in startingItems)
@@ -68,7 +55,6 @@ namespace SketchBlade.Services
                 var item = ItemFactory.CreateItem(itemName, 1);
                 if (item != null)
                 {
-                    LoggingService.LogDebug($"Создан предмет-шаблон: {item.Name} для добавления количества: {quantity}");
                     bool added = gameData.Inventory.AddItem(item, quantity);
                     LoggingService.LogInfo($"{itemName} added: {added} (Stack: {quantity})");
                 }
@@ -78,24 +64,11 @@ namespace SketchBlade.Services
                 }
             }
             
-            // Диагностика результата
             var nonNullItems = gameData.Inventory.Items.Count(item => item != null);
-            LoggingService.LogDebug($"После добавления стартовых предметов: {nonNullItems} не-null предметов в инвентаре");
-            
-            foreach (var item in gameData.Inventory.Items.Where(item => item != null))
-            {
-                LoggingService.LogDebug($"Стартовый предмет в инвентаре: {item.Name} x{item.StackSize}");
-            }
-            
             LoggingService.LogInfo("Starting items given to player");
-            
-            // ОПТИМИЗАЦИЯ: Вызываем OnInventoryChanged только один раз в конце
             gameData.Inventory.OnInventoryChanged();
         }
 
-        /// <summary>
-        /// Создает локации мира
-        /// </summary>
         private void InitializeLocations(GameData gameData)
         {
             var locations = new[]
@@ -117,12 +90,8 @@ namespace SketchBlade.Services
             LoggingService.LogDebug($"Created {locations.Length} locations");
         }
 
-        /// <summary>
-        /// Создает одну локацию
-        /// </summary>
         private Location CreateLocation(string name, string description, LocationType type, bool isUnlocked, bool isCompleted)
         {
-            // Determine correct sprite path based on location type
             string spritePath = type switch
             {
                 LocationType.Village => AssetPaths.Locations.VILLAGE,
@@ -133,7 +102,6 @@ namespace SketchBlade.Services
                 _ => AssetPaths.DEFAULT_IMAGE
             };
 
-            // Создаем героя для каждой локации
             var hero = CreateEnemy(type, true);
 
             return new Location
@@ -143,15 +111,12 @@ namespace SketchBlade.Services
                 LocationType = type,
                 IsUnlocked = isUnlocked,
                 IsCompleted = isCompleted,
-                SpritePath = spritePath,  // Use SpritePath instead of ImagePath
-                Hero = hero,  // ДОБАВЛЕНО: устанавливаем героя для локации
-                HeroDefeated = false  // ДОБАВЛЕНО: инициализируем статус героя
+                SpritePath = spritePath, 
+                Hero = hero,
+                HeroDefeated = false
             };
         }
 
-        /// <summary>
-        /// Настраивает таблицы лута для локаций
-        /// </summary>
         private void SetupLootTables(ObservableCollection<Location> locations)
         {
             var lootTables = new[]
@@ -173,9 +138,6 @@ namespace SketchBlade.Services
             }
         }
 
-        /// <summary>
-        /// Устанавливает начальную локацию
-        /// </summary>
         private void SetupStartingLocation(GameData gameData)
         {
             var village = gameData.Locations.FirstOrDefault(l => l.Name == "Village");
@@ -189,9 +151,6 @@ namespace SketchBlade.Services
             }
         }
 
-        /// <summary>
-        /// Создает врагов для локации
-        /// </summary>
         public Character CreateEnemy(LocationType locationType, bool isHero = false)
         {
             var enemyData = GetEnemyData(locationType, isHero);
@@ -209,9 +168,6 @@ namespace SketchBlade.Services
             };
         }
 
-        /// <summary>
-        /// Получает характеристики врага по локации
-        /// </summary>
         private (string Name, int Health, int Attack, int Defense) GetEnemyData(LocationType locationType, bool isHero)
         {
             var baseStats = locationType switch
@@ -226,7 +182,6 @@ namespace SketchBlade.Services
 
             if (isHero)
             {
-                // Герои сильнее обычных врагов
                 return (
                     $"Герой {baseStats.Item1}",
                     (int)(baseStats.Item2 * 1.5),
@@ -238,9 +193,6 @@ namespace SketchBlade.Services
             return baseStats;
         }
 
-        /// <summary>
-        /// Проверяет целостность инициализированных данных
-        /// </summary>
         public bool ValidateInitialization(GameData gameData)
         {
             if (gameData.Player == null)
@@ -271,22 +223,17 @@ namespace SketchBlade.Services
             return true;
         }
 
-        /// <summary>
-        /// Генерирует врагов для локации (обратная совместимость)
-        /// </summary>
         public List<Character> GenerateEnemiesForLocation(Location location, bool isHeroBattle)
         {
             var enemies = new List<Character>();
 
             if (isHeroBattle)
             {
-                // Только герой
                 var hero = CreateEnemy(location.LocationType, true);
                 enemies.Add(hero);
             }
             else
             {
-                // Несколько обычных врагов
                 int enemyCount = location.LocationType switch
                 {
                     LocationType.Village => 1,
@@ -307,9 +254,6 @@ namespace SketchBlade.Services
             return enemies;
         }
 
-        /// <summary>
-        /// Создает новую игру (обратная совместимость)
-        /// </summary>
         public GameData CreateNewGame()
         {
             var gameData = new GameData();
@@ -317,50 +261,39 @@ namespace SketchBlade.Services
             return gameData;
         }
 
-        /// <summary>
-        /// Создает тестовый инвентарь с материалами для крафта
-        /// </summary>
         public void CreateTestCraftingInventory(GameData gameData)
         {
             try
             {
                 LoggingService.LogInfo("=== СОЗДАНИЕ ТЕСТОВОГО ИНВЕНТАРЯ ДЛЯ КРАФТА ===");
                 
-                // Очищаем инвентарь
                 for (int i = 0; i < gameData.Inventory.Items.Count; i++)
                 {
                     gameData.Inventory.Items[i] = null;
                 }
                 
-                // Добавляем материалы, необходимые для всех рецептов
                 var craftingMaterials = new List<(Func<int, Item> factory, int count, string name)>
                 {
-                    (ItemFactory.CreateWood, 50, "Дерево"),           // Для деревянных мечей и щитов
-                    (ItemFactory.CreateStick, 20, "Палка"),           // Для мечей
-                    (ItemFactory.CreateIronIngot, 30, "Железный слиток"), // Для железных изделий
-                    (ItemFactory.CreateGoldIngot, 15, "Золотой слиток"),  // Для золотых изделий
-                    (ItemFactory.CreateLuminite, 10, "Люминит"),      // Для люминитовых изделий
-                    (ItemFactory.CreateLuminiteFragment, 10, "Фрагмент люминита"), // Для люминитовых изделий
-                    (ItemFactory.CreateHerb, 20, "Трава"),            // Для зелий
-                    (ItemFactory.CreateFlask, 10, "Фляга"),           // Для зелий
-                    (ItemFactory.CreateIronOre, 20, "Железная руда") // Для выплавки слитков
+                    (ItemFactory.CreateWood, 50, "Дерево"),     
+                    (ItemFactory.CreateStick, 20, "Палка"), 
+                    (ItemFactory.CreateIronIngot, 30, "Железный слиток"),
+                    (ItemFactory.CreateGoldIngot, 15, "Золотой слиток"),  
+                    (ItemFactory.CreateLuminite, 10, "Люминит"),      
+                    (ItemFactory.CreateLuminiteFragment, 10, "Фрагмент люминита"), 
+                    (ItemFactory.CreateHerb, 20, "Трава"),           
+                    (ItemFactory.CreateFlask, 10, "Фляга"),           
+                    (ItemFactory.CreateIronOre, 20, "Железная руда") 
                 };
                 
                 foreach (var (factory, count, name) in craftingMaterials)
                 {
                     var item = factory(count);
                     bool added = gameData.Inventory.AddItem(item);
-                    LoggingService.LogInfo($"Тестовый материал добавлен - {name}: {added} (количество: {item.StackSize})");
                 }
                 
-                // Диагностика финального состояния
                 var finalItems = gameData.Inventory.Items.Where(item => item != null).ToList();
                 LoggingService.LogInfo($"Тестовый инвентарь создан: {finalItems.Count} различных материалов");
                 
-                foreach (var item in finalItems)
-                {
-                    LoggingService.LogInfo($"  - {item.Name} x{item.StackSize}");
-                }
             }
             catch (Exception ex)
             {
@@ -368,9 +301,7 @@ namespace SketchBlade.Services
             }
         }
 
-        /// <summary>
-        /// Очищает лог файл ошибок
-        /// </summary>
+
         public void ClearErrorLog()
         {
             try

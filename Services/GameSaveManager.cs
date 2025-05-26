@@ -5,9 +5,6 @@ using SketchBlade.Models;
 
 namespace SketchBlade.Services
 {
-    /// <summary>
-    /// Менеджер сохранения игры - отвечает только за save/load
-    /// </summary>
     public class GameSaveManager
     {
         private const string SAVE_FILE_NAME = "savegame.json";
@@ -20,17 +17,11 @@ namespace SketchBlade.Services
             _saveFilePath = Path.Combine(saveDirectory, SAVE_FILE_NAME);
         }
 
-        /// <summary>
-        /// Проверяет наличие файла сохранения
-        /// </summary>
         public bool HasSaveFile()
         {
             return File.Exists(_saveFilePath);
         }
 
-        /// <summary>
-        /// Сохраняет данные игры
-        /// </summary>
         public bool SaveGame(GameData gameData)
         {
             try
@@ -63,9 +54,6 @@ namespace SketchBlade.Services
             }
         }
 
-        /// <summary>
-        /// Загружает данные игры
-        /// </summary>
         public GameData? LoadGame()
         {
             try
@@ -102,9 +90,6 @@ namespace SketchBlade.Services
             }
         }
 
-        /// <summary>
-        /// Удаляет файл сохранения
-        /// </summary>
         public bool DeleteSaveFile()
         {
             try
@@ -124,9 +109,6 @@ namespace SketchBlade.Services
             }
         }
 
-        /// <summary>
-        /// Создает резервную копию сохранения
-        /// </summary>
         public bool CreateBackup()
         {
             try
@@ -146,14 +128,11 @@ namespace SketchBlade.Services
             }
         }
 
-        /// <summary>
-        /// Автосохранение с ограничением частоты
-        /// </summary>
         public bool AutoSave(GameData gameData, DateTime lastSaveTime, TimeSpan interval)
         {
             if (DateTime.Now - lastSaveTime < interval)
             {
-                return false; // Слишком рано для автосохранения
+                return false;
             }
 
             return SaveGame(gameData);

@@ -15,24 +15,17 @@ using SketchBlade.Helpers;
 
 namespace SketchBlade.Services
 {
-    /// <summary>
-    /// Консолидированный сервис управления ресурсами
-    /// Объединяет управление изображениями, кэшированием и предзагрузкой
-    /// </summary>
     public interface IResourceService
     {
-        // Image operations
         BitmapImage? GetImage(string imagePath);
         BitmapImage? GetSprite(string relativePath);
         void PreloadImages(string[] imagePaths);
         void PreloadSprites(string[] paths);
         
-        // Cache management
         void ClearCache();
         int CacheSize { get; }
         void SetCacheLimit(int maxItems);
         
-        // Resource management
         Task PreloadCriticalResourcesAsync();
         void Dispose();
     }
@@ -52,7 +45,6 @@ namespace SketchBlade.Services
         private ResourceService()
         {
             _maxCacheSize = ConfigService.Instance.GetValue(ConfigService.CACHE_SIZE_LIMIT, 200);
-            LoggingService.LogDebug("ResourceService initialized");
         }
 
         #region Public Methods
@@ -67,26 +59,18 @@ namespace SketchBlade.Services
                     return LoadDefaultImage();
                 }
 
-                LoggingService.LogDebug($"[ResourceService] GetImage: Запрос изображения '{imagePath}'");
-
-                // Check cache first
                 if (_imageCache.TryGetValue(imagePath, out var cachedImage))
                 {
-                    LoggingService.LogDebug($"[ResourceService] GetImage: Изображение найдено в кэше '{imagePath}'");
                     return cachedImage;
                 }
 
-                // Load with lock to prevent duplicate loading
                 lock (_loadLock)
                 {
-                    // Double-check after acquiring lock
                     if (_imageCache.TryGetValue(imagePath, out cachedImage))
                     {
-                        LoggingService.LogDebug($"[ResourceService] GetImage: Изображение найдено в кэше после блокировки '{imagePath}'");
                         return cachedImage;
                     }
 
-                    LoggingService.LogDebug($"[ResourceService] GetImage: Загружаем изображение из файла '{imagePath}'");
                     return LoadImageToCache(imagePath);
                 }
             }
@@ -107,7 +91,6 @@ namespace SketchBlade.Services
                     return LoadDefaultImage();
                 }
 
-                // Normalize path
                 var fullPath = GetFullPath(relativePath);
                 return GetImage(fullPath);
             }
@@ -125,8 +108,6 @@ namespace SketchBlade.Services
 
             try
             {
-                LoggingService.LogDebug($"Preloading {imagePaths.Length} images");
-
                 Parallel.ForEach(imagePaths, imagePath =>
                 {
                     try
@@ -138,8 +119,6 @@ namespace SketchBlade.Services
                         LoggingService.LogError($"Error preloading image '{imagePath}': {ex.Message}", ex);
                     }
                 });
-
-                LoggingService.LogDebug("Image preloading completed");
             }
             catch (Exception ex)
             {
@@ -193,9 +172,7 @@ namespace SketchBlade.Services
 
                     var oldSize = _imageCache.Count;
                     _imageCache.Clear();
-                    LoggingService.LogDebug($"Cache cleared: {oldSize} images removed");
 
-                    // Reload critical resources
                     Task.Run(PreloadCriticalResourcesAsync);
                 }
             }
@@ -214,9 +191,7 @@ namespace SketchBlade.Services
             }
 
             _maxCacheSize = maxItems;
-            LoggingService.LogDebug($"Cache limit set to {maxItems}");
 
-            // If current cache exceeds new limit, trim it
             if (_imageCache.Count > _maxCacheSize)
             {
                 TrimCache();
@@ -227,8 +202,6 @@ namespace SketchBlade.Services
         {
             try
             {
-                LoggingService.LogDebug("Starting critical resource preloading");
-
                 var criticalPaths = AssetPaths.GetCriticalAssetPaths().ToArray();
                 
                 await Task.Run(() =>
@@ -238,7 +211,6 @@ namespace SketchBlade.Services
                         try
                         {
                             GetImage(path);
-                            LoggingService.LogDebug($"Preloaded critical resource: {path}");
                         }
                         catch (Exception ex)
                         {
@@ -246,8 +218,6 @@ namespace SketchBlade.Services
                         }
                     });
                 });
-
-                LoggingService.LogDebug($"Critical resource preloading completed. Loaded {criticalPaths.Length} resources");
             }
             catch (Exception ex)
             {
@@ -264,7 +234,6 @@ namespace SketchBlade.Services
             try
             {
                 var fullPath = GetFullPath(imagePath);
-                LoggingService.LogDebug($"[ResourceService] LoadImageToCache: Полный путь '{fullPath}'");
                 
                 if (!File.Exists(fullPath))
                 {
@@ -272,13 +241,11 @@ namespace SketchBlade.Services
                     return LoadDefaultImage();
                 }
 
-                // Загружаем изображение напрямую
                 var image = LoadImageDirectly(fullPath);
                 if (image != null)
                 {
                     _imageCache[imagePath] = image;
                     TrimCache();
-                    LoggingService.LogDebug($"Image loaded and cached: {imagePath}");
                 }
                 else
                 {
@@ -298,13 +265,11 @@ namespace SketchBlade.Services
         {
             try
             {
-                // Try to get default image from cache first
                 if (_imageCache.TryGetValue(AssetPaths.DEFAULT_IMAGE, out var cachedDefault))
                 {
                     return cachedDefault;
                 }
 
-                // Загружаем существующий дефолтный файл def.png
                 var defaultPath = GetFullPath(AssetPaths.DEFAULT_IMAGE);
                 
                 if (File.Exists(defaultPath))
@@ -314,9 +279,7 @@ namespace SketchBlade.Services
                         var defaultImage = LoadImageDirectly(defaultPath);
                         if (defaultImage != null)
                         {
-                            // Кэшируем дефолтное изображение
                             _imageCache.TryAdd(AssetPaths.DEFAULT_IMAGE, defaultImage);
-                            LoggingService.LogDebug($"Default image loaded successfully from {defaultPath}");
                             return defaultImage;
                         }
                     }
@@ -330,7 +293,6 @@ namespace SketchBlade.Services
                     LoggingService.LogError($"Default image file not found at {defaultPath}");
                 }
 
-                // Если не удалось загрузить def.png, создаем простое изображение в памяти
                 LoggingService.LogWarning("Creating fallback default image in memory");
                 var fallbackImage = CreateSimpleDefaultImage();
                 _imageCache.TryAdd(AssetPaths.DEFAULT_IMAGE, fallbackImage);
@@ -350,7 +312,6 @@ namespace SketchBlade.Services
                 var bitmap = new BitmapImage();
                 bitmap.BeginInit();
                 
-                // Создаем простое изображение 64x64 с серым фоном
                 var drawingVisual = new DrawingVisual();
                 using (var drawingContext = drawingVisual.RenderOpen())
                 {
@@ -389,19 +350,15 @@ namespace SketchBlade.Services
                     bitmap.Freeze();
                 }
                 
-                LoggingService.LogDebug("Simple default image created in memory");
                 return bitmap;
             }
             catch (Exception ex)
             {
                 LoggingService.LogError($"Error creating simple default image: {ex.Message}", ex);
-                
-                // Создаем минимальное изображение как последний fallback
                 return CreateEmptyBitmapImage();
             }
         }
 
-        // Новый метод для прямой загрузки изображения без циклических зависимостей
         private BitmapImage? LoadImageDirectly(string fullPath)
         {
             try
@@ -415,7 +372,7 @@ namespace SketchBlade.Services
                 bitmap.CreateOptions = BitmapCreateOptions.None;
                 bitmap.UriSource = new Uri(fullPath, UriKind.Absolute);
                 bitmap.EndInit();
-                bitmap.Freeze(); // Делаем thread-safe
+                bitmap.Freeze();
                 
                 return bitmap;
             }
@@ -426,20 +383,16 @@ namespace SketchBlade.Services
             }
         }
 
-        // Новый метод для создания пустого изображения без зависимостей
         private BitmapImage CreateEmptyBitmapImage()
         {
             try
             {
-                // Create a 1x1 pixel transparent image
                 var bitmap = new BitmapImage();
                 
-                // Create WriteableBitmap for programmatic generation
                 var writeableBitmap = new WriteableBitmap(1, 1, 96, 96, PixelFormats.Bgra32, null);
-                byte[] pixels = new byte[4] { 0, 0, 0, 0 }; // Transparent
+                byte[] pixels = new byte[4] { 0, 0, 0, 0 };
                 writeableBitmap.WritePixels(new Int32Rect(0, 0, 1, 1), pixels, 4, 0);
                 
-                // Convert to BitmapImage
                 using (var stream = new MemoryStream())
                 {
                     var encoder = new PngBitmapEncoder();
@@ -459,7 +412,6 @@ namespace SketchBlade.Services
             catch (Exception ex)
             {
                 LoggingService.LogError($"Error creating empty bitmap: {ex.Message}", ex);
-                // Fallback - try to create the simplest possible bitmap
                 var fallback = new BitmapImage();
                 try
                 {
@@ -472,7 +424,7 @@ namespace SketchBlade.Services
                 }
                 catch
                 {
-                    return fallback; // Return whatever we can
+                    return fallback;
                 }
             }
         }
@@ -481,8 +433,7 @@ namespace SketchBlade.Services
         {
             try
             {
-                // Remove excess items, keeping critical resources
-                var itemsToRemove = _imageCache.Count - (_maxCacheSize * 3 / 4); // Trim to 75% of max
+                var itemsToRemove = _imageCache.Count - (_maxCacheSize * 3 / 4);
                 if (itemsToRemove <= 0) return;
 
                 var keysToRemove = new List<string>();
@@ -519,13 +470,11 @@ namespace SketchBlade.Services
             if (Path.IsPathRooted(relativePath))
                 return relativePath;
 
-            // Handle different path formats
             if (relativePath.StartsWith("Assets/") || relativePath.StartsWith("Assets\\"))
             {
                 return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, relativePath);
             }
 
-            // Assume it's already relative to base directory
             return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Images", relativePath);
         }
 
@@ -539,14 +488,12 @@ namespace SketchBlade.Services
 
             try
             {
-                // Clear cache without reloading critical resources
                 lock (_loadLock)
                 {
                     _imageCache.Clear();
                 }
 
                 _isDisposed = true;
-                LoggingService.LogDebug("ResourceService disposed");
             }
             catch (Exception ex)
             {

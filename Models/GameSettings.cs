@@ -22,7 +22,6 @@ namespace SketchBlade.Models
     [Serializable]
     public class GameSettings : INotifyPropertyChanged
     {
-        // Language settings
         private Language _language = Language.Russian;
         public Language Language
         {
@@ -33,13 +32,10 @@ namespace SketchBlade.Models
                 {
                     _language = value;
                     OnPropertyChanged();
-                    
-                    // Language service will be updated by SettingsViewModel to avoid duplication
                 }
             }
         }
         
-        // Gameplay settings
         private Difficulty _difficulty = Difficulty.Normal;
         public Difficulty Difficulty
         {
@@ -54,7 +50,6 @@ namespace SketchBlade.Models
             }
         }
         
-        // Combat settings
         private bool _showCombatDamageNumbers = true;
         public bool ShowCombatDamageNumbers
         {
@@ -69,7 +64,6 @@ namespace SketchBlade.Models
             }
         }
 
-        // UI Settings
         private double _uiScale = 1.0;
         public double UIScale
         {
@@ -78,16 +72,14 @@ namespace SketchBlade.Models
             {
                 if (Math.Abs(_uiScale - value) > 0.001)
                 {
-                    _uiScale = Math.Max(0.5, Math.Min(2.0, value)); // Clamp between 0.5x and 2.0x
+                    _uiScale = Math.Max(0.5, Math.Min(2.0, value));
                     OnPropertyChanged();
                 }
             }
         }
 
-        // Описания предметов всегда включены, но добавляем свойство для совместимости с существующим кодом
         public bool ShowItemDescriptionsOnHover => true;
         
-        // Additional display settings for backward compatibility
         public bool ShowItemDescriptions => true;
         public bool ShowDamageNumbers => ShowCombatDamageNumbers;
 

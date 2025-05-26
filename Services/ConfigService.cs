@@ -9,13 +9,8 @@ using System.Windows.Threading;
 
 namespace SketchBlade.Services
 {
-    /// <summary>
-    /// Консолидированный сервис конфигурации и уведомлений
-    /// Объединяет управление настройками и системой уведомлений
-    /// </summary>
     public interface IConfigService
     {
-        // Configuration management
         T GetValue<T>(string key, T defaultValue = default!);
         void SetValue<T>(string key, T value);
         void Save();
@@ -23,7 +18,6 @@ namespace SketchBlade.Services
         bool HasKey(string key);
         void RemoveKey(string key);
         
-        // Notification system
         ObservableCollection<Notification> Notifications { get; }
         void ShowInfo(string message, TimeSpan? duration = null);
         void ShowSuccess(string message, TimeSpan? duration = null);
@@ -31,7 +25,6 @@ namespace SketchBlade.Services
         void ShowError(string message, TimeSpan? duration = null);
         void ClearNotifications();
         
-        // Events
         event PropertyChangedEventHandler? PropertyChanged;
     }
 
@@ -94,7 +87,6 @@ namespace SketchBlade.Services
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        // Configuration constants
         public const string LOGGING_LEVEL = "LoggingLevel";
         public const string LANGUAGE = "Language";
         public const string AUTO_SAVE = "AutoSave";
@@ -135,7 +127,6 @@ namespace SketchBlade.Services
                             return directValue;
                         }
 
-                        // Try conversion
                         return (T)Convert.ChangeType(value, typeof(T));
                     }
 
@@ -156,7 +147,6 @@ namespace SketchBlade.Services
                 lock (_lockObject)
                 {
                     _configuration[key] = value!;
-                    LoggingService.LogDebug($"Configuration value set: {key} = {value}");
                     OnPropertyChanged(key);
                 }
             }
@@ -180,8 +170,6 @@ namespace SketchBlade.Services
 
                     var json = JsonSerializer.Serialize(_configuration, options);
                     File.WriteAllText(_configFilePath, json);
-                    
-                    LoggingService.LogDebug($"Configuration saved to {_configFilePath}");
                 }
             }
             catch (Exception ex)
@@ -199,7 +187,6 @@ namespace SketchBlade.Services
                 {
                     if (!File.Exists(_configFilePath))
                     {
-                        LoggingService.LogDebug("Configuration file not found, using defaults");
                         return;
                     }
 
@@ -213,8 +200,6 @@ namespace SketchBlade.Services
                         {
                             _configuration[kvp.Key] = kvp.Value;
                         }
-
-                        LoggingService.LogDebug($"Configuration loaded from {_configFilePath}");
                     }
                 }
             }
@@ -241,7 +226,6 @@ namespace SketchBlade.Services
                 {
                     if (_configuration.Remove(key))
                     {
-                        LoggingService.LogDebug($"Configuration key removed: {key}");
                         OnPropertyChanged(key);
                     }
                 }
@@ -298,7 +282,6 @@ namespace SketchBlade.Services
                     {
                         Notifications.Clear();
                     });
-                    LoggingService.LogDebug("Notifications cleared");
                 }
             }
             catch (Exception ex)
@@ -329,7 +312,6 @@ namespace SketchBlade.Services
                     {
                         Notifications.Add(notification);
                         
-                        // Limit notification count
                         var maxNotifications = GetValue("MaxNotifications", 5);
                         while (Notifications.Count > maxNotifications)
                         {
@@ -337,7 +319,6 @@ namespace SketchBlade.Services
                         }
                     });
 
-                    // Auto-remove notification after duration
                     var timer = new DispatcherTimer
                     {
                         Interval = notification.Duration
@@ -352,7 +333,6 @@ namespace SketchBlade.Services
                             {
                                 notification.IsVisible = false;
                                 
-                                // Remove after fade animation
                                 var removeTimer = new DispatcherTimer
                                 {
                                     Interval = TimeSpan.FromMilliseconds(300)
@@ -371,8 +351,6 @@ namespace SketchBlade.Services
 
                     timer.Start();
                 }
-
-                LoggingService.LogDebug($"Notification shown: {type} - {message}");
             }
             catch (Exception ex)
             {

@@ -3,7 +3,6 @@ using SketchBlade.Models;
 
 namespace SketchBlade.Models
 {
-    // Class for stack splitting event arguments
     public class SplitStackEventArgs : EventArgs
     {
         public Item SourceItem { get; private set; }

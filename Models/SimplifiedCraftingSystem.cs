@@ -60,15 +60,10 @@ namespace SketchBlade.Models
         private void InitializeRecipes()
         {
             try
-            {
-                // Use consistent item names that match what's actually created by ItemFactory
-                // These should match the Name property of items, not localized keys
-                
-                LoggingService.LogDebug("Инициализация рецептов с согласованными именами предметов");
-                
+            {                
                 AddValidatedRecipe("Wooden Sword", ItemFactory.CreateWoodenWeapon(), 
                     new Dictionary<string, int> { 
-                        { "Дерево", 2 },  // Match actual item names in inventory
+                        { "Дерево", 2 },
                         { "Палка", 1 } 
                     });
 
@@ -96,7 +91,6 @@ namespace SketchBlade.Models
                         { "Дерево", 2 } 
                     }, 4);
 
-                // Броня
                 AddValidatedRecipe("Wooden Helmet", ItemFactory.CreateWoodenArmor(ItemSlotType.Head),
                     new Dictionary<string, int> { 
                         { "Дерево", 5 } 
@@ -107,14 +101,12 @@ namespace SketchBlade.Models
                         { "Железный слиток", 5 } 
                     });
 
-                // Щиты
                 AddValidatedRecipe("Iron Shield", ItemFactory.CreateIronShield(),
                     new Dictionary<string, int> { 
                         { "Железный слиток", 6 }, 
                         { "Дерево", 2 } 
                     });
 
-                // Расходники
                 AddValidatedRecipe("Healing Potion", ItemFactory.CreateHealingPotion(),
                     new Dictionary<string, int> { 
                         { "Трава", 2 }, 
@@ -127,12 +119,6 @@ namespace SketchBlade.Models
                     });
 
                 LoggingService.LogInfo($"Инициализировано {_recipes.Count} рецептов крафта");
-                
-                // ОТЛАДКА: Выводим все рецепты
-                foreach (var recipe in _recipes)
-                {
-                    LoggingService.LogDebug($"Рецепт: {recipe.Name}, материалы: {string.Join(", ", recipe.RequiredMaterials.Select(m => $"{m.Key}x{m.Value}"))}");
-                }
             }
             catch (Exception ex)
             {
@@ -210,12 +196,10 @@ namespace SketchBlade.Models
                 LoggingService.LogInfo($"Начинаем крафт {recipe.Name}");
                 LoggingService.LogInfo($"Требуемые материалы: {string.Join(", ", recipe.RequiredMaterials.Select(m => $"{m.Key}x{m.Value}"))}");
                 
-                // Выводим текущие предметы в инвентаре до крафта
                 var inventoryItemsBefore = inventory.Items.Where(item => item != null).Select(item => $"{item.Name}x{item.StackSize}").ToList();
                 LoggingService.LogInfo($"Предметы в инвентаре до крафта: {string.Join(", ", inventoryItemsBefore)}");
                 LoggingService.LogInfo($"Количество не-null предметов до крафта: {inventory.Items.Count(item => item != null)}");
                 
-                // Удаляем материалы
                 foreach (var material in recipe.RequiredMaterials)
                 {
                     LoggingService.LogInfo($"Пытаемся удалить {material.Value} {material.Key}");
@@ -229,7 +213,6 @@ namespace SketchBlade.Models
                     LoggingService.LogInfo($"Успешно удалили {material.Value} {material.Key}");
                 }
                 
-                // Создаем результат крафта
                 var resultItem = CreateCraftResult(recipe);
                 if (resultItem == null)
                 {
@@ -237,20 +220,15 @@ namespace SketchBlade.Models
                     return false;
                 }
 
-                // Добавляем результат в инвентарь
                 bool addResult = inventory.AddItem(resultItem, recipe.ResultQuantity);
                 if (addResult)
                 {
-                    // Выводим текущие предметы в инвентаре после добавления результата
                     var inventoryItemsAfterAdd = inventory.Items.Where(item => item != null).Select(item => $"{item.Name}x{item.StackSize}").ToList();
                     LoggingService.LogInfo($"Предметы в инвентаре после добавления результата: {string.Join(", ", inventoryItemsAfterAdd)}");
                     LoggingService.LogInfo($"Количество не-null предметов после добавления: {inventory.Items.Count(item => item != null)}");
-                    
                     LoggingService.LogInfo($"Успешно создан предмет: {recipe.Name} x{recipe.ResultQuantity}");
                     
-                    // Уведомляем об изменении инвентаря
                     inventory.OnInventoryChanged();
-                    
                     return true;
                 }
 
@@ -314,7 +292,6 @@ namespace SketchBlade.Models
             int remaining = requiredAmount;
             bool anyChanges = false;
             
-            // Проходим по всем слотам и удаляем материал
             for (int i = 0; i < inventory.Items.Count && remaining > 0; i++)
             {
                 var item = inventory.Items[i];
@@ -325,17 +302,15 @@ namespace SketchBlade.Models
                     
                     if (toRemove >= item.StackSize)
                     {
-                        // Удаляем весь стак
                         inventory.Items[i] = null;
                         remaining -= item.StackSize;
                         anyChanges = true;
                     }
                     else
                     {
-                        // Уменьшаем стак
                         item.StackSize -= toRemove;
                         item.NotifyPropertyChanged("StackSize");
-                        item.NotifyPropertyChanged("Name"); // Для полного обновления слота
+                        item.NotifyPropertyChanged("Name");
                         
                         remaining -= toRemove;
                         anyChanges = true;
@@ -358,7 +333,6 @@ namespace SketchBlade.Models
                 LoggingService.LogInfo($"Создаем результат крафта: {recipe.ResultQuantity} {craftedItem.Name}");
                 LoggingService.LogInfo($"Созданный предмет - Name: '{craftedItem.Name}', Type: {craftedItem.Type}, StackSize: {craftedItem.StackSize}, SpritePath: '{craftedItem.SpritePath}'");
 
-                // Проверяем путь к изображению
                 if (string.IsNullOrEmpty(craftedItem.SpritePath))
                 {
                     LoggingService.LogWarning($"SpritePath пустой для {craftedItem.Name}, устанавливаем дефолтный");

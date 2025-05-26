@@ -9,35 +9,26 @@ using System.Threading.Tasks;
 
 namespace SketchBlade.Services
 {
-    /// <summary>
-    /// Консолидированный сервис игровой логики
-    /// Объединяет инициализацию игры и балансировку
-    /// </summary>
     public interface IGameLogicService
     {
-        // Game initialization
         GameData CreateNewGame();
         Character CreatePlayer();
         Inventory CreateInventory();
         ObservableCollection<Location> CreateLocations();
         
-        // Balance and scaling
         int CalculateScaledValue(int baseValue, int playerLevel, double scalingFactor = 1.0);
         int CalculateEnemyHealth(int baseHealth, int locationDifficulty, int playerLevel);
         int CalculateEnemyAttack(int baseAttack, int locationDifficulty, int playerLevel);
         int CalculateXPReward(int enemyLevel, bool isBoss = false);
         int CalculateGoldReward(int enemyLevel, bool isBoss = false);
         
-        // Difficulty management
         LocationDifficultyLevel GetLocationDifficulty(int locationIndex);
         bool IsLocationUnlocked(int locationIndex, GameData gameData);
         int GetRecommendedLevel(int locationIndex);
         
-        // Item generation
         List<Item> GenerateRandomLoot(int locationIndex, int quantity = 1);
         Item? CreateRandomItem(ItemType type, int locationTier);
         
-        // Enemy generation
         List<Character> GenerateEnemies(Location location, int playerLevel);
         Character CreateEnemy(string enemyType, int locationTier, int playerLevel);
     }
@@ -49,7 +40,6 @@ namespace SketchBlade.Services
 
         private readonly Random _random = new();
 
-        // Balance constants
         private const double HEALTH_SCALING_FACTOR = 1.2;
         private const double ATTACK_SCALING_FACTOR = 1.1;
         private const double XP_BASE_MULTIPLIER = 10;
@@ -58,7 +48,6 @@ namespace SketchBlade.Services
         private const int BASE_PLAYER_ATTACK = 10;
         private const int BASE_PLAYER_DEFENSE = 5;
 
-        // Location data
         private readonly Dictionary<int, (string Name, LocationType Type, LocationDifficultyLevel Difficulty)> _locationDefinitions = new()
         {
             [0] = ("Village", LocationType.Village, LocationDifficultyLevel.Easy),
@@ -70,7 +59,7 @@ namespace SketchBlade.Services
 
         private GameLogicService()
         {
-            LoggingService.LogDebug("GameLogicService initialized");
+            LoggingService.LogInfo("GameLogicService initialized (эта функция ничего не делает)");
         }
 
         #region Game Initialization
@@ -97,10 +86,7 @@ namespace SketchBlade.Services
                     }
                 };
 
-                // Give player starting equipment
                 GiveStartingItems(gameData);
-
-                LoggingService.LogDebug("New game created successfully");
                 return gameData;
             }
             catch (Exception ex)
@@ -131,7 +117,6 @@ namespace SketchBlade.Services
                     EquippedItems = new Dictionary<EquipmentSlot, Item>()
                 };
 
-                LoggingService.LogDebug("Player character created");
                 return player;
             }
             catch (Exception ex)
@@ -150,7 +135,6 @@ namespace SketchBlade.Services
                     Gold = 100
                 };
 
-                LoggingService.LogDebug("Inventory created");
                 return inventory;
             }
             catch (Exception ex)
@@ -175,23 +159,22 @@ namespace SketchBlade.Services
                         Description = LocalizationService.Instance.GetTranslation($"Locations.{locationData.Name}.Description"),
                         Type = locationData.Type,
                         Difficulty = locationData.Difficulty,
-                        IsUnlocked = kvp.Key == 0, // Only village is unlocked initially
+                        IsUnlocked = kvp.Key == 0,
                         IsAvailable = kvp.Key == 0,
                         IsCompleted = false,
                         HeroDefeated = false,
                         MinPlayerLevel = GetRecommendedLevel(kvp.Key),
-                        MaxCompletions = -1, // Unlimited
+                        MaxCompletions = -1, 
                         CompletionCount = 0,
                         SpritePath = AssetPaths.Locations.GetLocationPathByName(locationData.Name.ToLower()),
                         Hero = CreateLocationHero(locationData.Name, kvp.Key),
-                        LocationType = locationData.Type, // Compatibility property
-                        ImagePath = AssetPaths.Locations.GetLocationPathByName(locationData.Name.ToLower()) // Compatibility property
+                        LocationType = locationData.Type,
+                        ImagePath = AssetPaths.Locations.GetLocationPathByName(locationData.Name.ToLower()) 
                     };
 
                     locations.Add(location);
                 }
 
-                LoggingService.LogDebug($"Created {locations.Count} locations");
                 return locations;
             }
             catch (Exception ex)
@@ -259,11 +242,10 @@ namespace SketchBlade.Services
                 var baseXP = (int)(enemyLevel * XP_BASE_MULTIPLIER);
                 if (isBoss)
                 {
-                    baseXP *= 3; // Bosses give 3x XP
+                    baseXP *= 3;
                 }
                 
-                // Add random variation ±20%
-                var variation = _random.NextDouble() * 0.4 - 0.2; // -0.2 to +0.2
+                var variation = _random.NextDouble() * 0.4 - 0.2;
                 return Math.Max(1, (int)(baseXP * (1 + variation)));
             }
             catch (Exception ex)
@@ -280,11 +262,10 @@ namespace SketchBlade.Services
                 var baseGold = (int)(enemyLevel * GOLD_BASE_MULTIPLIER);
                 if (isBoss)
                 {
-                    baseGold *= 2; // Bosses give 2x gold
+                    baseGold *= 2;
                 }
                 
-                // Add random variation ±30%
-                var variation = _random.NextDouble() * 0.6 - 0.3; // -0.3 to +0.3
+                var variation = _random.NextDouble() * 0.6 - 0.3;
                 return Math.Max(1, (int)(baseGold * (1 + variation)));
             }
             catch (Exception ex)
@@ -311,9 +292,8 @@ namespace SketchBlade.Services
         {
             try
             {
-                if (locationIndex == 0) return true; // Village always unlocked
+                if (locationIndex == 0) return true;
 
-                // Check if previous location is completed
                 if (locationIndex > 0 && locationIndex < gameData.Locations.Count)
                 {
                     var previousLocation = gameData.Locations[locationIndex - 1];
@@ -363,7 +343,6 @@ namespace SketchBlade.Services
                     }
                 }
 
-                LoggingService.LogDebug($"Generated {loot.Count} loot items for location {locationIndex}");
                 return loot;
             }
             catch (Exception ex)
@@ -380,7 +359,6 @@ namespace SketchBlade.Services
                 var material = GetRandomMaterial(locationTier);
                 var rarity = GetRandomRarity(locationTier);
 
-                // Create basic item based on type and tier
                 return type switch
                 {
                     ItemType.Material => CreateMaterialByTier(material, rarity, _random.Next(1, 5)),
@@ -410,7 +388,7 @@ namespace SketchBlade.Services
             {
                 var enemies = new List<Character>();
                 var locationTier = GetLocationTier(location.Type);
-                var enemyCount = _random.Next(1, 4); // 1-3 enemies
+                var enemyCount = _random.Next(1, 4);
 
                 for (int i = 0; i < enemyCount; i++)
                 {
@@ -419,7 +397,6 @@ namespace SketchBlade.Services
                     enemies.Add(enemy);
                 }
 
-                LoggingService.LogDebug($"Generated {enemies.Count} enemies for {location.Name}");
                 return enemies;
             }
             catch (Exception ex)
@@ -446,13 +423,11 @@ namespace SketchBlade.Services
                     ImagePath = AssetPaths.Enemies.GetEnemyPath(enemyType)
                 };
 
-                // Calculate scaled stats
                 enemy.MaxHealth = CalculateEnemyHealth(baseStats.Health, difficulty, enemy.Level);
                 enemy.CurrentHealth = enemy.MaxHealth;
                 enemy.Attack = CalculateEnemyAttack(baseStats.Attack, difficulty, enemy.Level);
                 enemy.Defense = CalculateScaledValue(baseStats.Defense, enemy.Level, 1.05);
 
-                LoggingService.LogDebug($"Created enemy: {enemy.Name} (Level {enemy.Level})");
                 return enemy;
             }
             catch (Exception ex)
@@ -470,37 +445,16 @@ namespace SketchBlade.Services
         {
             try
             {
-                LoggingService.LogDebug("Starting to give starting items to player");
-                
-                // Give wooden sword
                 var woodenSword = ItemFactory.CreateWoodenWeapon();
-                LoggingService.LogInfo($"Adding item: {woodenSword.Name} x1");
                 bool swordAdded = gameData.Inventory.AddItem(woodenSword);
-                LoggingService.LogInfo($"Wooden sword added: {swordAdded}");
 
-                // Give some health potions
                 var healthPotion = ItemFactory.CreateHealingPotion(1);
-                LoggingService.LogInfo($"Adding item: {healthPotion.Name} x1");
                 bool potionAdded = gameData.Inventory.AddItem(healthPotion);
-                LoggingService.LogInfo($"Health potion added: {potionAdded}");
 
-                // Give some basic materials
                 var wood = ItemFactory.CreateWood(1);
-                LoggingService.LogInfo($"Adding item: {wood.Name} x1");
                 bool woodAdded = gameData.Inventory.AddItem(wood);
-                LoggingService.LogInfo($"Wood added: {woodAdded}");
 
-                // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Принудительно обновляем инвентарь
                 gameData.Inventory.OnInventoryChanged();
-                LoggingService.LogDebug($"После добавления стартовых предметов: {gameData.Inventory.Items.Count(x => x != null)} не-null предметов в инвентаре");
-                
-                // Логируем содержимое инвентаря для отладки
-                foreach (var item in gameData.Inventory.Items.Where(x => x != null))
-                {
-                    LoggingService.LogDebug($"Стартовый предмет в инвентаре: {item.Name} x{item.StackSize}");
-                }
-                
-                LoggingService.LogDebug("Starting items given to player");
             }
             catch (Exception ex)
             {
@@ -523,11 +477,10 @@ namespace SketchBlade.Services
                     Type = $"{locationName}Hero",
                     IsPlayer = false,
                     IsHero = true,
-                    Level = recommendedLevel + 2, // Heroes are 2 levels above recommended
+                    Level = recommendedLevel + 2,
                     ImagePath = AssetPaths.Enemies.GetHeroPath(locationName)
                 };
 
-                // Calculate hero stats (stronger than regular enemies)
                 var baseHealth = 150 + (locationIndex * 50);
                 var baseAttack = 15 + (locationIndex * 5);
                 var baseDefense = 8 + (locationIndex * 3);
@@ -537,7 +490,6 @@ namespace SketchBlade.Services
                 hero.Attack = CalculateEnemyAttack(baseAttack, difficulty, hero.Level);
                 hero.Defense = CalculateScaledValue(baseDefense, hero.Level, 1.1);
 
-                LoggingService.LogDebug($"Created location hero: {hero.Name}");
                 return hero;
             }
             catch (Exception ex)
@@ -570,8 +522,8 @@ namespace SketchBlade.Services
             var roll = _random.NextDouble();
             return locationIndex switch
             {
-                0 => roll < 0.7 ? ItemType.Material : ItemType.Consumable, // Village: mostly materials
-                1 => roll < 0.5 ? ItemType.Material : (roll < 0.8 ? ItemType.Consumable : ItemType.Weapon), // Forest: mixed
+                0 => roll < 0.7 ? ItemType.Material : ItemType.Consumable,
+                1 => roll < 0.5 ? ItemType.Material : (roll < 0.8 ? ItemType.Consumable : ItemType.Weapon),
                 _ => roll < 0.3 ? ItemType.Material : (roll < 0.6 ? ItemType.Consumable : (roll < 0.8 ? ItemType.Weapon : GetRandomArmorType()))
             };
         }

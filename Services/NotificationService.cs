@@ -2,9 +2,6 @@ using System.Windows;
 
 namespace SketchBlade.Services
 {
-    /// <summary>
-    /// Сервис уведомлений пользователя
-    /// </summary>
     public interface INotificationService
     {
         void ShowInfo(string message, string title = "Информация");
@@ -21,7 +18,7 @@ namespace SketchBlade.Services
 
         private NotificationService()
         {
-            LoggingService.LogDebug("NotificationService initialized");
+            LoggingService.LogInfo("NotificationService initialized (функция ничего не делает)");
         }
 
         public void ShowInfo(string message, string title = "Информация")

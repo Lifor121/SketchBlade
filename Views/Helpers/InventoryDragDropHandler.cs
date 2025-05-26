@@ -319,43 +319,56 @@ namespace SketchBlade.Views.Helpers
         {
             try
             {
-                // Обновляем основной ViewModel инвентаря
-                _viewModel.RefreshAllSlots();
-                _viewModel.ForceUIUpdate();
-                
-                // Принудительно обновляем крафт
+                // The primary mechanism for UI update should be through the InventoryData's notification.
+                // This will trigger PropertyChanged for collections in InventoryData
+                // and then dispatch a comprehensive UI update via InventoryData.NotifyInventoryChanged's
+                // own Dispatcher.BeginInvoke block.
+                _viewModel.GameData.Inventory.OnInventoryChanged();
+
+                // Optional: If crafting UI needs an immediate hint that recipes might have changed,
+                // this can be dispatched as well, but ensure it doesn't conflict with
+                // updates triggered by OnInventoryChanged.
+                // For simplicity and to avoid potential conflicts, we'll rely on OnInventoryChanged
+                // to refresh everything necessary, including what's done by mainVM.RefreshUICommand
+                // or mainWindow.RefreshCurrentScreen() which are called from NotifyInventoryChanged.
+
+                // Example of a more targeted update if still needed *after* OnInventoryChanged
+                // and if its effects are not sufficient for crafting:
+                /*
                 if (_viewModel.SimplifiedCraftingViewModel != null)
                 {
-                    _viewModel.SimplifiedCraftingViewModel.RefreshAvailableRecipes();
+                    Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        _viewModel.SimplifiedCraftingViewModel.RefreshAvailableRecipes();
+                    }), DispatcherPriority.ContextIdle);
                 }
-                
-                // Принудительно обновляем инвентарь через GameState
-                _viewModel.GameData.Inventory.OnInventoryChanged();
-                
-                // Обновляем UI через диспетчер для гарантии применения изменений
-                Application.Current.Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    _viewModel.RefreshAllSlots();
-                    _viewModel.ForceUIUpdate();
-                    
-                    // Обновляем основной UI через MainWindow если доступно
-                    if (Application.Current.MainWindow is MainWindow mainWindow)
-                    {
-                        mainWindow.RefreshCurrentScreen();
-                    }
-                    
-                    // Дополнительно обновляем RefreshUICommand в MainViewModel если возможно
-                    if (Application.Current.Resources.Contains("MainViewModel"))
-                    {
-                        var mainViewModel = Application.Current.Resources["MainViewModel"] as MainViewModel;
-                        mainViewModel?.RefreshUICommand.Execute(null);
-                    }
-                }), System.Windows.Threading.DispatcherPriority.Normal);
+                */
             }
             catch (Exception ex)
             {
+                // Log the error, but don't let UI update issues crash the drag-drop.
                 File.AppendAllText("error_log.txt", 
-                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [ERROR] ForceUIUpdate error: {ex.Message}\r\n");
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [ERROR] Simplified ForceUIUpdate error: {ex.Message}\r\n");
+
+                // Fallback: If the primary way fails, attempt a direct refresh on the UI thread.
+                // This is a safety net, ideally OnInventoryChanged() should handle everything.
+                Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    try 
+                    {
+                        _viewModel.RefreshAllSlots();
+                        _viewModel.ForceUIUpdate();
+                        if (Application.Current.MainWindow is MainWindow mainWindow)
+                        {
+                            mainWindow.RefreshCurrentScreen();
+                        }
+                    } 
+                    catch (Exception innerEx)
+                    {
+                         File.AppendAllText("error_log.txt", 
+                            $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [ERROR] Fallback ForceUIUpdate error: {innerEx.Message}\r\n");
+                    }
+                }), System.Windows.Threading.DispatcherPriority.Normal);
             }
         }
         

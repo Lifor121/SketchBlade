@@ -12,31 +12,23 @@ using SketchBlade.Utilities;
 
 namespace SketchBlade.Services
 {
-    /// <summary>
-    /// Консолидированный сервис управления игрой
-    /// Объединяет сохранение, автосохранение и настройки
-    /// </summary>
     public interface ICoreGameService
     {
-        // Game Save Operations
         bool SaveGame(GameData gameData);
         object? LoadGame();
         bool SaveExists();
         bool HasSaveFile();
         void DeleteSave();
         
-        // Auto-save functionality
         void StartAutoSave(Action saveAction);
         void StopAutoSave();
         void SaveNow();
         bool IsAutoSaveEnabled { get; set; }
         TimeSpan AutoSaveInterval { get; set; }
         
-        // Settings management
         void SaveSettings();
         void LoadSettings();
         
-        // Events
         event EventHandler<GameSaveEventArgs>? GameSaved;
         event EventHandler<GameLoadEventArgs>? GameLoaded;
     }
@@ -59,22 +51,18 @@ namespace SketchBlade.Services
         private static readonly Lazy<CoreGameService> _instance = new(() => new CoreGameService());
         public static CoreGameService Instance => _instance.Value;
 
-        // File paths
         private static readonly string SaveFileName = "savegame.dat";
         private static readonly string BackupSaveFileName = "savegame.backup.dat";
         private static readonly string SettingsFileName = "settings.json";
 
-        // Auto-save
         private Timer? _autoSaveTimer;
         private Action? _saveAction;
         private readonly object _lockObject = new object();
         private bool _isDisposed = false;
 
-        // Properties
         public bool IsAutoSaveEnabled { get; set; } = true;
         public TimeSpan AutoSaveInterval { get; set; } = TimeSpan.FromMinutes(5);
 
-        // Events
         public event EventHandler<GameSaveEventArgs>? GameSaved;
         public event EventHandler<GameLoadEventArgs>? GameLoaded;
 
@@ -96,17 +84,13 @@ namespace SketchBlade.Services
 
             try
             {
-                // Create backup
                 CreateBackup();
 
-                // Serialize game data
                 var saveData = SerializeGameData(gameData);
                 var json = JsonSerializer.Serialize(saveData, new JsonSerializerOptions { WriteIndented = true });
 
-                // Save to file
                 File.WriteAllText(SaveFileName, json);
 
-                LoggingService.LogDebug("Game saved successfully");
                 GameSaved?.Invoke(this, new GameSaveEventArgs { Success = true });
                 return true;
             }
@@ -124,14 +108,12 @@ namespace SketchBlade.Services
             {
                 if (!File.Exists(SaveFileName))
                 {
-                    LoggingService.LogDebug("Save file not found");
                     return null;
                 }
 
                 var json = File.ReadAllText(SaveFileName);
                 var saveData = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
 
-                LoggingService.LogDebug("Game loaded successfully");
                 GameLoaded?.Invoke(this, new GameLoadEventArgs { Success = true, LoadedData = saveData });
                 
                 return saveData;
@@ -140,11 +122,10 @@ namespace SketchBlade.Services
             {
                 LoggingService.LogError($"Error loading game: {ex.Message}", ex);
                 
-                // Try backup
                 var backup = TryLoadBackup();
                 if (backup != null)
                 {
-                    LoggingService.LogDebug("Loaded from backup");
+                    LoggingService.LogInfo("Loaded from backup");
                     GameLoaded?.Invoke(this, new GameLoadEventArgs { Success = true, LoadedData = backup });
                     return backup;
                 }
@@ -173,8 +154,6 @@ namespace SketchBlade.Services
                 
                 if (File.Exists(BackupSaveFileName))
                     File.Delete(BackupSaveFileName);
-
-                LoggingService.LogDebug("Save files deleted");
             }
             catch (Exception ex)
             {
@@ -199,7 +178,6 @@ namespace SketchBlade.Services
                 if (IsAutoSaveEnabled)
                 {
                     _autoSaveTimer = new Timer(PerformAutoSave, null, AutoSaveInterval, AutoSaveInterval);
-                    LoggingService.LogDebug("Auto-save started");
                 }
             }
         }
@@ -210,7 +188,6 @@ namespace SketchBlade.Services
             {
                 _autoSaveTimer?.Dispose();
                 _autoSaveTimer = null;
-                LoggingService.LogDebug("Auto-save stopped");
             }
         }
 
@@ -221,7 +198,6 @@ namespace SketchBlade.Services
                 try
                 {
                     _saveAction.Invoke();
-                    LoggingService.LogDebug("Manual save triggered");
                 }
                 catch (Exception ex)
                 {
@@ -237,7 +213,6 @@ namespace SketchBlade.Services
             try
             {
                 _saveAction.Invoke();
-                LoggingService.LogDebug("Auto-save completed");
             }
             catch (Exception ex)
             {
@@ -261,8 +236,6 @@ namespace SketchBlade.Services
 
                 var json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
                 File.WriteAllText(SettingsFileName, json);
-
-                LoggingService.LogDebug("Settings saved");
             }
             catch (Exception ex)
             {
@@ -276,7 +249,6 @@ namespace SketchBlade.Services
             {
                 if (!File.Exists(SettingsFileName))
                 {
-                    LoggingService.LogDebug("Settings file not found, using defaults");
                     return;
                 }
 
@@ -291,8 +263,6 @@ namespace SketchBlade.Services
                     if (settings.TryGetValue("AutoSaveIntervalMinutes", out var intervalElement))
                         AutoSaveInterval = TimeSpan.FromMinutes(intervalElement.GetDouble());
                 }
-
-                LoggingService.LogDebug("Settings loaded");
             }
             catch (Exception ex)
             {
@@ -345,19 +315,16 @@ namespace SketchBlade.Services
                 ["CurrentScreen"] = gameData.CurrentScreen
             };
 
-            // Serialize player
             if (gameData.Player != null)
             {
                 saveData["Player"] = SerializePlayer(gameData.Player);
             }
 
-            // Serialize inventory
             if (gameData.Inventory != null)
             {
                 saveData["Inventory"] = SerializeInventory(gameData.Inventory);
             }
 
-            // Serialize locations
             if (gameData.Locations != null)
             {
                 saveData["Locations"] = SerializeLocations(gameData.Locations);
@@ -381,7 +348,6 @@ namespace SketchBlade.Services
                 ["ImagePath"] = player.ImagePath ?? AssetPaths.Characters.PLAYER
             };
 
-            // Serialize equipped items
             if (player.EquippedItems != null)
             {
                 var equipped = new Dictionary<string, object>();
@@ -405,7 +371,6 @@ namespace SketchBlade.Services
                 ["Gold"] = inventory.Gold
             };
 
-            // Serialize items collections
             inventoryData["Items"] = SerializeItemCollection(inventory.Items);
             inventoryData["QuickItems"] = SerializeItemCollection(inventory.QuickItems);
             inventoryData["CraftItems"] = SerializeItemCollection(inventory.CraftItems);
@@ -487,7 +452,6 @@ namespace SketchBlade.Services
             StopAutoSave();
             SaveSettings();
             _isDisposed = true;
-            LoggingService.LogDebug("CoreGameService disposed");
         }
 
         #endregion

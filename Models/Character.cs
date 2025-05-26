@@ -21,7 +21,6 @@ namespace SketchBlade.Models
         Shield
     }
 
-    // Добавляем enum BuffType для управления эффектами предметов
     public enum BuffType
     {
         Attack,
@@ -42,12 +41,11 @@ namespace SketchBlade.Models
         private int _defense = 3;
         [NonSerialized]
         private BitmapImage? _sprite;
-        private string _imagePath = AssetPaths.DEFAULT_IMAGE; // Default to def.png initially
+        private string _imagePath = AssetPaths.DEFAULT_IMAGE;
         private bool _isDefeated = false;
         private double _healthPercent = 100;
         private int _gold = 0;
         
-        // Временные бонусы для атаки и защиты
         [NonSerialized]
         private int _temporaryAttackBonus = 0;
         [NonSerialized]
@@ -57,14 +55,11 @@ namespace SketchBlade.Models
         [NonSerialized]
         private int _defenseBonusTurnsRemaining = 0;
         
-        // Сериализуемая версия экипировки для сохранения без циклических ссылок
         private Dictionary<string, string> _equippedItemsData = new Dictionary<string, string>();
         
-        // Current equipment (key: slot, value: item) - non-serializable for operational use
         [NonSerialized]
         private Dictionary<EquipmentSlot, Item> _equipment = new Dictionary<EquipmentSlot, Item>();
         
-        // Public property for equipment
         public Dictionary<EquipmentSlot, Item> EquippedItems
         {
             get => _equipment;
@@ -75,12 +70,10 @@ namespace SketchBlade.Models
                 OnPropertyChanged(nameof(TotalAttack));
                 OnPropertyChanged(nameof(TotalDefense));
                 OnPropertyChanged(nameof(TotalMaxHealth));
-                // Update serializable version
                 SaveEquippedItemsData();
             }
         }
         
-        // Serialization-safe property for equipment data
         public Dictionary<string, string> EquippedItemsData
         {
             get => _equippedItemsData;
@@ -91,7 +84,6 @@ namespace SketchBlade.Models
             }
         }
         
-        // Save equipped items to the serializable dictionary
         private void SaveEquippedItemsData()
         {
             _equippedItemsData.Clear();
@@ -112,7 +104,6 @@ namespace SketchBlade.Models
             // The actual implementation would depend on your game's item system
         }
         
-        // Basic properties
         public string Name 
         { 
             get => _name; 
@@ -133,13 +124,12 @@ namespace SketchBlade.Models
             } 
         }
         
-        // Health property for binding in XAML (aliases CurrentHealth)
         public int Health
         {
             get => _currentHealth;
             set 
             {
-                CurrentHealth = value; // This will apply all the constraints and raise notifications
+                CurrentHealth = value;
             }
         }
         
@@ -150,9 +140,8 @@ namespace SketchBlade.Models
             { 
                 _currentHealth = Math.Max(0, Math.Min(value, MaxHealth)); 
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(Health)); // Also notify Health property changed
+                OnPropertyChanged(nameof(Health));
                 
-                // Update health percent and defeated status when health changes
                 HealthPercent = (double)_currentHealth / MaxHealth * 100;
                 IsDefeated = _currentHealth <= 0;
             } 
@@ -193,19 +182,16 @@ namespace SketchBlade.Models
         public bool IsPlayer { get; set; } = false;
         public bool IsHero { get; set; } = false;
         
-        // Helper properties for easy access to equipment
         public Item? EquippedWeapon => EquippedItems.ContainsKey(EquipmentSlot.MainHand) ? EquippedItems[EquipmentSlot.MainHand] : null;
         public Item? EquippedArmor => EquippedItems.ContainsKey(EquipmentSlot.Chestplate) ? EquippedItems[EquipmentSlot.Chestplate] : null;
         public Item? EquippedShield => EquippedItems.ContainsKey(EquipmentSlot.Shield) ? EquippedItems[EquipmentSlot.Shield] : null;
         public Item? EquippedHelmet => EquippedItems.ContainsKey(EquipmentSlot.Helmet) ? EquippedItems[EquipmentSlot.Helmet] : null;
         public Item? EquippedLeggings => EquippedItems.ContainsKey(EquipmentSlot.Leggings) ? EquippedItems[EquipmentSlot.Leggings] : null;
         
-        // Computed properties for total stats including equipment bonuses
         public int TotalAttack => GetTotalAttack();
         public int TotalDefense => GetTotalDefense();
         public int TotalMaxHealth => GetTotalMaxHealth();
         
-        // Additional properties to support battle system
         public string ImagePath 
         { 
             get => _imagePath; 
@@ -213,7 +199,6 @@ namespace SketchBlade.Models
             { 
                 _imagePath = value; 
                 OnPropertyChanged();
-                // Try to load the sprite from the image path
                 LoadSprite();
             } 
         }
@@ -238,7 +223,6 @@ namespace SketchBlade.Models
             } 
         }
         
-        // Additional computed property for health display
         public string HealthDisplay => $"{CurrentHealth}/{MaxHealth}";
         
         public int Gold 
@@ -251,7 +235,6 @@ namespace SketchBlade.Models
             } 
         }
         
-        // Add the missing properties
         public int Level { get; set; } = 1;
         public int XP { get; set; } = 0;
         public int XPToNextLevel { get; set; } = 100;
@@ -259,16 +242,13 @@ namespace SketchBlade.Models
         public string SpritePath { get; set; } = string.Empty;
         public bool IsBoss { get; set; } = false;
         
-        // Add location type field
         public LocationType LocationType { get; set; } = LocationType.Village;
         
-        // Translated name property that uses LanguageService
         [JsonIgnore]
         public string TranslatedName 
         {
             get 
             {
-                // For heroes
                 if (IsHero)
                 {
                     string heroKey = LocationType switch
@@ -282,16 +262,13 @@ namespace SketchBlade.Models
                     };
                     string heroTranslation = LocalizationService.Instance.GetTranslation(heroKey);
                     
-                    // If translation exists, return it
                     if (!string.IsNullOrEmpty(heroTranslation) && heroTranslation != heroKey)
                     {
                         return heroTranslation;
                     }
                 }
-                // For enemies
                 else if (Type == "Enemy")
                 {
-                    // Try to find translation in all location sections
                     string[] locations = { "Village", "Forest", "Cave", "Ruins", "Castle" };
                     
                     foreach (var location in locations)
@@ -299,7 +276,6 @@ namespace SketchBlade.Models
                         string enemyKey = $"Characters.Enemies.{location}.Regular";
                         string enemyTranslation = LocalizationService.Instance.GetTranslation(enemyKey);
                         
-                        // If translation exists, return it
                         if (!string.IsNullOrEmpty(enemyTranslation) && enemyTranslation != enemyKey)
                         {
                             return enemyTranslation;
@@ -307,12 +283,10 @@ namespace SketchBlade.Models
                     }
                 }
                 
-                // Otherwise return the original name
                 return Name;
             }
         }
         
-        // Список вражеских способностей для босса или особых врагов
         [JsonIgnore]
         public List<string> SpecialAbilities { get; set; } = new List<string>();
         
@@ -321,18 +295,15 @@ namespace SketchBlade.Models
         
         public Character()
         {
-            // Default initialization
             CurrentHealth = MaxHealth;
             _equipment = new Dictionary<EquipmentSlot, Item>();
             LoadSprite();
         }
         
-        // Method to load the sprite image
         private void LoadSprite()
         {
             try
             {
-                // Set default sprite path based on character type
                 if (string.IsNullOrEmpty(ImagePath) || ImagePath == AssetPaths.DEFAULT_IMAGE)
                 {
                     if (IsPlayer)
@@ -363,7 +334,6 @@ namespace SketchBlade.Models
             }
         }
         
-        // Method to get total attack including equipment bonuses
         public int GetTotalAttack()
         {
             int totalAttack = Attack + _temporaryAttackBonus;
@@ -379,7 +349,6 @@ namespace SketchBlade.Models
             return totalAttack;
         }
         
-        // Method to get total defense including equipment bonuses
         public int GetTotalDefense()
         {
             int totalDefense = Defense + _temporaryDefenseBonus;
@@ -395,7 +364,6 @@ namespace SketchBlade.Models
             return totalDefense;
         }
         
-        // Method to get total health including equipment bonuses
         public int GetTotalMaxHealth()
         {
             int totalMaxHealth = MaxHealth;
@@ -411,7 +379,6 @@ namespace SketchBlade.Models
             return totalMaxHealth;
         }
         
-        // Method to equip an item
         public bool EquipItem(Item item)
         {
             try
@@ -421,7 +388,6 @@ namespace SketchBlade.Models
                     return false;
                 }
                 
-                // Не делать ничего, если для предмета не назначен слот
                 if (item.EquipSlot == EquipmentSlot.MainHand || 
                     item.EquipSlot == EquipmentSlot.Chestplate || 
                     item.EquipSlot == EquipmentSlot.Helmet || 
@@ -430,25 +396,19 @@ namespace SketchBlade.Models
                 {
                     EquipmentSlot slot = item.EquipSlot;
                     
-                    // Unequip existing item from that slot
                     if (EquippedItems.ContainsKey(slot))
                     {
-                        // Если что-то уже надето в этот слот, просто заменяем
                         EquippedItems[slot] = item;
                     }
                     else
                     {
-                        // В слоте ничего нет, просто экипируем
                         EquippedItems[slot] = item;
                     }
                     
-                    // Обновляем сериализуемую версию экипировки
                     SaveEquippedItemsData();
                     
-                    // Recalculate stats
                     CalculateStats();
                     
-                    // Notify that equipment has changed
                     OnPropertyChanged(nameof(EquippedItems));
                     OnPropertyChanged(GetEquipmentPropertyName(slot));
                     OnPropertyChanged(nameof(TotalAttack));
@@ -467,7 +427,6 @@ namespace SketchBlade.Models
             }
         }
         
-        // Method to unequip an item
         public Item? UnequipItem(EquipmentSlot slot)
         {
             try
@@ -478,7 +437,6 @@ namespace SketchBlade.Models
                     EquippedItems.Remove(slot);
                     CalculateStats();
                     
-                    // Update UI properties after successful unequip
                     OnPropertyChanged(GetEquipmentPropertyName(slot));
                     
                     return item;
@@ -492,7 +450,6 @@ namespace SketchBlade.Models
             return null;
         }
         
-        // Get the property name for a specific equipment slot
         private string GetEquipmentPropertyName(EquipmentSlot slot)
         {
             return slot switch
@@ -506,26 +463,20 @@ namespace SketchBlade.Models
             };
         }
         
-        // Calculate all stats based on base stats + equipment
         public void CalculateStats()
         {
-            // Store original values
             int originalAttack = Attack;
             int originalDefense = Defense;
             int originalMaxHealth = MaxHealth;
             
-            // Reset to base values
-            // (This should be your character's base stats without any equipment)
-            Attack = IsPlayer ? 10 : 5; // Players start with higher base stats
+            Attack = IsPlayer ? 10 : 5;
             Defense = IsPlayer ? 5 : 3;
             MaxHealth = IsPlayer ? 100 : 50;
             
-            // Add bonuses from equipment
             foreach (var kvp in EquippedItems)
             {
                 Item item = kvp.Value;
                 
-                // Add direct stat bonuses
                 if (item.Type == ItemType.Weapon)
                 {
                     Attack += item.Damage;
@@ -541,7 +492,6 @@ namespace SketchBlade.Models
                     Defense += item.Defense;
                 }
                 
-                // Add any additional stat bonuses from the item
                 foreach (var statBonus in item.StatBonuses)
                 {
                     switch (statBonus.Key.ToLower())
@@ -559,7 +509,6 @@ namespace SketchBlade.Models
                 }
             }
             
-            // If stats changed, notify property changed
             if (originalAttack != Attack)
                 OnPropertyChanged(nameof(Attack));
                 
@@ -568,7 +517,6 @@ namespace SketchBlade.Models
                 
             if (originalMaxHealth != MaxHealth)
             {
-                // Adjust current health proportionally if max health changed
                 double healthRatio = (double)CurrentHealth / originalMaxHealth;
                 CurrentHealth = (int)(MaxHealth * healthRatio);
                 
@@ -577,52 +525,44 @@ namespace SketchBlade.Models
                 OnPropertyChanged(nameof(HealthDisplay));
             }
             
-            // Also notify computed properties
             OnPropertyChanged(nameof(TotalAttack));
             OnPropertyChanged(nameof(TotalDefense));
             OnPropertyChanged(nameof(TotalMaxHealth));
         }
         
-        // Apply damage to the character
         public void TakeDamage(int damage)
         {
-            int actualDamage = Math.Max(1, damage); // Минимум 1 урона
+            int actualDamage = Math.Max(1, damage);
             CurrentHealth = Math.Max(0, CurrentHealth - actualDamage);
         }
         
-        // Enhanced damage calculation with critical hit detection
         public int CalculateAttackDamage(out bool isCritical)
         {
             int baseDamage = GetTotalAttack();
             
-            // Случайный фактор ±20%
             Random rand = new Random();
-            double randomFactor = 0.8 + (rand.NextDouble() * 0.4); // от 0.8 до 1.2
+            double randomFactor = 0.8 + (rand.NextDouble() * 0.4);
             int damage = (int)(baseDamage * randomFactor);
             
-            // Проверка критического удара (10% шанс)
             isCritical = IsAttackCritical();
             if (isCritical)
             {
-                damage = (int)(damage * 1.5); // Критический урон +50%
+                damage = (int)(damage * 1.5);
             }
             
-            return Math.Max(1, damage); // Минимум 1 урона
+            return Math.Max(1, damage);
         }
         
-        // Overload of the original method for backward compatibility
         public int CalculateAttackDamage()
         {
             return CalculateAttackDamage(out _);
         }
         
-        // Heal the character
         public void Heal(int amount)
         {
             CurrentHealth = Math.Min(MaxHealth, CurrentHealth + amount);
         }
         
-        // Calculate damage to a target
         public int CalculateDamage(Character target)
         {
             if (target == null) return 0;
@@ -630,32 +570,27 @@ namespace SketchBlade.Models
             int baseDamage = GetTotalAttack();
             int targetDefense = target.GetTotalDefense();
             
-            // Формула урона: базовый урон - (защита цели / 2)
             int damage = baseDamage - (targetDefense / 2);
             
-            // Случайный фактор ±20%
             Random rand = new Random();
             double randomFactor = 0.8 + (rand.NextDouble() * 0.4);
             damage = (int)(damage * randomFactor);
             
-            return Math.Max(1, damage); // Минимум 1 урона
+            return Math.Max(1, damage);
         }
         
-        // Check if attack is critical (10% chance)
         public bool IsAttackCritical()
         {
             Random rand = new Random();
-            return rand.NextDouble() < 0.1; // 10% шанс критического удара
+            return rand.NextDouble() < 0.1;
         }
         
-        // Установка временного бонуса к атаке
         public void SetTemporaryAttackBonus(int bonusAmount, int turnsDuration)
         {
             _temporaryAttackBonus = bonusAmount;
             _attackBonusTurnsRemaining = turnsDuration;
         }
 
-        // Установка временного бонуса к защите
         public void SetTemporaryDefenseBonus(int bonusAmount, int turnsDuration)
         {
             _temporaryDefenseBonus = bonusAmount;
@@ -663,7 +598,6 @@ namespace SketchBlade.Models
             OnPropertyChanged(nameof(TotalDefense));
         }
 
-        // Добавляем метод ApplyBuff для применения различных эффектов
         public void ApplyBuff(BuffType buffType, int power, int duration)
         {
             switch (buffType)
@@ -678,13 +612,13 @@ namespace SketchBlade.Models
                     Heal(power);
                     break;
                 case BuffType.Poison:
-                    LoggingService.LogError($"[{DateTime.Now}] Applied poison to {Name} for {duration} turns with power {power}", null);
+                    LoggingService.LogError($"Applied poison to {Name} for {duration} turns with power {power}", null);
                     break;
                 case BuffType.Stun:
-                    LoggingService.LogError($"[{DateTime.Now}] Stunned {Name} for {duration} turns", null);
+                    LoggingService.LogError($"Stunned {Name} for {duration} turns", null);
                     break;
                 default:
-                    LoggingService.LogError($"[{DateTime.Now}] Buff type {buffType} not implemented", null);
+                    LoggingService.LogError($"Buff type {buffType} not implemented", null);
                     break;
             }
         }
@@ -712,13 +646,11 @@ namespace SketchBlade.Models
             }
         }
         
-        // Property changed notification
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        // Публичный метод для установки статуса поражения
         public void SetDefeated(bool defeated)
         {
             IsDefeated = defeated;

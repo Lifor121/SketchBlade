@@ -4,9 +4,6 @@ using SketchBlade.Services;
 
 namespace SketchBlade.Models
 {
-    /// <summary>
-    /// Управление слотами инвентаря - инициализация и доступ к слотам
-    /// </summary>
     public class InventorySlotManager
     {
         private readonly InventoryData _data;
@@ -16,9 +13,6 @@ namespace SketchBlade.Models
             _data = data ?? throw new ArgumentNullException(nameof(data));
         }
 
-        /// <summary>
-        /// Инициализирует все слоты инвентаря
-        /// </summary>
         public void InitializeAllSlots()
         {
             InitializeInventorySlots();
@@ -27,9 +21,6 @@ namespace SketchBlade.Models
             LoggingService.LogInfo("All inventory slots initialized");
         }
 
-        /// <summary>
-        /// Инициализирует основные слоты инвентаря (15 слотов)
-        /// </summary>
         public void InitializeInventorySlots()
         {
             _data.Items.Clear();
@@ -39,9 +30,6 @@ namespace SketchBlade.Models
             }
         }
 
-        /// <summary>
-        /// Инициализирует слоты быстрого доступа (2 слота)
-        /// </summary>
         public void InitializeQuickSlots()
         {
             _data.QuickItems.Clear();
@@ -51,9 +39,6 @@ namespace SketchBlade.Models
             }
         }
 
-        /// <summary>
-        /// Инициализирует слоты крафта (9 слотов)
-        /// </summary>
         public void InitializeCraftSlots()
         {
             _data.CraftItems.Clear();
@@ -63,9 +48,6 @@ namespace SketchBlade.Models
             }
         }
 
-        /// <summary>
-        /// Получить предмет из основного инвентаря
-        /// </summary>
         public Item? GetItemAt(int index)
         {
             if (index >= 0 && index < _data.Items.Count)
@@ -73,9 +55,6 @@ namespace SketchBlade.Models
             return null;
         }
 
-        /// <summary>
-        /// Установить предмет в основной инвентарь
-        /// </summary>
         public bool SetItemAt(int index, Item? item)
         {
             if (index >= 0 && index < _data.Items.Count)
@@ -87,9 +66,6 @@ namespace SketchBlade.Models
             return false;
         }
 
-        /// <summary>
-        /// Получить предмет из слота быстрого доступа
-        /// </summary>
         public Item? GetQuickItemAt(int index)
         {
             if (index >= 0 && index < _data.QuickItems.Count)
@@ -97,14 +73,10 @@ namespace SketchBlade.Models
             return null;
         }
 
-        /// <summary>
-        /// Установить предмет в слот быстрого доступа
-        /// </summary>
         public bool SetQuickItemAt(int index, Item? item)
         {
             if (index >= 0 && index < _data.QuickItems.Count)
             {
-                // Проверяем, что в слоты быстрого доступа можно помещать только расходники
                 if (item != null && item.Type != ItemType.Consumable)
                 {
                     return false;
@@ -117,9 +89,6 @@ namespace SketchBlade.Models
             return false;
         }
 
-        /// <summary>
-        /// Получить предмет из слота крафта
-        /// </summary>
         public Item? GetCraftItemAt(int index)
         {
             if (index >= 0 && index < _data.CraftItems.Count)
@@ -127,9 +96,6 @@ namespace SketchBlade.Models
             return null;
         }
 
-        /// <summary>
-        /// Установить предмет в слот крафта
-        /// </summary>
         public bool SetCraftItemAt(int index, Item? item)
         {
             if (index >= 0 && index < _data.CraftItems.Count)
@@ -141,9 +107,6 @@ namespace SketchBlade.Models
             return false;
         }
 
-        /// <summary>
-        /// Очистить все слоты
-        /// </summary>
         public void ClearAll()
         {
             for (int i = 0; i < _data.Items.Count; i++)
@@ -159,9 +122,6 @@ namespace SketchBlade.Models
             _data.NotifyInventoryChanged();
         }
 
-        /// <summary>
-        /// Найти первый свободный слот в основном инвентаре
-        /// </summary>
         public int FindEmptySlot()
         {
             for (int i = 0; i < _data.Items.Count; i++)
@@ -172,26 +132,18 @@ namespace SketchBlade.Models
             return -1;
         }
 
-        /// <summary>
-        /// Проверить, есть ли свободные слоты
-        /// </summary>
         public bool HasEmptySlots()
         {
             return FindEmptySlot() != -1;
         }
 
-        /// <summary>
-        /// Проверить, есть ли место для предмета (учитывает стекирование)
-        /// </summary>
         public bool HasSpaceForItem(Item item)
         {
             if (item == null) return false;
             
-            // Проверяем свободные слоты
             if (HasEmptySlots())
                 return true;
                 
-            // Для стекируемых предметов проверяем существующие стеки
             if (item.IsStackable)
             {
                 foreach (var existingItem in _data.Items)

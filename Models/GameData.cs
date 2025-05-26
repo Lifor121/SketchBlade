@@ -7,15 +7,11 @@ using SketchBlade.Services;
 
 namespace SketchBlade.Models
 {
-    /// <summary>
-    /// Чистая модель данных игры - только состояние без логики
-    /// </summary>
     [Serializable]
     public class GameData : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        // Основные данные игры
         public Character? Player { get; set; }
         public Inventory Inventory { get; set; } = new Inventory();
         public ObservableCollection<Location> Locations { get; set; } = new ObservableCollection<Location>();
@@ -29,7 +25,6 @@ namespace SketchBlade.Models
             set => SetProperty(ref _currentScreen, value);
         }
 
-        // Настройки игры
         public GameSettings Settings { get; set; } = new GameSettings();
 
         private bool _hasSaveGame = false;
@@ -39,18 +34,14 @@ namespace SketchBlade.Models
             set => SetProperty(ref _hasSaveGame, value);
         }
 
-        // Состояние боя
         public List<Character> CurrentEnemies { get; set; } = new List<Character>();
         public List<Item> BattleRewardItems { get; set; } = new List<Item>();
         public int BattleRewardGold { get; set; } = 0;
 
-        // Устаревшее поле для совместимости
         public int Gold { get; set; } = 0;
 
-        // Добавлены для совместимости с UI
         public object? CurrentScreenViewModel { get; set; }
 
-        // Вычисляемые свойства для UI
         public string PlayerHealth => $"{Player?.CurrentHealth}/{Player?.GetTotalMaxHealth()}";
         public string PlayerStrength => Player?.Attack.ToString() ?? "0";
         public string PlayerDefense => Player?.GetTotalDefense().ToString() ?? "0";
@@ -58,17 +49,11 @@ namespace SketchBlade.Models
 
         public GameData()
         {
-            // Базовая инициализация коллекций
             Locations = new ObservableCollection<Location>();
             CurrentEnemies = new List<Character>();
-            // Используем только одну инициализацию инвентаря
-            // Inventory = new Inventory(); - закомментировано, чтобы избежать дублирования инициализации
             Settings = new GameSettings();
         }
 
-        /// <summary>
-        /// Сброс данных игры к начальному состоянию
-        /// </summary>
         public void Reset()
         {
             Player = null;
@@ -87,9 +72,6 @@ namespace SketchBlade.Models
             Settings = new GameSettings();
         }
 
-        /// <summary>
-        /// Создает копию данных для сохранения
-        /// </summary>
         public GameData CreateSaveCopy()
         {
             return new GameData
@@ -101,14 +83,10 @@ namespace SketchBlade.Models
                 Settings = Settings,
                 Gold = Gold,
                 HasSaveGame = true,
-                // Копируем локации
                 Locations = new ObservableCollection<Location>(Locations)
             };
         }
 
-        /// <summary>
-        /// Валидация данных игры
-        /// </summary>
         public bool IsValid()
         {
             if (Player == null) return false;
@@ -122,53 +100,36 @@ namespace SketchBlade.Models
         // ================ МЕТОДЫ ОБРАТНОЙ СОВМЕСТИМОСТИ ================
         // Делегируют к соответствующим сервисам для сохранения архитектуры
 
-        /// <summary>
-        /// Инициализация игры (делегирует к GameLogicService)
-        /// </summary>
         public void Initialize()
         {
             LoggingService.LogInfo("=== ИНИЦИАЛИЗАЦИЯ НОВОЙ ИГРЫ (GameData.Initialize) ===");
             
-            // Используем GameInitializer для более полной инициализации
             var gameInitializer = new Services.GameInitializer();
             gameInitializer.InitializeNewGame(this);
             
             LoggingService.LogInfo("=== ИГРА ИНИЦИАЛИЗИРОВАНА УСПЕШНО ===");
         }
 
-        /// <summary>
-        /// Сохранение игры (делегирует к CoreGameService)
-        /// </summary>
         public void SaveGame()
         {
             CoreGameService.Instance.SaveGame(this);
         }
 
-        /// <summary>
-        /// Загрузка игры (делегирует к CoreGameService)
-        /// </summary>
         public void LoadGame()
         {
             var loadedData = CoreGameService.Instance.LoadGame() as GameData;
             if (loadedData != null)
             {
-                // Copy loaded data to this instance
                 CopyFrom(loadedData);
             }
         }
 
-        /// <summary>
-        /// Проверка наличия сохранения (делегирует к CoreGameService)
-        /// </summary>
         public bool CheckForSaveGame()
         {
             HasSaveGame = CoreGameService.Instance.HasSaveFile();
             return HasSaveGame;
         }
 
-        /// <summary>
-        /// Начало боя с мобами (делегирует к GameLogicService)
-        /// </summary>
         public void StartBattleWithMobs(Location location)
         {
             if (Player == null) return;
@@ -178,9 +139,6 @@ namespace SketchBlade.Models
             CurrentEnemies.AddRange(enemies);
         }
 
-        /// <summary>
-        /// Начало боя с героем (делегирует к GameLogicService)
-        /// </summary>
         public void StartBattleWithHero(Location location)
         {
             if (location.Hero == null) return;
@@ -189,9 +147,6 @@ namespace SketchBlade.Models
             CurrentEnemies.Add(location.Hero);
         }
 
-        /// <summary>
-        /// Копирование данных из другого экземпляра
-        /// </summary>
         private void CopyFrom(GameData source)
         {
             Player = source.Player;
@@ -202,7 +157,6 @@ namespace SketchBlade.Models
             Gold = source.Gold;
             HasSaveGame = source.HasSaveGame;
 
-            // Копируем локации
             Locations.Clear();
             foreach (var location in source.Locations)
             {

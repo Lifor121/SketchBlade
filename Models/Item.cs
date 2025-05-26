@@ -58,7 +58,6 @@ namespace SketchBlade.Models
         private ItemRarity _rarity;
         private ItemMaterial _material;
         
-        // Mark BitmapImage as non-serializable to prevent JSON serialization issues
         [NonSerialized]
         [JsonIgnore]
         private BitmapImage? _icon;
@@ -72,7 +71,6 @@ namespace SketchBlade.Models
         private int _effectPower;
         private string _spritePath = string.Empty;
         
-        // Basic properties
         public string Name 
         { 
             get => _name; 
@@ -128,7 +126,6 @@ namespace SketchBlade.Models
             } 
         }
         
-        // Mark Icon as JsonIgnore to prevent serialization issues
         [JsonIgnore]
         public BitmapImage? Icon 
         { 
@@ -136,7 +133,6 @@ namespace SketchBlade.Models
             {
                 if (_icon == null && !string.IsNullOrEmpty(SpritePath))
                 {
-                    // Lazy loading при первом обращении
                     try
                     {
                         _icon = ResourceService.Instance.GetImage(SpritePath);
@@ -240,17 +236,14 @@ namespace SketchBlade.Models
             } 
         }
         
-        // Stat bonuses (key - stat name, value - bonus amount)
         public Dictionary<string, int> StatBonuses { get; set; } = new Dictionary<string, int>();
         
-        // Other properties
         public bool IsStackable => MaxStackSize > 1;
         public bool IsUsable => Type == ItemType.Consumable;
         public bool IsEquippable => Type == ItemType.Weapon || Type == ItemType.Helmet || 
                                   Type == ItemType.Chestplate || Type == ItemType.Leggings || 
                                   Type == ItemType.Shield;
         
-        // Свойство для определения слота экипировки на основе типа предмета
         public EquipmentSlot EquipSlot 
         {
             get
@@ -262,12 +255,11 @@ namespace SketchBlade.Models
                     ItemType.Leggings => EquipmentSlot.Leggings,
                     ItemType.Weapon => EquipmentSlot.MainHand,
                     ItemType.Shield => EquipmentSlot.Shield,
-                    _ => EquipmentSlot.MainHand // По умолчанию используем MainHand
+                    _ => EquipmentSlot.MainHand
                 };
             }
         }
         
-        // Бонусы от экипировки для боевых характеристик
         public int AttackBonus => StatBonuses.ContainsKey("Attack") ? StatBonuses["Attack"] : 0;
         public int DefenseBonus => StatBonuses.ContainsKey("Defense") ? StatBonuses["Defense"] : 0;
         public int HealthBonus => StatBonuses.ContainsKey("Health") ? StatBonuses["Health"] : 0;
@@ -280,14 +272,12 @@ namespace SketchBlade.Models
             // Default constructor
         }
         
-        // Create an item with basic properties
         public Item(string name, ItemType type, ItemRarity rarity = ItemRarity.Common)
         {
             Name = name;
             Type = type;
             Rarity = rarity;
             
-            // Set default max stack size based on type
             switch (type)
             {
                 case ItemType.Consumable:
@@ -299,7 +289,6 @@ namespace SketchBlade.Models
                     break;
             }
             
-            // Set default material based on type if not specified
             if (Material == ItemMaterial.None)
             {
                 switch (type)
@@ -309,12 +298,11 @@ namespace SketchBlade.Models
                     case ItemType.Chestplate:
                     case ItemType.Leggings:
                     case ItemType.Shield:
-                        Material = ItemMaterial.Iron; // Default to iron for equipment
+                        Material = ItemMaterial.Iron;
                         break;
                 }
             }
             
-            // Generate sprite path based on type and material
             UpdateSpritePath();
         }
         
@@ -341,7 +329,6 @@ namespace SketchBlade.Models
             return clone;
         }
         
-        // Update sprite path based on item type and material
         public void UpdateSpritePath()
         {
             string materialPrefix;
@@ -378,11 +365,8 @@ namespace SketchBlade.Models
                     SpritePath = AssetPaths.DEFAULT_IMAGE;
                     break;
             }
-            
-            LoggingService.LogDebug($"UpdateSpritePath: Предмет '{Name}' получил путь к спрайту: {SpritePath}");
         }
         
-        // Helper method to get the correct material prefix for file names
         private string GetMaterialPrefix(ItemMaterial material)
         {
             return material switch
@@ -395,7 +379,6 @@ namespace SketchBlade.Models
             };
         }
         
-        // Add items to stack
         public int AddToStack(int amount)
         {
             if (!IsStackable)
@@ -405,18 +388,16 @@ namespace SketchBlade.Models
             int actualAdd = Math.Min(canAdd, amount);
             
             StackSize += actualAdd;
-            return amount - actualAdd; // Return remaining amount
+            return amount - actualAdd;
         }
         
-        // Remove items from stack
         public int RemoveFromStack(int amount)
         {
             int actualRemove = Math.Min(StackSize, amount);
             StackSize -= actualRemove;
-            return actualRemove; // Return actual amount removed
+            return actualRemove;
         }
         
-        // Split stack into a new item stack
         public Item SplitStack(int amount)
         {
             if (amount <= 0 || amount >= StackSize)
@@ -427,74 +408,60 @@ namespace SketchBlade.Models
             return newStack;
         }
         
-        // Use the item
         public virtual bool Use(Character target)
         {
             if (Type != ItemType.Consumable)
                 return false;
                 
-            // Apply effect based on the item name or properties
             switch (Name.ToLower())
             {
                 case "healing potion":
                     int healAmount = EffectPower > 0 ? EffectPower : 20;
                     target.Health += healAmount;
-                    // Ensure health doesn't exceed max health
                     if (target.Health > target.MaxHealth)
                         target.Health = target.MaxHealth;
                     break;
                     
                 case "rage potion":
-                    // Apply attack buff
                     target.ApplyBuff(BuffType.Attack, EffectPower, 3);
                     break;
                     
                 case "зелье неуязвимости":
-                    // Apply defense buff
                     target.ApplyBuff(BuffType.Defense, 50, 3);
                     break;
                     
                 default:
-                    // If no specific effect, return false
                     return false;
             }
             
-            // Decrement stack size
             StackSize--;
             
             return true;
         }
         
-        // Use the item in combat
         public virtual bool UseInCombat(Character user, List<Character> targets)
         {
             if (Type != ItemType.Consumable)
                 return false;
                 
-            // Apply effect based on the item
             switch (Name.ToLower())
             {
                 case "healing potion":
-                    // Heal the user
                     int healAmount = EffectPower > 0 ? EffectPower : 20;
                     user.Health += healAmount;
-                    // Ensure health doesn't exceed max health
                     if (user.Health > user.MaxHealth)
                         user.Health = user.MaxHealth;
                     break;
                     
                 case "rage potion":
-                    // Increase user's attack for 3 turns
                     user.ApplyBuff(BuffType.Attack, EffectPower, 3);
                     break;
                     
                 case "зелье неуязвимости":
-                    // Increase user's defense for 3 turns
                     user.ApplyBuff(BuffType.Defense, 50, 3);
                     break;
                     
                 case "bomb":
-                    // Deal damage to all enemies
                     int damageAmount = Damage > 0 ? Damage : 45;
                     foreach (var target in targets)
                     {
@@ -503,10 +470,8 @@ namespace SketchBlade.Models
                     break;
                     
                 case "pillow":
-                    // Put enemies to sleep for 2 turns
                     int stunTurns = EffectPower > 0 ? EffectPower : 2;
                     
-                    // If multiple targets, affect one random enemy
                     if (targets.Count > 0)
                     {
                         var target = targets[new Random().Next(targets.Count)];
@@ -515,11 +480,9 @@ namespace SketchBlade.Models
                     break;
                     
                 case "poisoned shuriken":
-                    // Deal damage to one enemy and apply poison
                     int initialDamage = Damage > 0 ? Damage : 15;
                     int poisonDamage = EffectPower > 0 ? EffectPower : 5;
                     
-                    // If multiple targets, affect one random enemy
                     if (targets.Count > 0)
                     {
                         var target = targets[new Random().Next(targets.Count)];
@@ -529,13 +492,10 @@ namespace SketchBlade.Models
                     break;
                     
                 default:
-                    // If no specific effect, return false
                     return false;
             }
             
-            // Decrement stack size
             StackSize--;
-            
             return true;
         }
         
@@ -543,13 +503,10 @@ namespace SketchBlade.Models
         {
             try
             {
-                // Уведомляем о изменении конкретного свойства
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
                 
-                // Если изменяется StackSize, то может понадобиться обновить UI для других свойств
                 if (propertyName == "StackSize")
                 {
-                    // Также обновляем Icon и другие визуальные свойства
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Icon"));
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsStackable"));
                 }

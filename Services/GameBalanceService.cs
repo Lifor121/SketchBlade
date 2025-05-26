@@ -10,35 +10,30 @@ namespace SketchBlade.Services
 {
     public class GameBalanceService
     {
-        // Множители для характеристик боссов
         private const double BossHealthMultiplier = 2.5;
         private const double BossAttackMultiplier = 1.8;
         private const double BossDefenseMultiplier = 1.5;
         
-        // Случайная вариация для характеристик
-        private const double EnemyStatRandomFactor = 0.15; // ±15%
+        private const double EnemyStatRandomFactor = 0.15;
         
-        // Множители сложности игры
         private static readonly Dictionary<Difficulty, double> DifficultyMultipliers = new Dictionary<Difficulty, double>
         {
-            { Difficulty.Easy, 0.75 },    // -25% сложность
-            { Difficulty.Normal, 1.0 },   // Базовая сложность
-            { Difficulty.Hard, 1.4 }      // +40% сложность
+            { Difficulty.Easy, 0.75 },
+            { Difficulty.Normal, 1.0 },
+            { Difficulty.Hard, 1.4 }
         };
         
-        // Множители сложности по локациям
         private static readonly Dictionary<LocationType, double> LocationDifficultyMultiplier = new Dictionary<LocationType, double>
         {
-            { LocationType.Village, 1.0 },  // Базовая сложность
-            { LocationType.Forest, 1.3 },   // +30% сложность
-            { LocationType.Cave, 1.7 },     // +70% сложность
-            { LocationType.Ruins, 2.2 },    // +120% сложность
-            { LocationType.Castle, 3.0 }    // +200% сложность
+            { LocationType.Village, 1.0 },
+            { LocationType.Forest, 1.3 },
+            { LocationType.Cave, 1.7 },
+            { LocationType.Ruins, 2.2 },
+            { LocationType.Castle, 3.0 }
         };
         
         private readonly Random _random = new Random();
         
-        // База для расчета базовых характеристик врагов для разных локаций
         private static readonly Dictionary<LocationType, EnemyBaseStats> BaseEnemyStats = new Dictionary<LocationType, EnemyBaseStats>
         {
             { LocationType.Village, new EnemyBaseStats { Health = 25, Attack = 4, Defense = 2 } },
@@ -48,7 +43,6 @@ namespace SketchBlade.Services
             { LocationType.Castle, new EnemyBaseStats { Health = 100, Attack = 18, Defense = 10 } }
         };
         
-        // База для названий врагов (используем для путей к спрайтам)
         private static readonly Dictionary<LocationType, string> EnemySpriteNames = new Dictionary<LocationType, string>
         {
             { LocationType.Village, "village_enemy" },
@@ -58,7 +52,6 @@ namespace SketchBlade.Services
             { LocationType.Castle, "castle_enemy" }
         };
         
-        // База для названий героев (используем для путей к спрайтам)
         private static readonly Dictionary<LocationType, string> HeroSpriteNames = new Dictionary<LocationType, string>
         {
             { LocationType.Village, "village_hero" },
@@ -68,7 +61,6 @@ namespace SketchBlade.Services
             { LocationType.Castle, "castle_hero" }
         };
         
-        // Получение уровня сложности для локации
         public LocationDifficultyLevel GetLocationDifficulty(LocationType locationType)
         {
             switch (locationType)
@@ -88,25 +80,13 @@ namespace SketchBlade.Services
             }
         }
         
-        // Генерация врага
         public static Character GenerateEnemy(LocationType locationType, bool isBoss = false, Difficulty? difficulty = null)
-        {
-            File.AppendAllText("error_log.txt", 
-                $"[{DateTime.Now}] Генерируем {(isBoss ? "босса" : "обычного")} врага для {locationType}\r\n");
-            
-            // Создаем экземпляр для вызова нестатических методов
-            var balanceService = new GameBalanceService();
-            
-            // Базовые параметры в зависимости от локации
-            int baseHealth, baseAttack, baseDefense;
-            
-            // Получаем имя для спрайта
+        {           
+            var balanceService = new GameBalanceService();           
+            int baseHealth, baseAttack, baseDefense;          
             string spriteName = balanceService.GetEnemySpriteName(locationType, isBoss);
-            
-            // Получаем локализованное имя
             string localizedName = balanceService.GetLocalizedEnemyName(locationType, isBoss);
             
-            // Получаем базовые характеристики из словаря
             if (BaseEnemyStats.TryGetValue(locationType, out var stats))
             {
                 baseHealth = stats.Health;
@@ -115,32 +95,27 @@ namespace SketchBlade.Services
             }
             else
             {
-                // Значения по умолчанию
                 baseHealth = 30;
                 baseAttack = 5;
                 baseDefense = 2;
             }
             
-            // Применяем множитель сложности локации
             double locationMultiplier = 1.0;
             if (LocationDifficultyMultiplier.TryGetValue(locationType, out double multiplier))
             {
                 locationMultiplier = multiplier;
             }
             
-            // Применяем множитель сложности игры
             double difficultyMultiplier = 1.0;
             if (difficulty.HasValue && DifficultyMultipliers.TryGetValue(difficulty.Value, out double diffMult))
             {
                 difficultyMultiplier = diffMult;
             }
             
-            // Применяем все множители
             baseHealth = (int)(baseHealth * locationMultiplier * difficultyMultiplier);
             baseAttack = (int)(baseAttack * locationMultiplier * difficultyMultiplier);
             baseDefense = (int)(baseDefense * locationMultiplier * difficultyMultiplier);
             
-            // Дополнительные бонусы для боссов
             if (isBoss)
             {
                 baseHealth = (int)(baseHealth * BossHealthMultiplier);
@@ -148,7 +123,6 @@ namespace SketchBlade.Services
                 baseDefense = (int)(baseDefense * BossDefenseMultiplier);
             }
             
-            // Создаем персонажа
             var enemy = new Character
             {
                 Name = localizedName,
@@ -165,7 +139,6 @@ namespace SketchBlade.Services
             return enemy;
         }
         
-        // Метод для вычисления уровня врага
         public static int CalculateEnemyLevel(LocationType locationType, bool isBoss)
         {
             int baseLevel = locationType switch
@@ -178,7 +151,6 @@ namespace SketchBlade.Services
                 _ => 1
             };
             
-            // Боссы на 2-3 уровня выше обычных мобов
             if (isBoss)
             {
                 baseLevel += 2;
@@ -187,7 +159,6 @@ namespace SketchBlade.Services
             return baseLevel;
         }
         
-        // Получение имени для спрайта
         private string GetEnemySpriteName(LocationType locationType, bool isBoss)
         {
             if (isBoss)
@@ -196,7 +167,7 @@ namespace SketchBlade.Services
                 {
                     return name;
                 }
-                return "village_hero"; // fallback
+                return "village_hero";
             }
             else
             {
@@ -204,16 +175,14 @@ namespace SketchBlade.Services
                 {
                     return name;
                 }
-                return "village_enemy"; // fallback
+                return "village_enemy";
             }
         }
         
-        // Получение локализованного имени
         private string GetLocalizedEnemyName(LocationType locationType, bool isBoss)
         {
             if (isBoss)
             {
-                // Для боссов используем имена из секции Heroes
                 string heroKey = locationType switch
                 {
                     LocationType.Village => "Characters.Heroes.VillageElder",
@@ -228,32 +197,27 @@ namespace SketchBlade.Services
             }
             else
             {
-                // Для обычных врагов используем имена из секции Enemies
                 string key = $"Characters.Enemies.{locationType}.Regular";
                 string localizedName = LocalizationService.Instance.GetTranslation(key);
                 return localizedName;
             }
         }
         
-        // Публичный метод для получения случайного имени врага
         public string GetRandomEnemyName(LocationType locationType)
         {
             return GetLocalizedEnemyName(locationType, false);
         }
         
-        // Публичный метод для получения случайного имени героя
         public string GetRandomHeroName(LocationType locationType)
         {
             return GetLocalizedEnemyName(locationType, true);
         }
         
-        // Калькуляция характеристик предметов
         public (int Damage, int Defense) CalculateItemStats(ItemType itemType, ItemMaterial material, ItemRarity rarity)
         {
             int baseStat = 0;
             double rarityMultiplier = 1.0;
             
-            // Базовая характеристика по материалу
             switch (material)
             {
                 case ItemMaterial.Wood:
@@ -273,7 +237,6 @@ namespace SketchBlade.Services
                     break;
             }
             
-            // Множитель по редкости
             switch (rarity)
             {
                 case ItemRarity.Common:
@@ -294,13 +257,10 @@ namespace SketchBlade.Services
             }
             
             int finalStat = (int)(baseStat * rarityMultiplier);
-            
-            // Для оружия возвращаем в damage, для брони в defense
             return (itemType == ItemType.Weapon) ? (finalStat, 0) : (0, finalStat);
         }
     }
     
-    // Вспомогательный класс для хранения базовых характеристик врагов
     public class EnemyBaseStats
     {
         public int Health { get; set; }

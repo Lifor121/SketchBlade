@@ -6,10 +6,6 @@ using SketchBlade.Services;
 
 namespace SketchBlade.Models
 {
-    /// <summary>
-    /// Упрощенный инвентарь - координатор компонентов
-    /// Было 900 строк, стало ~80 строк
-    /// </summary>
     [Serializable]
     public class Inventory : INotifyPropertyChanged
     {
@@ -19,12 +15,10 @@ namespace SketchBlade.Models
         [field: NonSerialized]
         public event EventHandler? InventoryChanged;
 
-        // Основные компоненты
         private readonly InventoryData _data;
         private readonly InventorySlotManager _slotManager;
         private readonly InventoryLogic _logic;
 
-        // Конструктор
         public Inventory(int capacity = 15)
         {
             try
@@ -35,11 +29,9 @@ namespace SketchBlade.Models
                 _slotManager = new InventorySlotManager(_data);
                 _logic = new InventoryLogic(_data, _slotManager);
 
-                // Подписываемся на события
                 _data.PropertyChanged += OnDataPropertyChanged;
                 _data.InventoryChanged += OnDataInventoryChanged;
 
-                // Инициализируем слоты
                 _slotManager.InitializeAllSlots();
                 
                 LoggingService.LogInfo("Simplified inventory initialized successfully");
@@ -48,7 +40,6 @@ namespace SketchBlade.Models
             {
                 LoggingService.LogError($"Error initializing inventory: {ex.Message}", ex);
                 
-                // Экстренная инициализация при ошибке
                 _data = new InventoryData();
                 _slotManager = new InventorySlotManager(_data);
                 _logic = new InventoryLogic(_data, _slotManager);
@@ -56,7 +47,6 @@ namespace SketchBlade.Models
             }
         }
 
-        // Делегирующие свойства для обратной совместимости
         public ObservableCollection<Item?> Items => _data.Items;
         public ObservableCollection<Item?> QuickItems => _data.QuickItems;
         public ObservableCollection<Item?> CraftItems => _data.CraftItems;
@@ -77,14 +67,12 @@ namespace SketchBlade.Models
             set => _data.Gold = value; 
         }
 
-        // Основные методы - делегируют к компонентам
         public bool AddItem(Item item, int amount = 1) => _logic.AddItem(item, amount);
         public bool RemoveItem(Item item, int amount = 1) => _logic.RemoveItem(item, amount);
         public bool HasItem(string itemName, int count = 1) => _logic.HasItem(itemName, count);
         public int CountItemsByName(string itemName) => _logic.CountItemsByName(itemName);
         public bool SplitStack(Item sourceItem, int amount) => _logic.SplitStack(sourceItem, amount);
 
-        // Методы управления слотами
         public Item? GetItemAt(int index) => _slotManager.GetItemAt(index);
         public bool SetItemAt(int index, Item? item) => _slotManager.SetItemAt(index, item);
         public Item? GetQuickItemAt(int index) => _slotManager.GetQuickItemAt(index);
@@ -94,7 +82,6 @@ namespace SketchBlade.Models
         public bool HasSpaceForItem(Item item) => _slotManager.HasSpaceForItem(item);
         public void Clear() => _slotManager.ClearAll();
 
-        // Уведомления
         public void OnInventoryChanged() => _data.NotifyInventoryChanged();
 
         private void OnDataPropertyChanged(object? sender, PropertyChangedEventArgs e)

@@ -6,46 +6,36 @@ using SketchBlade.Models;
 
 namespace SketchBlade.Models
 {
-    /// <summary>
-    /// Состояние боя - содержит только данные без логики
-    /// </summary>
     public class BattleState : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        // Основные участники боя
         private Character _playerCharacter;
         private Character _selectedEnemy;
         private ObservableCollection<Character> _enemies = new();
         
-        // Предметы и выбор
         private ObservableCollection<Item> _usableItems = new();
         private Item _selectedItem;
         
-        // Состояние хода
         private bool _isPlayerTurn = true;
         private bool _isBattleOver = false;
         private bool _battleWon = false;
         private int _turnCounter = 0;
         private bool _isBossHeroBattle = false;
         
-        // Сообщения
         private string _battleStatus = "";
         private string _turnMessage = "";
         private string _battleResultMessage = "";
         private string _rewardMessage = "";
         private string _damageMessage = "";
         
-        // Логи и специальные способности
         private ObservableCollection<string> _battleLog = new();
         private bool _isEnemyUsingAbility = false;
         private string _enemyAbilityName = "";
         private int _enemyAbilityDamage = 0;
         
-        // Флаги обработки
         private bool _rewardsProcessed = false;
 
-        // Свойства участников боя
         public Character PlayerCharacter
         {
             get => _playerCharacter;
@@ -76,7 +66,6 @@ namespace SketchBlade.Models
             set => SetProperty(ref _selectedItem, value);
         }
 
-        // Состояние хода
         public bool IsPlayerTurn
         {
             get => _isPlayerTurn;
@@ -107,7 +96,6 @@ namespace SketchBlade.Models
             set => SetProperty(ref _isBossHeroBattle, value);
         }
 
-        // Сообщения
         public string BattleStatus
         {
             get => _battleStatus;
@@ -138,14 +126,12 @@ namespace SketchBlade.Models
             set => SetProperty(ref _damageMessage, value);
         }
 
-        // Логи
         public ObservableCollection<string> BattleLog
         {
             get => _battleLog;
             set => SetProperty(ref _battleLog, value);
         }
 
-        // Специальные способности врагов
         public bool IsEnemyUsingAbility
         {
             get => _isEnemyUsingAbility;
@@ -164,14 +150,12 @@ namespace SketchBlade.Models
             set => SetProperty(ref _enemyAbilityDamage, value);
         }
 
-        // Флаги
         public bool RewardsProcessed
         {
             get => _rewardsProcessed;
             set => SetProperty(ref _rewardsProcessed, value);
         }
 
-        // Вычисляемые свойства для UI
         public int PlayerHealth => PlayerCharacter?.CurrentHealth ?? 0;
         public int PlayerMaxHealth => PlayerCharacter?.MaxHealth ?? 0;
         public double PlayerHealthPercent => PlayerCharacter != null ? 
@@ -187,30 +171,25 @@ namespace SketchBlade.Models
 
         public void Reset()
         {
-            // Сбрасываем состояние хода
             IsPlayerTurn = true;
             IsBattleOver = false;
             BattleWon = false;
             TurnCounter = 0;
             RewardsProcessed = false;
             
-            // Очищаем коллекции
             BattleLog.Clear();
             Enemies.Clear();
             UsableItems.Clear();
             
-            // Сбрасываем выбранные объекты
             SelectedEnemy = null;
             SelectedItem = null;
             
-            // Сбрасываем сообщения
             BattleStatus = "";
             TurnMessage = "";
             BattleResultMessage = "";
             RewardMessage = "";
             DamageMessage = "";
             
-            // Сбрасываем специальные способности
             IsEnemyUsingAbility = false;
             EnemyAbilityName = "";
             EnemyAbilityDamage = 0;

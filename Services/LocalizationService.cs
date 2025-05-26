@@ -7,27 +7,19 @@ using SketchBlade.Models;
 
 namespace SketchBlade.Services
 {
-    /// <summary>
-    /// Консолидированный сервис локализации
-    /// Объединяет языковые переводы и локализацию предметов
-    /// </summary>
     public interface ILocalizationService
     {
-        // Language management
         Language CurrentLanguage { get; set; }
         event EventHandler? LanguageChanged;
         
-        // Translation methods
         string GetTranslation(string key);
         string GetTranslation(string key, params object[] args);
         
-        // Item localization
         string GetItemName(string itemKey);
         string GetItemDescription(string itemKey);
         string GetLocalizedItemName(Item item);
         string GetLocalizedItemDescription(Item item);
         
-        // Utility methods
         void ReloadTranslations();
         bool HasTranslation(string key);
         IEnumerable<string> GetAvailableLanguages();
@@ -42,7 +34,6 @@ namespace SketchBlade.Services
         private Dictionary<Language, Dictionary<string, string>> _itemTranslations = new();
         private Language _currentLanguage = Language.Russian;
 
-        // Localization file paths
         private static readonly string RussianLocalizationFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Localization", "russian.json");
         private static readonly string EnglishLocalizationFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Localization", "english.json");
 
@@ -58,7 +49,6 @@ namespace SketchBlade.Services
                     _currentLanguage = value;
                     UpdateCulture();
                     LanguageChanged?.Invoke(this, EventArgs.Empty);
-                    LoggingService.LogDebug($"Language changed to {value}");
                 }
             }
         }
@@ -67,7 +57,6 @@ namespace SketchBlade.Services
         {
             LoadTranslationsFromFiles();
             LoadItemTranslations();
-            LoggingService.LogDebug("LocalizationService initialized");
         }
 
         #region Translation Methods
@@ -84,17 +73,14 @@ namespace SketchBlade.Services
                     if (languageDict.TryGetValue(_currentLanguage, out var translation))
                         return translation;
 
-                    // Fallback to Russian if current language not found
                     if (_currentLanguage != Language.Russian && languageDict.TryGetValue(Language.Russian, out var russianTranslation))
                         return russianTranslation;
 
-                    // Fallback to English
                     if (languageDict.TryGetValue(Language.English, out var englishTranslation))
                         return englishTranslation;
                 }
 
-                LoggingService.LogDebug($"Translation not found for key: {key}");
-                return key; // Return key if no translation found
+                return key;
             }
             catch (Exception ex)
             {
@@ -140,7 +126,6 @@ namespace SketchBlade.Services
                         return name;
                 }
 
-                // Fallback to general translation
                 return GetTranslation($"Items.{itemKey}.Name");
             }
             catch (Exception ex)
@@ -161,7 +146,6 @@ namespace SketchBlade.Services
                         return description;
                 }
 
-                // Fallback to general translation
                 return GetTranslation($"Items.{itemKey}.Description");
             }
             catch (Exception ex)
@@ -177,11 +161,9 @@ namespace SketchBlade.Services
 
             try
             {
-                // Try to get localized name based on item properties
                 var itemKey = GenerateItemKey(item);
                 var localizedName = GetItemName(itemKey);
                 
-                // If no specific localization found, try by name
                 if (localizedName == itemKey && !string.IsNullOrEmpty(item.Name))
                 {
                     localizedName = GetItemName(item.Name.Replace(" ", "_").ToLower());
@@ -202,11 +184,9 @@ namespace SketchBlade.Services
 
             try
             {
-                // Try to get localized description based on item properties
                 var itemKey = GenerateItemKey(item);
                 var localizedDesc = GetItemDescription(itemKey);
                 
-                // If no specific localization found, try by name
                 if (localizedDesc == "No description available" && !string.IsNullOrEmpty(item.Name))
                 {
                     localizedDesc = GetItemDescription(item.Name.Replace(" ", "_").ToLower());
@@ -229,8 +209,6 @@ namespace SketchBlade.Services
         {
             try
             {
-                LoggingService.LogDebug("Reloading translations");
-                
                 _translations.Clear();
                 _itemTranslations.Clear();
                 
@@ -238,7 +216,6 @@ namespace SketchBlade.Services
                 LoadItemTranslations();
                 
                 LanguageChanged?.Invoke(this, EventArgs.Empty);
-                LoggingService.LogDebug("Translations reloaded successfully");
             }
             catch (Exception ex)
             {
@@ -259,7 +236,6 @@ namespace SketchBlade.Services
         {
             try
             {
-                // Load Russian translations
                 if (File.Exists(RussianLocalizationFile))
                 {
                     LoadLanguageFile(RussianLocalizationFile, Language.Russian);
@@ -270,7 +246,6 @@ namespace SketchBlade.Services
                     LoadFallbackRussianTranslations();
                 }
 
-                // Load English translations
                 if (File.Exists(EnglishLocalizationFile))
                 {
                     LoadLanguageFile(EnglishLocalizationFile, Language.English);
@@ -280,8 +255,6 @@ namespace SketchBlade.Services
                     LoggingService.LogError($"English localization file not found: {EnglishLocalizationFile}");
                     LoadFallbackEnglishTranslations();
                 }
-
-                LoggingService.LogDebug("Translation files loaded successfully");
             }
             catch (Exception ex)
             {
@@ -354,11 +327,10 @@ namespace SketchBlade.Services
                 _itemTranslations[Language.Russian] = new Dictionary<string, string>();
                 _itemTranslations[Language.English] = new Dictionary<string, string>();
 
-                // Load item-specific translations if they exist
                 LoadItemTranslationsForLanguage("item_translations_ru.json", Language.Russian);
                 LoadItemTranslationsForLanguage("item_translations_en.json", Language.English);
 
-                LoggingService.LogDebug("Item translations loaded");
+                LoggingService.LogInfo("Item translations loaded");
             }
             catch (Exception ex)
             {
@@ -391,7 +363,6 @@ namespace SketchBlade.Services
 
         private string GenerateItemKey(Item item)
         {
-            // Generate a consistent key based on item properties
             var typePrefix = item.Type.ToString().ToLower();
             var materialPrefix = item.Material != ItemMaterial.None ? item.Material.ToString().ToLower() : "";
             var baseName = item.Name.Replace(" ", "_").ToLower();
@@ -426,8 +397,6 @@ namespace SketchBlade.Services
 
         private void LoadFallbackTranslations()
         {
-            LoggingService.LogDebug("Loading fallback translations");
-            
             LoadFallbackRussianTranslations();
             LoadFallbackEnglishTranslations();
         }

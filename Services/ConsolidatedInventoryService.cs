@@ -8,24 +8,17 @@ using SketchBlade.ViewModels;
 
 namespace SketchBlade.Services
 {
-    /// <summary>
-    /// Консолидированный сервис инвентаря
-    /// Объединяет операции, валидацию и drag&drop
-    /// </summary>
     public interface IConsolidatedInventoryService
     {
-        // Item operations
         bool MoveItem(string sourceType, int sourceIndex, string targetType, int targetIndex, Inventory inventory, Character? player = null);
         bool CanMoveItem(Item item, string targetSlotType);
         bool StackItems(Item sourceItem, Item targetItem, out int remainingAmount);
         
-        // Validation
         ValidationResult ValidateInventory(Inventory inventory);
         ValidationResult ValidateItemMove(Item item, string targetSlotType, int targetIndex, Inventory inventory);
         ValidationResult ValidateStackOperation(Item sourceItem, Item targetItem, int amount);
         bool IsValidSlotIndex(string slotType, int index);
         
-        // Drag & Drop
         void StartDrag(string sourceSlotType, int sourceIndex, FrameworkElement sourceElement);
         bool HandleDrop(string sourceSlotType, int sourceIndex, string targetSlotType, int targetIndex, InventoryViewModel viewModel);
         bool CanDropOn(string sourceSlotType, string targetSlotType, Item sourceItem);
@@ -58,14 +51,13 @@ namespace SketchBlade.Services
         private static readonly Lazy<ConsolidatedInventoryService> _instance = new(() => new ConsolidatedInventoryService());
         public static ConsolidatedInventoryService Instance => _instance.Value;
 
-        // Slot validation constants
         private const int MAX_INVENTORY_SLOTS = 15;
         private const int MAX_QUICK_SLOTS = 2;
         private const int MAX_CRAFT_SLOTS = 9;
 
         private ConsolidatedInventoryService()
         {
-            LoggingService.LogDebug("ConsolidatedInventoryService initialized");
+            LoggingService.LogInfo("ConsolidatedInventoryService initialized (эта функция ничего не делает)");
         }
 
         #region Item Operations
@@ -74,9 +66,6 @@ namespace SketchBlade.Services
         {
             try
             {
-                LoggingService.LogDebug($"Moving item: {sourceType}[{sourceIndex}] -> {targetType}[{targetIndex}]");
-                
-                // Validate parameters
                 if (inventory == null)
                 {
                     LoggingService.LogError("Inventory cannot be null");
@@ -89,15 +78,12 @@ namespace SketchBlade.Services
                     return false;
                 }
 
-                // Get source item
                 var sourceItem = GetItemFromSlot(sourceType, sourceIndex, inventory, player);
                 if (sourceItem == null)
                 {
-                    LoggingService.LogDebug("Source slot is empty, nothing to move");
                     return false;
                 }
 
-                // Validate move
                 var validation = ValidateItemMove(sourceItem, targetType, targetIndex, inventory);
                 if (!validation.IsValid)
                 {
@@ -105,16 +91,13 @@ namespace SketchBlade.Services
                     return false;
                 }
 
-                // Get target item
                 var targetItem = GetItemFromSlot(targetType, targetIndex, inventory, player);
 
-                // Handle stacking
                 if (targetItem != null && CanStack(sourceItem, targetItem))
                 {
                     return HandleStacking(sourceItem, targetItem, sourceType, sourceIndex, targetType, targetIndex, inventory, player);
                 }
 
-                // Simple swap or move
                 return PerformMove(sourceItem, targetItem, sourceType, sourceIndex, targetType, targetIndex, inventory, player);
             }
             catch (Exception ex)
@@ -153,7 +136,6 @@ namespace SketchBlade.Services
 
                 if (totalAmount <= maxStack)
                 {
-                    // All fits in target
                     targetItem.StackSize = totalAmount;
                     sourceItem.StackSize = 0;
                     remainingAmount = 0;
@@ -161,7 +143,6 @@ namespace SketchBlade.Services
                 }
                 else
                 {
-                    // Partial stack
                     targetItem.StackSize = maxStack;
                     remainingAmount = totalAmount - maxStack;
                     sourceItem.StackSize = remainingAmount;
@@ -188,7 +169,6 @@ namespace SketchBlade.Services
 
                 var result = ValidationResult.Success();
 
-                // Validate slot counts
                 if (inventory.Items.Count > MAX_INVENTORY_SLOTS)
                     result.Warnings.Add($"Inventory has {inventory.Items.Count} slots, maximum is {MAX_INVENTORY_SLOTS}");
 
@@ -198,7 +178,6 @@ namespace SketchBlade.Services
                 if (inventory.CraftItems.Count > MAX_CRAFT_SLOTS)
                     result.Warnings.Add($"Craft slots have {inventory.CraftItems.Count} items, maximum is {MAX_CRAFT_SLOTS}");
 
-                // Validate item constraints
                 for (int i = 0; i < inventory.QuickItems.Count; i++)
                 {
                     var item = inventory.QuickItems[i];
@@ -227,7 +206,6 @@ namespace SketchBlade.Services
                 if (!IsValidSlotIndex(targetSlotType, targetIndex))
                     return ValidationResult.Failure($"Invalid slot index {targetIndex} for type {targetSlotType}");
 
-                // Check slot type compatibility
                 if (!CanMoveItem(item, targetSlotType))
                     return ValidationResult.Failure($"Item {item.Name} cannot be placed in {targetSlotType} slot");
 
@@ -289,8 +267,6 @@ namespace SketchBlade.Services
         {
             try
             {
-                LoggingService.LogDebug($"Starting drag: {sourceSlotType}[{sourceIndex}]");
-
                 var slotInfo = new ItemSlotInfo(sourceSlotType, sourceIndex);
                 var dragData = new DataObject();
                 dragData.SetData("ItemSlotInfo", slotInfo);
@@ -307,8 +283,6 @@ namespace SketchBlade.Services
         {
             try
             {
-                LoggingService.LogDebug($"Handling drop: {sourceSlotType}[{sourceIndex}] -> {targetSlotType}[{targetIndex}]");
-
                 if (viewModel?.GameData?.Inventory == null)
                 {
                     LoggingService.LogError("ViewModel or inventory is null");
@@ -328,11 +302,7 @@ namespace SketchBlade.Services
         public bool CanDropOn(string sourceSlotType, string targetSlotType, Item sourceItem)
         {
             if (sourceItem == null) return false;
-
-            // Same slot type is always allowed
             if (sourceSlotType == targetSlotType) return true;
-
-            // Check target slot compatibility
             return CanMoveItem(sourceItem, targetSlotType);
         }
 
@@ -413,10 +383,8 @@ namespace SketchBlade.Services
         {
             if (StackItems(sourceItem, targetItem, out int remaining))
             {
-                // Update target slot
                 SetItemInSlot(targetType, targetIndex, targetItem, inventory, player);
 
-                // Update source slot
                 if (remaining == 0)
                 {
                     SetItemInSlot(sourceType, sourceIndex, null, inventory, player);
@@ -437,7 +405,6 @@ namespace SketchBlade.Services
         private bool PerformMove(Item? sourceItem, Item? targetItem, string sourceType, int sourceIndex,
                                 string targetType, int targetIndex, Inventory inventory, Character? player)
         {
-            // Set items in their new positions
             SetItemInSlot(targetType, targetIndex, sourceItem, inventory, player);
             SetItemInSlot(sourceType, sourceIndex, targetItem, inventory, player);
 

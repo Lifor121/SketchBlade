@@ -6,19 +6,14 @@ using System.Linq;
 
 namespace SketchBlade.Services
 {
-    /// <summary>
-    /// Упрощенный сервис логирования - только критические ошибки
-    /// </summary>
     public static class LoggingService
     {
         private static readonly string LogFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error_log.txt");
         private static readonly object LogLock = new object();
         private static LogLevel _currentLogLevel = LogLevel.Debug;
         
-        // Максимальный размер файла логов в байтах (10 МБ)
         private const long MAX_LOG_FILE_SIZE = 10 * 1024 * 1024;
         
-        // Максимальное количество строк в логе (50000 строк)
         private const int MAX_LOG_LINES = 50000;
 
         public enum LogLevel
@@ -33,15 +28,11 @@ namespace SketchBlade.Services
         {
             try
             {
-                // Проверяем и очищаем лог при запуске, если он слишком большой
                 CleanupLogFileIfNeeded();
-                
-                // Записываем заголовок нового сеанса
-                File.AppendAllText(LogFilePath, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] === НОВЫЙ ЗАПУСК ПРИЛОЖЕНИЯ ==={Environment.NewLine}");
+                LogInfo("НОВЫЙ ЗАПУСК ПРИЛОЖЕНИЯ");
             }
             catch (Exception ex)
             {
-                // Если не можем записать в лог, выводим в консоль
                 Console.WriteLine($"Failed to initialize logging: {ex.Message}");
             }
         }
@@ -100,7 +91,6 @@ namespace SketchBlade.Services
                 {
                     File.AppendAllText(LogFilePath, message + Environment.NewLine);
                     
-                    // Периодически проверяем размер файла
                     if (new Random().Next(100) == 0) // Проверяем в 1% случаев
                     {
                         CleanupLogFileIfNeeded();
@@ -113,9 +103,6 @@ namespace SketchBlade.Services
             }
         }
         
-        /// <summary>
-        /// Очищает файл логов, если он превышает максимальный размер
-        /// </summary>
         private static void CleanupLogFileIfNeeded()
         {
             try
@@ -125,14 +112,12 @@ namespace SketchBlade.Services
 
                 var fileInfo = new FileInfo(LogFilePath);
                 
-                // Проверяем размер файла
                 if (fileInfo.Length > MAX_LOG_FILE_SIZE)
                 {
                     CleanupLogFile();
                     return;
                 }
                 
-                // Проверяем количество строк
                 var lineCount = File.ReadAllLines(LogFilePath).Length;
                 if (lineCount > MAX_LOG_LINES)
                 {
@@ -145,9 +130,6 @@ namespace SketchBlade.Services
             }
         }
         
-        /// <summary>
-        /// Очищает файл логов, сохраняя только последние записи
-        /// </summary>
         private static void CleanupLogFile()
         {
             try
@@ -168,13 +150,8 @@ namespace SketchBlade.Services
                     File.Delete(backupPath);
                 }
                 File.Move(LogFilePath, backupPath);
-                
-                // Записываем очищенный лог
-                File.WriteAllLines(LogFilePath, new[] { 
-                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] === ЛОГ ОЧИЩЕН (сохранены последние {linesToKeep} записей) ===" 
-                }.Concat(linesToSave));
-                
-                Console.WriteLine($"Log file cleaned up. Kept {linesToKeep} lines out of {allLines.Length}");
+
+                LogInfo("ЛОГ ОЧИЩЕН");                
             }
             catch (Exception ex)
             {
@@ -182,9 +159,6 @@ namespace SketchBlade.Services
             }
         }
         
-        /// <summary>
-        /// Принудительно очищает файл логов
-        /// </summary>
         public static void ClearLogs()
         {
             try

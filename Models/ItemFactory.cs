@@ -6,10 +6,6 @@ using SketchBlade.Utilities;
 
 namespace SketchBlade.Models
 {
-    /// <summary>
-    /// Централизованная фабрика для создания всех предметов в игре.
-    /// Все предметы должны создаваться через эту фабрику для обеспечения единообразия.
-    /// </summary>
     public static class ItemFactory
     {
         #region Weapons
@@ -354,7 +350,7 @@ namespace SketchBlade.Models
                 ItemMaterial.Iron => CreateIronShield(),
                 ItemMaterial.Gold => CreateGoldShield(),
                 ItemMaterial.Luminite => CreateLuminiteShield(),
-                _ => CreateIronShield() // Default to iron if material not supported
+                _ => CreateIronShield()
             };
         }
 
@@ -464,7 +460,6 @@ namespace SketchBlade.Models
 
         #region Materials
 
-        // Common materials
         public static Item CreateWood(int amount = 1)
         {
             return new Item
@@ -561,7 +556,6 @@ namespace SketchBlade.Models
             };
         }
 
-        // Uncommon materials
         public static Item CreateIronOre(int amount = 1)
         {
             return new Item
@@ -626,7 +620,6 @@ namespace SketchBlade.Models
             };
         }
 
-        // Rare materials
         public static Item CreateGoldOre(int amount = 1)
         {
             return new Item
@@ -675,7 +668,6 @@ namespace SketchBlade.Models
             };
         }
 
-        // Epic materials
         public static Item CreateLuminiteFragment(int amount = 1)
         {
             return new Item
@@ -708,7 +700,6 @@ namespace SketchBlade.Models
             };
         }
 
-        // Helper method for generic material creation
         public static Item CreateMaterial(string name, string description, ItemRarity rarity, int amount = 1)
         {
             return new Item
@@ -740,9 +731,6 @@ namespace SketchBlade.Models
 
         #endregion
 
-        /// <summary>
-        /// Универсальный метод создания предметов по названию
-        /// </summary>
         public static Item? CreateItem(string itemName, int quantity = 1)
         {
             return itemName switch
