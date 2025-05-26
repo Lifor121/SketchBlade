@@ -9,6 +9,7 @@ using SketchBlade.Views.Controls;
 using SketchBlade.Services;
 using System.IO;
 using System.Windows.Threading;
+using System.Collections.Generic;
 
 namespace SketchBlade.Views.Helpers
 {
@@ -171,6 +172,9 @@ namespace SketchBlade.Views.Helpers
                 }
 
                 _viewModel.MoveItemBetweenSlots(dragData.SlotType, dragData.SlotIndex, "Equipment", GetEquipmentSlotIndex(equipmentType));
+                
+                // Принудительно обновляем UI сразу после drag-and-drop для немедленного отображения изменений
+                RefreshUIAfterMove();
             }
             catch (Exception ex)
             {
@@ -198,6 +202,9 @@ namespace SketchBlade.Views.Helpers
 
                 int quickSlotIndex = targetSlot.SlotIndex;
                 _viewModel.MoveItemBetweenSlots(dragData.SlotType, dragData.SlotIndex, "Quick", quickSlotIndex);
+                
+                // Принудительно обновляем UI сразу после drag-and-drop для немедленного отображения изменений
+                RefreshUIAfterMove();
             }
             catch (Exception ex)
             {
@@ -222,6 +229,9 @@ namespace SketchBlade.Views.Helpers
                 if (result == MessageBoxResult.Yes)
                 {
                     _viewModel.MoveItemBetweenSlots(dragData.SlotType, dragData.SlotIndex, "Trash", 0);
+                    
+                    // Принудительно обновляем UI сразу после drag-and-drop для немедленного отображения изменений
+                    RefreshUIAfterMove();
                 }
             }
             catch (Exception ex)
@@ -234,24 +244,49 @@ namespace SketchBlade.Views.Helpers
         {
             try
             {
+                File.AppendAllText("error_log.txt", 
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [DEBUG] HandleInventorySlotDrop: НАЧАЛО\r\n");
+                
                 if (sender is not CoreInventorySlot targetSlot)
+                {
+                    File.AppendAllText("error_log.txt", 
+                        $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [DEBUG] HandleInventorySlotDrop: sender не является CoreInventorySlot\r\n");
                     return;
+                }
 
                 var dragData = e.Data.GetData("ItemSlotInfo") as SketchBlade.Views.Controls.ItemSlotInfo;
                 if (dragData == null)
+                {
+                    File.AppendAllText("error_log.txt", 
+                        $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [DEBUG] HandleInventorySlotDrop: dragData == null\r\n");
                     return;
+                }
 
                 int targetIndex = targetSlot.SlotIndex;
+                File.AppendAllText("error_log.txt", 
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [DEBUG] HandleInventorySlotDrop: Перемещаем {dragData.Item?.Name} из {dragData.SlotType}[{dragData.SlotIndex}] в Inventory[{targetIndex}]\r\n");
+                
                 _viewModel.MoveItemBetweenSlots(dragData.SlotType, dragData.SlotIndex, "Inventory", targetIndex);
                 
-                // Принудительно обновляем UI после перемещения
-                ForceUIUpdate();
+                File.AppendAllText("error_log.txt", 
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [DEBUG] HandleInventorySlotDrop: MoveItemBetweenSlots завершен, вызываем RefreshUIAfterMove\r\n");
+                
+                // Принудительно обновляем UI сразу после drag-and-drop для немедленного отображения изменений
+                RefreshUIAfterMove();
+                
+                File.AppendAllText("error_log.txt", 
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [DEBUG] HandleInventorySlotDrop: RefreshUIAfterMove завершен\r\n");
                 
                 // Сбрасываем фон слота
                 targetSlot.Background = null;
+                
+                File.AppendAllText("error_log.txt", 
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [DEBUG] HandleInventorySlotDrop: КОНЕЦ\r\n");
             }
             catch (Exception ex)
             {
+                File.AppendAllText("error_log.txt", 
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [ERROR] HandleInventorySlotDrop: {ex.Message}\r\n");
                 MessageBox.Show($"Error in InventorySlot_Drop: {ex.Message}");
             }
         }
@@ -270,8 +305,8 @@ namespace SketchBlade.Views.Helpers
                 int targetIndex = targetSlot.SlotIndex;
                 _viewModel.MoveItemBetweenSlots(dragData.SlotType, dragData.SlotIndex, "Craft", targetIndex);
                 
-                // Принудительно обновляем UI после перемещения
-                ForceUIUpdate();
+                // Принудительно обновляем UI сразу после drag-and-drop для немедленного отображения изменений
+                RefreshUIAfterMove();
                 
                 // Восстанавливаем прозрачность слота
                 if (sender is FrameworkElement element)
@@ -319,56 +354,70 @@ namespace SketchBlade.Views.Helpers
         {
             try
             {
-                // The primary mechanism for UI update should be through the InventoryData's notification.
-                // This will trigger PropertyChanged for collections in InventoryData
-                // and then dispatch a comprehensive UI update via InventoryData.NotifyInventoryChanged's
-                // own Dispatcher.BeginInvoke block.
+                File.AppendAllText("error_log.txt", 
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [DEBUG] ForceUIUpdate: НАЧАЛО\r\n");
+                
+                // Используем тот же механизм обновления, что и при переключении экранов
+                // для обеспечения консистентности поведения UI
+                
+                // 1. Сначала обновляем данные инвентаря
+                File.AppendAllText("error_log.txt", 
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [DEBUG] ForceUIUpdate: Вызываем OnInventoryChanged\r\n");
                 _viewModel.GameData.Inventory.OnInventoryChanged();
-
-                // Optional: If crafting UI needs an immediate hint that recipes might have changed,
-                // this can be dispatched as well, but ensure it doesn't conflict with
-                // updates triggered by OnInventoryChanged.
-                // For simplicity and to avoid potential conflicts, we'll rely on OnInventoryChanged
-                // to refresh everything necessary, including what's done by mainVM.RefreshUICommand
-                // or mainWindow.RefreshCurrentScreen() which are called from NotifyInventoryChanged.
-
-                // Example of a more targeted update if still needed *after* OnInventoryChanged
-                // and if its effects are not sufficient for crafting:
-                /*
-                if (_viewModel.SimplifiedCraftingViewModel != null)
+                
+                // 2. Принудительно обновляем ViewModel инвентаря (как при переключении экранов)
+                File.AppendAllText("error_log.txt", 
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [DEBUG] ForceUIUpdate: Планируем обновление через Dispatcher\r\n");
+                Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                    try 
                     {
-                        _viewModel.SimplifiedCraftingViewModel.RefreshAvailableRecipes();
-                    }), DispatcherPriority.ContextIdle);
-                }
-                */
+                        File.AppendAllText("error_log.txt", 
+                            $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [DEBUG] ForceUIUpdate: Dispatcher action НАЧАЛО\r\n");
+                        
+                        // Используем тот же метод, что вызывается при переключении экранов
+                        File.AppendAllText("error_log.txt", 
+                            $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [DEBUG] ForceUIUpdate: Вызываем RefreshAllSlots\r\n");
+                        _viewModel.RefreshAllSlots();
+                        
+                        File.AppendAllText("error_log.txt", 
+                            $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [DEBUG] ForceUIUpdate: Вызываем ViewModel.ForceUIUpdate\r\n");
+                        _viewModel.ForceUIUpdate();
+                        
+                        // Обновляем крафтинг если нужно
+                        if (_viewModel.SimplifiedCraftingViewModel != null)
+                        {
+                            File.AppendAllText("error_log.txt", 
+                                $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [DEBUG] ForceUIUpdate: Обновляем крафтинг\r\n");
+                            _viewModel.SimplifiedCraftingViewModel.RefreshAvailableRecipes();
+                        }
+                        
+                        // Принудительно обновляем главное окно (как при переключении экранов)
+                        if (Application.Current.MainWindow is MainWindow mainWindow)
+                        {
+                            File.AppendAllText("error_log.txt", 
+                                $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [DEBUG] ForceUIUpdate: Вызываем RefreshCurrentScreen\r\n");
+                            mainWindow.RefreshCurrentScreen();
+                        }
+                        
+                        File.AppendAllText("error_log.txt", 
+                            $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [DEBUG] ForceUIUpdate: Dispatcher action КОНЕЦ\r\n");
+                    } 
+                    catch (Exception innerEx)
+                    {
+                         File.AppendAllText("error_log.txt", 
+                            $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [ERROR] ForceUIUpdate inner error: {innerEx.Message}\r\n");
+                    }
+                }), System.Windows.Threading.DispatcherPriority.Render); // Используем высокий приоритет для немедленного обновления
+                
+                File.AppendAllText("error_log.txt", 
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [DEBUG] ForceUIUpdate: КОНЕЦ\r\n");
             }
             catch (Exception ex)
             {
                 // Log the error, but don't let UI update issues crash the drag-drop.
                 File.AppendAllText("error_log.txt", 
-                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [ERROR] Simplified ForceUIUpdate error: {ex.Message}\r\n");
-
-                // Fallback: If the primary way fails, attempt a direct refresh on the UI thread.
-                // This is a safety net, ideally OnInventoryChanged() should handle everything.
-                Application.Current.Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    try 
-                    {
-                        _viewModel.RefreshAllSlots();
-                        _viewModel.ForceUIUpdate();
-                        if (Application.Current.MainWindow is MainWindow mainWindow)
-                        {
-                            mainWindow.RefreshCurrentScreen();
-                        }
-                    } 
-                    catch (Exception innerEx)
-                    {
-                         File.AppendAllText("error_log.txt", 
-                            $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [ERROR] Fallback ForceUIUpdate error: {innerEx.Message}\r\n");
-                    }
-                }), System.Windows.Threading.DispatcherPriority.Normal);
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [ERROR] ForceUIUpdate error: {ex.Message}\r\n");
             }
         }
         
@@ -376,21 +425,119 @@ namespace SketchBlade.Views.Helpers
         {
             try
             {
+                LoggingService.LogInfo("[DragDrop] RefreshUIAfterMove: НАЧАЛО");
+                
                 // Обновляем основной ViewModel инвентаря
                 _viewModel.RefreshAllSlots();
                 
-                // Принудительно обновляем крафт
+                // НОВОЕ: Принудительно обновляем UI контролы (это главное!)
+                ForceUpdateUIControls();
+                
+                // Обновляем крафт ОДИН РАЗ в конце (без вызова OnInventoryChanged)
                 if (_viewModel.SimplifiedCraftingViewModel != null)
                 {
+                    LoggingService.LogInfo("[DragDrop] RefreshUIAfterMove: Обновляем крафт");
                     _viewModel.SimplifiedCraftingViewModel.RefreshAvailableRecipes();
                 }
                 
-                // Принудительно обновляем инвентарь через GameState
-                _viewModel.GameData.Inventory.OnInventoryChanged();
+                LoggingService.LogInfo("[DragDrop] RefreshUIAfterMove: КОНЕЦ");
             }
             catch (Exception ex)
             {
                 LoggingService.LogError($"RefreshUIAfterMove: {ex.Message}", ex);
+            }
+        }
+        
+        /// <summary>
+        /// Принудительно обновляет все UI контролы CoreInventorySlot
+        /// </summary>
+        private void ForceUpdateUIControls()
+        {
+            try
+            {
+                LoggingService.LogDebug("[UI] ForceUpdateUIControls: Начинаем принудительное обновление UI контролов");
+                
+                // Используем Dispatcher для обновления на UI потоке
+                if (System.Windows.Application.Current?.Dispatcher != null)
+                {
+                    System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        try
+                        {
+                            // Находим главное окно
+                            var mainWindow = System.Windows.Application.Current.MainWindow;
+                            if (mainWindow != null)
+                            {
+                                // Находим все CoreInventorySlot контролы
+                                var inventorySlots = FindVisualChildren<CoreInventorySlot>(mainWindow);
+                                
+                                LoggingService.LogDebug($"[UI] ForceUpdateUIControls: Найдено {inventorySlots.Count()} слотов для обновления");
+                                
+                                foreach (var slot in inventorySlots)
+                                {
+                                    try
+                                    {
+                                        // ИСКЛЮЧАЕМ CraftResult слоты - они управляются системой крафта
+                                        if (slot.SlotType == "CraftResult")
+                                        {
+                                            LoggingService.LogDebug($"[UI] ForceUpdateUIControls: Пропускаем CraftResult[{slot.SlotIndex}] - управляется системой крафта");
+                                            continue;
+                                        }
+                                        
+                                        // Получаем актуальные данные из ViewModel
+                                        var actualItem = _viewModel.GetItemFromSlot(slot.SlotType, slot.SlotIndex);
+                                        
+                                        // Принудительно устанавливаем Item если он отличается
+                                        if (slot.Item != actualItem)
+                                        {
+                                            LoggingService.LogInfo($"[UI] ForceUpdateUIControls: Обновляем {slot.SlotType}[{slot.SlotIndex}]: {slot.Item?.Name ?? "null"} -> {actualItem?.Name ?? "null"}");
+                                            slot.Item = actualItem;
+                                            
+                                            // Принудительно обновляем визуальное отображение только если изменился Item
+                                            slot.InvalidateVisual();
+                                            slot.UpdateLayout();
+                                        }
+                                    }
+                                    catch (Exception slotEx)
+                                    {
+                                        LoggingService.LogError($"[UI] ForceUpdateUIControls: Ошибка обновления слота {slot.SlotType}[{slot.SlotIndex}]: {slotEx.Message}");
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            LoggingService.LogError($"[UI] ForceUpdateUIControls Dispatcher: {ex.Message}");
+                        }
+                    }), System.Windows.Threading.DispatcherPriority.Render);
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogError($"[UI] ForceUpdateUIControls: {ex.Message}", ex);
+            }
+        }
+        
+        /// <summary>
+        /// Находит все дочерние элементы указанного типа в визуальном дереве
+        /// </summary>
+        private static IEnumerable<T> FindVisualChildren<T>(System.Windows.DependencyObject depObj) where T : System.Windows.DependencyObject
+        {
+            if (depObj != null)
+            {
+                for (int i = 0; i < System.Windows.Media.VisualTreeHelper.GetChildrenCount(depObj); i++)
+                {
+                    var child = System.Windows.Media.VisualTreeHelper.GetChild(depObj, i);
+                    if (child != null && child is T)
+                    {
+                        yield return (T)child;
+                    }
+
+                    foreach (T childOfChild in FindVisualChildren<T>(child))
+                    {
+                        yield return childOfChild;
+                    }
+                }
             }
         }
         

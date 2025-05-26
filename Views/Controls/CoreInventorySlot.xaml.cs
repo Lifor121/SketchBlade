@@ -174,44 +174,37 @@ namespace SketchBlade.Views.Controls
             Loaded += CoreInventorySlot_Loaded;
             Unloaded += CoreInventorySlot_Unloaded;
             DataContextChanged += CoreInventorySlot_DataContextChanged;
+            
+            // Добавляем обработчик MouseDown программно для тестирования
+            this.MouseDown += (s, e) => {
+                LoggingService.LogInfo($"[DragDrop] *** ПРЯМОЕ СОБЫТИЕ MouseDown *** для {SlotType}[{SlotIndex}], Item: {Item?.Name ?? "NULL"}");
+            };
+            
+            LoggingService.LogInfo($"[DragDrop] CoreInventorySlot создан для {SlotType}[{SlotIndex}]");
         }
 
         private void CoreInventorySlot_Loaded(object sender, RoutedEventArgs e)
         {
             try
             {
-                // Инициализируем tooltip при загрузке
-                if (_tooltip == null)
-                {
-                    _tooltip = new SketchBlade.Views.Controls.ItemTooltip();
-                }
+                LoggingService.LogInfo($"[DragDrop] CoreInventorySlot загружен для {SlotType}[{SlotIndex}], Item: {Item?.Name ?? "NULL"}");
                 
-                // Подписываемся на настройки при загрузке
-                SubscribeToSettingsChanges();
-                
-                LoggingService.LogDebug($"CoreInventorySlot loaded for slot {SlotType}[{SlotIndex}]");
-                
-                // НОВАЯ ДИАГНОСТИКА: Проверяем DataContext и привязки
-                LoggingService.LogDebug($"[UI] DataContext: {DataContext?.GetType().Name ?? "null"}");
-                
-                // Проверяем привязку Item
-                var binding = BindingOperations.GetBinding(this, ItemProperty);
-                if (binding != null)
-                {
-                    LoggingService.LogDebug($"[UI] Item binding path: {binding.Path?.Path ?? "null"}");
-                    LoggingService.LogDebug($"[UI] Item binding source: {binding.Source?.GetType().Name ?? "null"}");
-                }
-                // Убираем логирование "ПРОБЛЕМА: Item binding не найден!" - это не критично
-                
-                // Проверяем текущее значение Item
-                LoggingService.LogDebug($"[UI] Текущее значение Item: {Item?.Name ?? "null"}");
-                
-                // ИСПРАВЛЕНИЕ: Принудительно обновляем визуальное отображение при загрузке
                 UpdateSlotVisuals();
+                UpdateSelectionAppearance();
+                
+                // Логируем только проблемные случаи
+                if (DataContext is InventoryViewModel)
+                {
+                    // Все в порядке
+                }
+                else
+                {
+                    LoggingService.LogWarning($"[UI] Неожиданный DataContext для {SlotType}[{SlotIndex}]: {DataContext?.GetType().Name ?? "null"}");
+                }
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"Error in CoreInventorySlot_Loaded: {ex.Message}", ex);
+                LoggingService.LogError($"Ошибка при загрузке CoreInventorySlot {SlotType}[{SlotIndex}]: {ex.Message}", ex);
             }
         }
 
@@ -256,34 +249,81 @@ namespace SketchBlade.Views.Controls
         {
             try
             {
-                LoggingService.LogDebug($"[UI] DataContext changed for {SlotType}[{SlotIndex}] to {e.NewValue?.GetType().Name ?? "null"}");
-                
-                // If the DataContext has a Result property that can be bound to our Item property,
-                // and we don't already have a binding for Item, set up that binding
-                if (e.NewValue != null && SlotType == "CraftResult")
+                LoggingService.LogDebug($"[UI] DataContext for {SlotType}[{SlotIndex}] changed from {e.OldValue?.GetType().Name ?? "null"} to {e.NewValue?.GetType().Name ?? "null"}");
+
+                if (e.NewValue is InventoryViewModel viewModel && !string.IsNullOrEmpty(SlotType) && SlotIndex >= 0)
                 {
-                    var binding = BindingOperations.GetBinding(this, ItemProperty);
-                    if (binding == null)
+                    var wrapper = viewModel.GetSlotWrapper(SlotType, SlotIndex);
+                    if (wrapper != null)
                     {
-                        // Create and configure binding only if not already bound
+                        // Clear any existing binding on ItemProperty first.
+                        // This is important if the XAML binding was incorrect (e.g., bound to ViewModel.Item).
+                        BindingOperations.ClearBinding(this, ItemProperty);
+
+                        var itemBinding = new Binding("Item")
+                        {
+                            Source = wrapper, // Bind directly to the specific wrapper's Item property
+                            Mode = BindingMode.OneWay 
+                        };
+                        BindingOperations.SetBinding(this, ItemProperty, itemBinding);
+                        LoggingService.LogInfo($"[UI] Corrected Item binding for {SlotType}[{SlotIndex}] to source: wrapper.Item. Current item on wrapper: {(wrapper.Item?.Name) ?? "null"}");
+                        
+                        // After correcting the binding, explicitly set the Item DP to sync with the wrapper's current state.
+                        // This ensures OnItemChanged fires if the value is different from what the DP previously held.
+                        SetValue(ItemProperty, wrapper.Item); 
+                    }
+                    else
+                    {
+                        LoggingService.LogWarning($"[UI] In DataContextChanged for {SlotType}[{SlotIndex}], DataContext is InventoryViewModel, but NO wrapper found. Clearing Item binding and setting Item to null.");
+                        BindingOperations.ClearBinding(this, ItemProperty);
+                        SetValue(ItemProperty, null); // Explicitly set to null
+                    }
+                }
+                else if (e.NewValue is InventorySlotWrapper directWrapper)
+                {
+                    LoggingService.LogInfo($"[UI] DataContext for {SlotType}[{SlotIndex}] is directly an InventorySlotWrapper. Standard XAML Item={{Binding Item}} should apply. Current item on wrapper: {(directWrapper.Item?.Name) ?? "null"}");
+                    // If XAML binding Item="{Binding Item}" exists, it will use directWrapper as source.
+                    // If DP's current value differs from wrapper.Item, binding should update it, and OnItemChanged will fire.
+                    // To be absolutely sure, we can also sync it here, similar to the ViewModel case.
+                    // However, this might interfere if a TwoWay binding is intended from XAML and this runs before initial XAML bind.
+                    // For now, rely on XAML binding from wrapper DataContext. If issues persist, revisit.
+                }
+                else if (e.NewValue == null)
+                {
+                    LoggingService.LogInfo($"[UI] DataContext for {SlotType}[{SlotIndex}] is now null. Clearing Item binding and setting Item to null.");
+                    BindingOperations.ClearBinding(this, ItemProperty);
+                    SetValue(ItemProperty, null); // Explicitly set to null
+                }
+                else if (SlotType == "CraftResult" && e.NewValue != null)
+                {
+                     // Existing CraftResult logic
+                    var binding = BindingOperations.GetBinding(this, ItemProperty);
+                    if (binding == null) 
+                    {
                         var newBinding = new Binding("Result")
                         {
                             Source = e.NewValue,
                             Mode = BindingMode.OneWay
                         };
-                        
-                        // Apply the binding to our Item property
                         BindingOperations.SetBinding(this, ItemProperty, newBinding);
                         LoggingService.LogDebug($"[UI] Set up Result -> Item binding for {SlotType}[{SlotIndex}]");
                     }
                 }
-                
-                // Принудительно обновляем визуальное отображение при изменении контекста
+
+
+                // UpdateSlotVisuals is called by OnItemChanged if SetValue above changes the DP.
+                // If SetValue doesn't change the DP (value was already same), 
+                // but visuals might be out of sync for other reasons (e.g. DataContext change without Item DP change),
+                // an explicit call here might be needed.
+                // However, OnItemChanged should be the primary driver for visual updates based on Item.
+                // Let's ensure OnItemChanged *always* calls UpdateSlotVisuals, even if newItem == oldItem (e.g. by reference but content changed - not the case here).
+                // The current OnItemChanged already calls UpdateSlotVisuals.
+                // Forcing one more UpdateSlotVisuals here after potential binding changes.
                 UpdateSlotVisuals();
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"Error in CoreInventorySlot_DataContextChanged: {ex.Message}", ex);
+                LoggingService.LogError($"Error in CoreInventorySlot_DataContextChanged for {SlotType}[{SlotIndex}]: {ex.Message}", ex);
             }
         }
 
@@ -336,18 +376,36 @@ namespace SketchBlade.Views.Controls
         {
             if (d is CoreInventorySlot slot)
             {
-                // Убираем избыточное логирование - оставляем только при ошибках
-                // LoggingService.LogDebug($"[UI] OnItemChanged for {slot.SlotType}[{slot.SlotIndex}]: {e.OldValue?.ToString() ?? "null"} -> {e.NewValue?.ToString() ?? "null"}");
-                
                 var newItem = e.NewValue as Item;
+                var oldItem = e.OldValue as Item;
                 
-                if (newItem != null)
+                // Log all calls to OnItemChanged to see if it's firing correctly
+                LoggingService.LogInfo($"[UI] OnItemChanged CALLED for {slot.SlotType}[{slot.SlotIndex}]: '{oldItem?.Name ?? "null"}' (Hash:{oldItem?.GetHashCode()}) -> '{newItem?.Name ?? "null"}' (Hash:{newItem?.GetHashCode()}). Are they same object: {ReferenceEquals(oldItem, newItem)}");
+                
+                // Original logging condition for significant changes (can be kept for less noise if preferred later)
+                // if ((newItem == null) != (oldItem == null) || 
+                //    (newItem != null && oldItem != null && (newItem.Name != oldItem.Name || newItem.StackSize != oldItem.StackSize) )) // Added StackSize check
+                // {
+                //    LoggingService.LogInfo($"[UI] OnItemChanged (Significant): {slot.SlotType}[{slot.SlotIndex}] {oldItem?.Name ?? "null"}({oldItem?.StackSize}) -> {newItem?.Name ?? "null"}({newItem?.StackSize})");
+                // }
+                
+                // Немедленно обновляем визуальное отображение
+                slot.UpdateSlotVisuals(); // This uses slot.Item (the new value of the DP)
+                
+                // Принудительно обновляем в следующем UI цикле
+                slot.Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    // Убираем детальное логирование
-                    // LoggingService.LogDebug($"[UI] Новый предмет: {newItem.Name}, SpritePath: '{newItem.SpritePath}', StackSize: {newItem.StackSize}");
-                }
-                
-                slot.UpdateSlotVisuals();
+                    // LoggingService.LogDebug($"[UI] OnItemChanged Dispatcher.BeginInvoke for {slot.SlotType}[{slot.SlotIndex}]");
+                    slot.UpdateSlotVisuals(); // Call again to be sure, uses current slot.Item
+                    slot.InvalidateVisual();
+                    slot.UpdateLayout();
+                    
+                    if (slot.Parent is Panel parentPanel) // Renamed variable
+                    {
+                        parentPanel.InvalidateArrange();
+                        parentPanel.UpdateLayout();
+                    }
+                }), DispatcherPriority.DataBind); // Using DataBind priority
             }
         }
 
@@ -363,13 +421,11 @@ namespace SketchBlade.Views.Controls
         {
             try
             {
-                // Убираем избыточное логирование
-                // LoggingService.LogDebug($"[UI] UpdateSlotVisuals для {SlotType}[{SlotIndex}]: Item = {Item?.Name ?? "null"}");
+                LoggingService.LogInfo($"[UI] UpdateSlotVisuals НАЧАЛО для {SlotType}[{SlotIndex}]: Item = {Item?.Name ?? "null"}");
                 
                 if (Item != null)
                 {
-                    // Убираем детальное логирование
-                    // LoggingService.LogDebug($"[UI] Предмет найден: {Item.Name}, SpritePath: '{Item.SpritePath}'");
+                    LoggingService.LogInfo($"[UI] Предмет найден: {Item.Name}, SpritePath: '{Item.SpritePath}', StackSize: {Item.StackSize}");
                     
                     LoadAndSetItemImage();
 
@@ -377,39 +433,60 @@ namespace SketchBlade.Views.Controls
                     {
                         SafeSetText(CoreItemCount, Item.StackSize.ToString());
                         SafeSetVisibility(CoreItemCount, Visibility.Visible);
-                        // LoggingService.LogDebug($"[UI] Показываем счетчик стека: {Item.StackSize}");
+                        LoggingService.LogInfo($"[UI] Показываем счетчик стека: {Item.StackSize} для {SlotType}[{SlotIndex}]");
                     }
                     else
                     {
-                        // LoggingService.LogDebug($"[UI] Скрываем счетчик стека (не стекаемый или размер = 1)");
+                        LoggingService.LogInfo($"[UI] Скрываем счетчик стека для {SlotType}[{SlotIndex}] (не стекаемый или размер = 1)");
                         SafeSetVisibility(CoreItemCount, Visibility.Collapsed);
                     }
 
                     UpdateRarityIndicator();
+                    LoggingService.LogInfo($"[UI] Обновили индикатор редкости для {SlotType}[{SlotIndex}]");
                 }
                 else
                 {
-                    // LoggingService.LogDebug($"[UI] Предмет null, очищаем слот {SlotType}[{SlotIndex}]");
+                    LoggingService.LogInfo($"[UI] Предмет null, очищаем слот {SlotType}[{SlotIndex}]");
                     SafeSetImageSource(CoreItemImage, null);
                     SafeSetVisibility(CoreItemImage, Visibility.Collapsed);
                     SafeSetVisibility(CoreItemCount, Visibility.Collapsed);
                     SafeSetVisibility(RarityIndicator, Visibility.Collapsed);
                     _itemImage = null;
+                    LoggingService.LogInfo($"[UI] Очистили все визуальные элементы для {SlotType}[{SlotIndex}]");
                 }
                 
-                // Принудительно обновляем привязки данных
+                // Принудительно обновляем привязки данных и визуальное отображение
                 Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                 {
+                    LoggingService.LogInfo($"[UI] Dispatcher.BeginInvoke НАЧАЛО для {SlotType}[{SlotIndex}]");
+                    
+                    // Обновляем layout всех элементов
                     if (CoreItemImage != null)
                     {
                         CoreItemImage.UpdateLayout();
+                        CoreItemImage.InvalidateVisual();
+                        LoggingService.LogDebug($"[UI] Обновили CoreItemImage для {SlotType}[{SlotIndex}]");
                     }
                     if (CoreItemCount != null)
                     {
                         CoreItemCount.UpdateLayout();
+                        CoreItemCount.InvalidateVisual();
+                        LoggingService.LogDebug($"[UI] Обновили CoreItemCount для {SlotType}[{SlotIndex}]");
                     }
+                    if (RarityIndicator != null)
+                    {
+                        RarityIndicator.UpdateLayout();
+                        RarityIndicator.InvalidateVisual();
+                        LoggingService.LogDebug($"[UI] Обновили RarityIndicator для {SlotType}[{SlotIndex}]");
+                    }
+                    
+                    // Обновляем весь контрол
+                    this.UpdateLayout();
+                    this.InvalidateVisual();
+                    LoggingService.LogInfo($"[UI] Dispatcher.BeginInvoke КОНЕЦ для {SlotType}[{SlotIndex}]");
                 }), DispatcherPriority.Render);
                 
+                LoggingService.LogInfo($"[UI] UpdateSlotVisuals КОНЕЦ для {SlotType}[{SlotIndex}]");
             }
             catch (Exception ex)
             {
@@ -421,8 +498,11 @@ namespace SketchBlade.Views.Controls
         {
             try
             {
+                LoggingService.LogInfo($"[UI] LoadAndSetItemImage НАЧАЛО для {SlotType}[{SlotIndex}]");
+                
                 if (Item == null)
                 {
+                    LoggingService.LogInfo($"[UI] Item is null, clearing image for {SlotType}[{SlotIndex}]");
                     _itemImage = null;
                     SafeSetImageSource(CoreItemImage, null);
                     SafeSetVisibility(CoreItemImage, Visibility.Collapsed);
@@ -431,6 +511,7 @@ namespace SketchBlade.Views.Controls
                 }
 
                 string imagePath = Item.SpritePath;
+                LoggingService.LogInfo($"[UI] Item {Item.Name} has SpritePath: '{imagePath}' for {SlotType}[{SlotIndex}]");
 
                 // ИСПРАВЛЕНИЕ: Если путь пустой, устанавливаем дефолтный
                 if (string.IsNullOrEmpty(imagePath))
@@ -446,6 +527,8 @@ namespace SketchBlade.Views.Controls
                 {
                     // ИСПРАВЛЕНИЕ: Проверяем существование файла
                     string fullPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, imagePath);
+                    LoggingService.LogInfo($"[UI] Checking image file: {fullPath} for {SlotType}[{SlotIndex}]");
+                    
                     if (!System.IO.File.Exists(fullPath))
                     {
                         LoggingService.LogWarning($"Image file not found: {fullPath}, using default image");
@@ -456,31 +539,41 @@ namespace SketchBlade.Views.Controls
                     }
                     
                     // Принудительная загрузка изображения через ImageHelper
+                    LoggingService.LogInfo($"[UI] Loading image via ImageHelper: {imagePath} for {SlotType}[{SlotIndex}]");
                     _itemImage = ImageHelper.LoadImage(imagePath);
                     
                     // Проверяем, что изображение загружено
                     if (_itemImage == null || _itemImage.PixelWidth == 0)
                     {
-                        LoggingService.LogWarning($"Failed to load image {imagePath}, using default image");
+                        LoggingService.LogWarning($"Failed to load image {imagePath}, using default image for {SlotType}[{SlotIndex}]");
                         _itemImage = ImageHelper.GetDefaultImage();
+                    }
+                    else
+                    {
+                        LoggingService.LogInfo($"[UI] Successfully loaded image {imagePath} ({_itemImage.PixelWidth}x{_itemImage.PixelHeight}) for {SlotType}[{SlotIndex}]");
                     }
                     
                     // Устанавливаем изображение
+                    LoggingService.LogInfo($"[UI] Setting image source for {SlotType}[{SlotIndex}]");
                     SafeSetImageSource(CoreItemImage, _itemImage);
                     SafeSetVisibility(CoreItemImage, Visibility.Visible);
+                    LoggingService.LogInfo($"[UI] Image source set and visibility = Visible for {SlotType}[{SlotIndex}]");
                     
                     // Показываем количество, если стак > 1
                     if (Item.StackSize > 1)
                     {
+                        LoggingService.LogInfo($"[UI] Setting stack count {Item.StackSize} for {SlotType}[{SlotIndex}]");
                         SafeSetText(CoreItemCount, Item.StackSize.ToString());
                         SafeSetVisibility(CoreItemCount, Visibility.Visible);
                     }
                     else
                     {
+                        LoggingService.LogInfo($"[UI] Hiding stack count for {SlotType}[{SlotIndex}] (stack size = {Item.StackSize})");
                         SafeSetVisibility(CoreItemCount, Visibility.Collapsed);
                     }
 
                     // Показываем индикатор редкости
+                    LoggingService.LogInfo($"[UI] Updating rarity indicator for {SlotType}[{SlotIndex}]");
                     UpdateRarityIndicator();
                 }
                 catch (Exception ex)
@@ -492,6 +585,8 @@ namespace SketchBlade.Views.Controls
                     SafeSetImageSource(CoreItemImage, _itemImage);
                     SafeSetVisibility(CoreItemImage, Visibility.Visible);
                 }
+                
+                LoggingService.LogInfo($"[UI] LoadAndSetItemImage КОНЕЦ для {SlotType}[{SlotIndex}]");
             }
             catch (Exception ex)
             {
@@ -501,43 +596,79 @@ namespace SketchBlade.Views.Controls
 
         private void SafeSetImageSource(System.Windows.Controls.Image imageControl, BitmapImage? source)
         {
-            if (imageControl == null) return;
+            if (imageControl == null) 
+            {
+                LoggingService.LogWarning($"[UI] SafeSetImageSource: imageControl is null for {SlotType}[{SlotIndex}]");
+                return;
+            }
+
+            LoggingService.LogInfo($"[UI] SafeSetImageSource: Setting image source for {SlotType}[{SlotIndex}] (source is {(source == null ? "null" : "not null")})");
 
             if (!Dispatcher.CheckAccess())
             {
-                Dispatcher.Invoke(() => { imageControl.Source = source; });
+                LoggingService.LogDebug($"[UI] SafeSetImageSource: Using Dispatcher.Invoke for {SlotType}[{SlotIndex}]");
+                Dispatcher.Invoke(() => { 
+                    imageControl.Source = source; 
+                    LoggingService.LogDebug($"[UI] SafeSetImageSource: Image source set via Dispatcher for {SlotType}[{SlotIndex}]");
+                });
             }
             else
             {
+                LoggingService.LogDebug($"[UI] SafeSetImageSource: Setting directly for {SlotType}[{SlotIndex}]");
                 imageControl.Source = source;
+                LoggingService.LogDebug($"[UI] SafeSetImageSource: Image source set directly for {SlotType}[{SlotIndex}]");
             }
         }
 
         private void SafeSetVisibility(UIElement element, Visibility visibility)
         {
-            if (element == null) return;
+            if (element == null) 
+            {
+                LoggingService.LogWarning($"[UI] SafeSetVisibility: element is null for {SlotType}[{SlotIndex}]");
+                return;
+            }
+
+            LoggingService.LogInfo($"[UI] SafeSetVisibility: Setting visibility to {visibility} for {SlotType}[{SlotIndex}]");
 
             if (!Dispatcher.CheckAccess())
             {
-                Dispatcher.Invoke(() => { element.Visibility = visibility; });
+                LoggingService.LogDebug($"[UI] SafeSetVisibility: Using Dispatcher.Invoke for {SlotType}[{SlotIndex}]");
+                Dispatcher.Invoke(() => { 
+                    element.Visibility = visibility; 
+                    LoggingService.LogDebug($"[UI] SafeSetVisibility: Visibility set via Dispatcher for {SlotType}[{SlotIndex}]");
+                });
             }
             else
             {
+                LoggingService.LogDebug($"[UI] SafeSetVisibility: Setting directly for {SlotType}[{SlotIndex}]");
                 element.Visibility = visibility;
+                LoggingService.LogDebug($"[UI] SafeSetVisibility: Visibility set directly for {SlotType}[{SlotIndex}]");
             }
         }
 
         private void SafeSetText(TextBlock textBlock, string text)
         {
-            if (textBlock == null) return;
+            if (textBlock == null) 
+            {
+                LoggingService.LogWarning($"[UI] SafeSetText: textBlock is null for {SlotType}[{SlotIndex}]");
+                return;
+            }
+
+            LoggingService.LogInfo($"[UI] SafeSetText: Setting text to '{text}' for {SlotType}[{SlotIndex}]");
 
             if (!Dispatcher.CheckAccess())
             {
-                Dispatcher.Invoke(() => { textBlock.Text = text; });
+                LoggingService.LogDebug($"[UI] SafeSetText: Using Dispatcher.Invoke for {SlotType}[{SlotIndex}]");
+                Dispatcher.Invoke(() => { 
+                    textBlock.Text = text; 
+                    LoggingService.LogDebug($"[UI] SafeSetText: Text set via Dispatcher for {SlotType}[{SlotIndex}]");
+                });
             }
             else
             {
+                LoggingService.LogDebug($"[UI] SafeSetText: Setting directly for {SlotType}[{SlotIndex}]");
                 textBlock.Text = text;
+                LoggingService.LogDebug($"[UI] SafeSetText: Text set directly for {SlotType}[{SlotIndex}]");
             }
         }
 
@@ -608,6 +739,7 @@ namespace SketchBlade.Views.Controls
 
         private void SlotBorder_MouseDown(object sender, MouseButtonEventArgs e)
         {
+            LoggingService.LogInfo($"[DragDrop] *** СОБЫТИЕ MOUSEDOWN ПОЛУЧЕНО *** для {SlotType}[{SlotIndex}], Item: {Item?.Name ?? "NULL"}");
             try
             {
                 e.Handled = true;
@@ -641,9 +773,11 @@ namespace SketchBlade.Views.Controls
 
                 if (e.ChangedButton == MouseButton.Left && Item != null)
                 {
-                    _dragStartPoint = e.GetPosition(this);
-                    CoreSlotBorder.CaptureMouse();
-                    e.Handled = true;
+                    LoggingService.LogInfo($"[DragDrop] MouseDown на {SlotType}[{SlotIndex}] с предметом {Item.Name}");
+                    // _dragStartPoint = e.GetPosition(this); // Removed: Drag start point for local detection less relevant
+                    // CoreSlotBorder.CaptureMouse(); // Removed: Let DoDragDrop handle capture
+                    // LoggingService.LogInfo($"[DragDrop] Mouse captured для {SlotType}[{SlotIndex}]"); // Removed
+                    e.Handled = true; // Keep e.Handled = true if we are potentially starting a drag sequence via the event
                 }
                 else if (e.ChangedButton == MouseButton.Right && Item != null && Item.IsStackable && Item.StackSize > 1)
                 {
@@ -657,10 +791,13 @@ namespace SketchBlade.Views.Controls
             {
                 MessageBox.Show($"Error in SlotBorder_MouseDown: {ex.Message}");
 
-                if (CoreSlotBorder.IsMouseCaptured)
-                {
-                    CoreSlotBorder.ReleaseMouseCapture();
-                }
+                // Ensure mouse is not left captured if an error occurs before DoDragDrop
+                // However, if we are not capturing here, this might not be necessary.
+                // Consider if any other path could capture.
+                // if (CoreSlotBorder.IsMouseCaptured)
+                // {
+                //    CoreSlotBorder.ReleaseMouseCapture();
+                // }
             }
         }
 
@@ -668,59 +805,63 @@ namespace SketchBlade.Views.Controls
         {
             try
             {
-                if (e.LeftButton == MouseButtonState.Pressed &&
-                    !_isDragging &&
-                    Item != null &&
-                    CoreSlotBorder.IsMouseCaptured)
+                // Проверяем, что предмет все еще существует перед началом drag-and-drop
+                // This check is less critical now as drag initiation is moved, but keep for safety.
+                if (e.LeftButton == MouseButtonState.Pressed && Item == null && CoreSlotBorder.IsMouseCaptured)
+                {
+                    // Если предмет исчез, сбрасываем состояние drag-and-drop
+                    _isDragging = false;
+                    CoreSlotBorder.ReleaseMouseCapture();
+                    LoggingService.LogDebug($"[DragDrop] MouseMove on {SlotType}[{SlotIndex}]: Item became null while captured, releasing capture.");
+                    return;
+                }
+                
+                // Логируем только если есть потенциал для drag-and-drop
+                if (e.LeftButton == MouseButtonState.Pressed && Item != null && CoreSlotBorder.IsMouseCaptured)
+                {
+                    // LoggingService.LogInfo($"[DragDrop] MouseMove на {SlotType}[{SlotIndex}], isDragging: {_isDragging}, MouseCaptured: {CoreSlotBorder.IsMouseCaptured}");
+                }
+                
+                // The drag initiation logic (checking for drag distance and calling DoDragDrop)
+                // will now be primarily handled by InventoryEventHandler.HandleInventorySlotMouseDown,
+                // which is called via the SlotMouseDown event from SlotBorder_MouseDown.
+                // This CoreInventorySlot.SlotBorder_MouseMove should primarily manage _isDragging state
+                // and mouse capture release if the conditions for drag (like item disappearing) change.
+
+                // If mouse is captured (meaning MouseDown occurred on an item) and left button is pressed
+                if (CoreSlotBorder.IsMouseCaptured && e.LeftButton == MouseButtonState.Pressed)
                 {
                     Point currentPosition = e.GetPosition(this);
                     Vector difference = _dragStartPoint - currentPosition;
 
-                    if (Math.Abs(difference.X) > SystemParameters.MinimumHorizontalDragDistance ||
-                        Math.Abs(difference.Y) > SystemParameters.MinimumVerticalDragDistance)
+                    // Check if the mouse has moved enough to be considered a drag
+                    if (!_isDragging && (Math.Abs(difference.X) > SystemParameters.MinimumHorizontalDragDistance ||
+                                         Math.Abs(difference.Y) > SystemParameters.MinimumVerticalDragDistance))
                     {
-                        try
-                        {
-                            _isDragging = true;
-
-                            ItemSlotInfo slotInfo = new ItemSlotInfo(SlotType, SlotIndex);
-                            DataObject dragData = new DataObject();
-                            dragData.SetData("ItemSlotInfo", slotInfo);
-
-                            HideTooltip();
-
-                            LoggingService.LogDebug($"[DragDrop] CoreInventorySlot.MouseMove: Начало DragDrop операции для {SlotType}[{SlotIndex}]");
-
-                            DragDropEffects result = DragDrop.DoDragDrop(CoreSlotBorder, dragData, DragDropEffects.Move);
-
-                            LoggingService.LogDebug($"[DragDrop] CoreInventorySlot.MouseMove: DragDrop завершен с результатом {result}");
-
-                            UpdateSelectionAppearance();
-
-                            SlotDragInitiated?.Invoke(this, e);
-                        }
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show($"Error during drag operation: {ex.Message}");
-                        }
-                        finally
-                        {
-                            _isDragging = false;
-
-                            if (CoreSlotBorder.IsMouseCaptured)
-                            {
-                                CoreSlotBorder.ReleaseMouseCapture();
-                            }
-                        }
+                        // If Item is null here, it means it disappeared between MouseDown and now.
+                        // Release capture and don't start a drag.
+                        // The actual DoDragDrop will be (or would have been) called by HandleInventorySlotMouseDown
+                        // based on the ViewModel's state at the time of MouseDown.
                     }
                 }
+                // If the left button is released, or mouse is no longer captured, ensure _isDragging is false.
+                // (This is also handled in OnMouseUp, but good to be robust).
+                // else if (e.LeftButton == MouseButtonState.Released || !CoreSlotBorder.IsMouseCaptured)
+                // {
+                //     if (_isDragging)
+                //     {
+                //         _isDragging = false;
+                //     }
+                //     if (CoreSlotBorder.IsMouseCaptured) // Release if still captured for some reason
+                //     {
+                //        CoreSlotBorder.ReleaseMouseCapture();
+                //     }
+                // }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error in SlotBorder_MouseMove: {ex.Message}");
-
-                _isDragging = false;
-
+                LoggingService.LogError($"Ошибка в SlotBorder_MouseMove: {ex.Message}", ex);
+                _isDragging = false; // Reset state on error
                 if (CoreSlotBorder.IsMouseCaptured)
                 {
                     CoreSlotBorder.ReleaseMouseCapture();
@@ -749,10 +890,10 @@ namespace SketchBlade.Views.Controls
 
         private void SlotBorder_Drop(object sender, DragEventArgs e)
         {
+            LoggingService.LogInfo($"[DragDrop] *** СОБЫТИЕ DROP ПОЛУЧЕНО *** для {SlotType}[{SlotIndex}]");
             try
             {
-                // Добавляем логирование для отладки
-                LoggingService.LogDebug($"[DragDrop] CoreInventorySlot.SlotBorder_Drop: Начало обработки для {SlotType}[{SlotIndex}]");
+                LoggingService.LogInfo($"[DragDrop] Drop в {SlotType}[{SlotIndex}]");
 
                 ShowDropTargetHighlight(false);
                 ShowInvalidDropHighlight(false);
@@ -760,94 +901,16 @@ namespace SketchBlade.Views.Controls
 
                 _isDragging = false;
 
-                if (e.Data.GetDataPresent("ItemSlotInfo"))
-                {
-                    ItemSlotInfo sourceSlotInfo = (ItemSlotInfo)e.Data.GetData("ItemSlotInfo");
-                    ItemSlotInfo targetSlotInfo = new ItemSlotInfo(SlotType, SlotIndex);
-
-                    LoggingService.LogDebug($"[DragDrop] CoreInventorySlot.SlotBorder_Drop: Обработка перемещения из {sourceSlotInfo.SlotType}[{sourceSlotInfo.SlotIndex}] в {targetSlotInfo.SlotType}[{targetSlotInfo.SlotIndex}]");
-
-                    if (e.Data.GetDataPresent("SplitStack") && (bool)e.Data.GetData("SplitStack"))
-                    {
-                        int splitAmount = -1;
-                        if (e.Data.GetDataPresent("SplitAmount"))
-                        {
-                            splitAmount = (int)e.Data.GetData("SplitAmount");
-                        }
-
-                        HandleStackSplitting(sourceSlotInfo, splitAmount);
-
-                        e.Handled = true;
-                        return;
-                    }
-
-                    bool canAccept = CanAcceptItemType(sourceSlotInfo);
-                    if (!canAccept)
-                    {
-                        e.Handled = true;
-                        return;
-                    }
-
-                    MoveItemData moveData = new MoveItemData
-                    {
-                        SourceType = sourceSlotInfo.SlotType,
-                        SourceIndex = sourceSlotInfo.SlotIndex,
-                        TargetType = targetSlotInfo.SlotType,
-                        TargetIndex = targetSlotInfo.SlotIndex
-                    };
-
-                    if (SlotType == "Trash")
-                    {
-                        if (sourceSlotInfo.SlotType == "Helmet" ||
-                            sourceSlotInfo.SlotType == "Chestplate" ||
-                            sourceSlotInfo.SlotType == "Leggings" ||
-                            sourceSlotInfo.SlotType == "Weapon" ||
-                            sourceSlotInfo.SlotType == "Shield")
-                        {
-                            MessageBox.Show(
-                                "Чтобы выбросить экипированный предмет, сначала переместите его в инвентарь.",
-                                "Неподходящий тип предмета",
-                                MessageBoxButton.OK,
-                                MessageBoxImage.Warning);
-                            e.Handled = true;
-                            return;
-                        }
-
-                        ItemTrashRequested?.Invoke(this, new ItemTrashEventArgs
-                        {
-                            SourceType = sourceSlotInfo.SlotType,
-                            SourceIndex = sourceSlotInfo.SlotIndex
-                        });
-                        e.Handled = true;
-                        return;
-                    }
-
-                    if (SlotType == "Helmet" || SlotType == "Chestplate" ||
-                        SlotType == "Leggings" || SlotType == "Weapon" || SlotType == "Shield")
-                    {
-                        if (sourceSlotInfo.SlotType == "Inventory")
-                        {
-                            ItemEquipRequested?.Invoke(this, new EquipItemData
-                            {
-                                SourceType = sourceSlotInfo.SlotType,
-                                SourceIndex = sourceSlotInfo.SlotIndex,
-                                EquipmentType = SlotType
-                            });
-                            e.Handled = true;
-                            return;
-                        }
-                    }
-
-                    RaiseItemMoveRequest(moveData);
-                }
-
-                LoggingService.LogDebug($"[DragDrop] CoreInventorySlot.SlotBorder_Drop: Завершение обработки");
+                // Вызываем событие SlotDrop для обработки через InventoryDragDropHandler
+                // ВСЯ логика обработки теперь происходит в InventoryDragDropHandler
+                LoggingService.LogInfo($"[DragDrop] Вызываем SlotDrop событие для {SlotType}[{SlotIndex}]");
+                SlotDrop?.Invoke(this, e);
+                
+                LoggingService.LogInfo($"[DragDrop] Drop завершен для {SlotType}[{SlotIndex}]");
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"[DragDrop] CoreInventorySlot.SlotBorder_Drop exception: {ex.Message}", ex);
-
-                MessageBox.Show($"Error in SlotBorder_Drop: {ex.Message}");
+                LoggingService.LogError($"[DragDrop] Ошибка в SlotBorder_Drop: {ex.Message}", ex);
 
                 ShowDropTargetHighlight(false);
                 ShowInvalidDropHighlight(false);
@@ -857,58 +920,35 @@ namespace SketchBlade.Views.Controls
 
         private bool CanAcceptItemType(ItemSlotInfo sourceSlotInfo)
         {
-            if (!CanAcceptDrag)
-            {
-                return false;
-            }
-
-            if (string.IsNullOrEmpty(sourceSlotInfo.SlotType))
-            {
-                return false;
-            }
-
             try
             {
-                // Используем кэшированный предмет из ItemSlotInfo если он есть
-                var sourceItem = sourceSlotInfo.Item;
-                
-                // Если предмет не кэширован, пытаемся получить его из ViewModel
-                if (sourceItem == null)
+                if (sourceSlotInfo.SlotType == SlotType && sourceSlotInfo.SlotIndex == SlotIndex)
                 {
-                    sourceItem = FindViewModelItem(sourceSlotInfo);
-                    if (sourceItem == null)
-                    {
-                        // Логируем null sourceItem только раз в 10 вызовов для уменьшения спама
-                        if (++_nullItemLogCounter % 10 == 1)
-                        {
-                            LoggingService.LogDebug($"[DragDrop] CanAcceptItemType: sourceItem is null for {sourceSlotInfo.SlotType}[{sourceSlotInfo.SlotIndex}] (throttled: showing 1 of 10)");
-                        }
-                        return false;
-                    }
+                    return false;
                 }
 
-                // Быстая проверка совместимости типов слотов
-                bool basicCompatibility = SlotTypeCanAcceptItemType(SlotType, sourceItem.Type);
-                
-                LoggingService.LogDebug($"[DragDrop] CanAcceptItemType: basicCompatibility = {basicCompatibility} for {sourceItem.Type} -> {SlotType}");
+                Item? sourceItem = FindViewModelItem(sourceSlotInfo);
+                if (sourceItem == null)
+                {
+                    LoggingService.LogWarning($"[DragDrop] Исходный предмет не найден для {sourceSlotInfo.SlotType}[{sourceSlotInfo.SlotIndex}]");
+                    return false;
+                }
 
-                // Если есть обработчик валидации, используем его
+                bool basicCompatibility = SlotTypeCanAcceptItemType(SlotType, sourceItem.Type);
+
                 if (ValidateItemForSlot != null)
                 {
-                    LoggingService.LogDebug($"[DragDrop] CanAcceptItemType: ValidateItemForSlot event is connected, calling...");
                     var args = new ValidateItemForSlotEventArgs(sourceItem, SlotType, SlotIndex);
                     ValidateItemForSlot.Invoke(this, args);
                     bool validationResult = args.IsValid;
-                    LoggingService.LogDebug($"[DragDrop] CanAcceptItemType: ValidateItemForSlot returned {validationResult}");
                     return basicCompatibility && validationResult;
                 }
 
-                LoggingService.LogDebug($"[DragDrop] CanAcceptItemType: {sourceSlotInfo.SlotType}[{sourceSlotInfo.SlotIndex}] -> {SlotType}[{SlotIndex}] = {basicCompatibility} (ItemType: {sourceItem.Type})");
                 return basicCompatibility;
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"[DragDrop] CanAcceptItemType exception: {ex.Message}", ex);
+                LoggingService.LogError($"[DragDrop] Ошибка в CanAcceptItemType: {ex.Message}", ex);
                 return false;
             }
         }
@@ -917,6 +957,12 @@ namespace SketchBlade.Views.Controls
         {
             try
             {
+                // Если предмет уже есть в slotInfo, используем его
+                if (slotInfo.Item != null)
+                {
+                    return slotInfo.Item;
+                }
+
                 InventoryViewModel? viewModel = FindViewModel();
                 if (viewModel == null)
                 {
@@ -1113,8 +1159,11 @@ namespace SketchBlade.Views.Controls
             {
                 if (data == null)
                 {
+                    LoggingService.LogWarning("[DragDrop] RaiseItemMoveRequest: data is null");
                     return;
                 }
+
+                LoggingService.LogInfo($"[DragDrop] Перемещение предмета: {data.SourceType}[{data.SourceIndex}] -> {data.TargetType}[{data.TargetIndex}]");
 
                 InventoryViewModel? viewModel = FindViewModel();
 
@@ -1188,47 +1237,37 @@ namespace SketchBlade.Views.Controls
 
                 if (e.Data.GetDataPresent("ItemSlotInfo"))
                 {
-                    ItemSlotInfo? sourceSlotInfo = e.Data.GetData("ItemSlotInfo") as ItemSlotInfo;
+                    ItemSlotInfo sourceSlotInfo = (ItemSlotInfo)e.Data.GetData("ItemSlotInfo");
 
-                    if (sourceSlotInfo != null && sourceSlotInfo.SlotType == SlotType && sourceSlotInfo.SlotIndex == SlotIndex)
+                    if (sourceSlotInfo.SlotType == SlotType && sourceSlotInfo.SlotIndex == SlotIndex)
                     {
-                        ShowDropTargetHighlight(false);
-                        ShowInvalidDropHighlight(false);
-
                         e.Effects = DragDropEffects.None;
                         return;
                     }
 
-                    if (sourceSlotInfo != null && CanAcceptItemType(sourceSlotInfo))
+                    if (CanAcceptItemType(sourceSlotInfo))
                     {
+                        e.Effects = DragDropEffects.Move;
                         ShowDropTargetHighlight(true);
                         ShowInvalidDropHighlight(false);
-
-                        e.Effects = DragDropEffects.Move;
-                        
-                        // Р›РѕРіРёСЂСѓРµРј С‚РѕР»СЊРєРѕ СѓСЃРїРµС€РЅС‹Рµ РѕРїРµСЂР°С†РёРё drag enter РґР»СЏ РґРёР°РіРЅРѕСЃС‚РёРєРё
-                        LoggingService.LogDebug($"[DragDrop] InventorySlot_DragEnter: {sourceSlotInfo.SlotType}[{sourceSlotInfo.SlotIndex}] -> {SlotType}[{SlotIndex}] (Allow)");
                     }
                     else
                     {
+                        e.Effects = DragDropEffects.None;
                         ShowDropTargetHighlight(false);
                         ShowInvalidDropHighlight(true);
-
-                        e.Effects = DragDropEffects.None;
                     }
                 }
                 else
                 {
                     e.Effects = DragDropEffects.None;
-
                     ShowDropTargetHighlight(false);
                     ShowInvalidDropHighlight(false);
                 }
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"[DragDrop] SlotBorder_DragEnter exception: {ex.Message}", ex);
-
+                LoggingService.LogError($"[DragDrop] Ошибка в DragEnter: {ex.Message}", ex);
                 e.Effects = DragDropEffects.None;
                 ShowDropTargetHighlight(false);
                 ShowInvalidDropHighlight(false);
@@ -1466,6 +1505,8 @@ namespace SketchBlade.Views.Controls
 
         protected virtual void OnSlotDrop()
         {
+            // Этот метод может быть переопределен в наследниках
+            // Основная логика обработки drop находится в SlotBorder_Drop
         }
 
         protected virtual void OnSlotMouseEnter()
@@ -1482,30 +1523,37 @@ namespace SketchBlade.Views.Controls
         {
             try
             {
+                LoggingService.LogInfo($"[StackSplit] Разделение стека: {sourceSlotInfo.SlotType}[{sourceSlotInfo.SlotIndex}] -> {SlotType}[{SlotIndex}], количество: {splitAmount}");
+
                 if (sourceSlotInfo.SlotType == SlotType && sourceSlotInfo.SlotIndex == SlotIndex)
                 {
+                    LoggingService.LogWarning("[StackSplit] Попытка разделить стек на тот же слот");
                     return;
                 }
 
                 InventoryViewModel? viewModel = FindViewModel();
                 if (viewModel == null)
                 {
+                    LoggingService.LogError("[StackSplit] ViewModel не найден");
                     return;
                 }
 
                 Item? sourceItem = viewModel.GetItemFromSlot(sourceSlotInfo.SlotType, sourceSlotInfo.SlotIndex);
                 if (sourceItem == null)
                 {
+                    LoggingService.LogWarning("[StackSplit] Исходный предмет не найден");
                     return;
                 }
 
                 if (!sourceItem.IsStackable)
                 {
+                    LoggingService.LogWarning($"[StackSplit] Предмет {sourceItem.Name} не стекаемый");
                     return;
                 }
 
                 if (sourceItem.StackSize <= 1)
                 {
+                    LoggingService.LogWarning($"[StackSplit] Размер стека {sourceItem.Name} слишком мал: {sourceItem.StackSize}");
                     return;
                 }
 
@@ -1529,6 +1577,8 @@ namespace SketchBlade.Views.Controls
 
                     sourceItem.StackSize -= splitAmount;
 
+                    LoggingService.LogInfo($"[StackSplit] Создан новый стек {newStackItem.Name}: {splitAmount} шт. Остался исходный стек: {sourceItem.StackSize} шт.");
+
                     UpdateSlotVisuals();
 
                     viewModel.SetItemToSlot(sourceSlotInfo.SlotType, sourceSlotInfo.SlotIndex, sourceItem);
@@ -1547,6 +1597,8 @@ namespace SketchBlade.Views.Controls
                         targetItem.StackSize += actualAdd;
 
                         sourceItem.StackSize -= actualAdd;
+
+                        LoggingService.LogInfo($"[StackSplit] Объединены стеки {targetItem.Name}: добавлено {actualAdd} шт. Новый размер: {targetItem.StackSize}. Остался исходный стек: {sourceItem.StackSize} шт.");
 
                         UpdateSlotVisuals();
 

@@ -126,7 +126,11 @@ namespace SketchBlade.Views.Controls.Recipes
         
         private void CraftingViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            SketchBlade.Services.LoggingService.LogDebug($"CraftingPanel: SimplifiedCraftingViewModel.{e.PropertyName} изменено");
+            // Убираем избыточное логирование - логируем только важные изменения
+            if (e.PropertyName == "AvailableRecipes")
+            {
+                SketchBlade.Services.LoggingService.LogInfo($"CraftingPanel: Рецепты обновлены");
+            }
         }
         
         private void CraftingPanel_Unloaded(object sender, RoutedEventArgs e)

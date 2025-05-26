@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Windows.Threading;
 using SketchBlade.Services;
 
 namespace SketchBlade.Models
@@ -18,6 +19,12 @@ namespace SketchBlade.Models
         private readonly InventoryData _data;
         private readonly InventorySlotManager _slotManager;
         private readonly InventoryLogic _logic;
+        
+        [field: NonSerialized]
+        private DispatcherTimer? _inventoryChangedTimer;
+        
+        [field: NonSerialized]
+        private bool _isInventoryChangePending = false;
 
         public Inventory(int capacity = 15)
         {
@@ -82,7 +89,85 @@ namespace SketchBlade.Models
         public bool HasSpaceForItem(Item item) => _slotManager.HasSpaceForItem(item);
         public void Clear() => _slotManager.ClearAll();
 
-        public void OnInventoryChanged() => _data.NotifyInventoryChanged();
+        public void OnInventoryChanged()
+        {
+            try
+            {
+                // Always do an immediate update for better UI responsiveness
+                // Add thread safety for UI thread 
+                if (System.Windows.Application.Current?.Dispatcher != null)
+                {
+                    if (System.Windows.Application.Current.Dispatcher.CheckAccess())
+                    {
+                        // If we're on UI thread, update directly 
+                        _data.NotifyItemsChanged();
+                        
+                        // For drag-drop operations, we need an immediate notification
+                        // to ensure UI is updated right away
+                        _data.NotifyInventoryChanged();
+                    }
+                    else
+                    {
+                        // If we're not on UI thread, invoke with highest priority
+                        System.Windows.Application.Current.Dispatcher.BeginInvoke(
+                            new Action(() => 
+                            {
+                                _data.NotifyItemsChanged();
+                                _data.NotifyInventoryChanged();
+                            }), 
+                            System.Windows.Threading.DispatcherPriority.Render);
+                    }
+                }
+                else
+                {
+                    // Fallback if no dispatcher
+                    _data.NotifyItemsChanged();
+                    _data.NotifyInventoryChanged();
+                }
+                
+                // Still use debouncing for any additional updates to avoid overloading
+                if (_inventoryChangedTimer == null)
+                {
+                    _inventoryChangedTimer = new DispatcherTimer
+                    {
+                        // Secondary update with a delay
+                        Interval = TimeSpan.FromMilliseconds(250)
+                    };
+                    
+                    _inventoryChangedTimer.Tick += (s, e) =>
+                    {
+                        _inventoryChangedTimer?.Stop();
+                        if (_isInventoryChangePending)
+                        {
+                            _isInventoryChangePending = false;
+                            
+                            // Secondary update notification
+                            if (System.Windows.Application.Current?.Dispatcher != null)
+                            {
+                                System.Windows.Application.Current.Dispatcher.BeginInvoke(
+                                    new Action(() => _data.NotifyInventoryChanged()),
+                                    System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+                            }
+                        }
+                    };
+                }
+                
+                // Still keep the pending flag for secondary update
+                _isInventoryChangePending = true;
+                
+                if (!_inventoryChangedTimer.IsEnabled)
+                {
+                    _inventoryChangedTimer.Start();
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogError($"Error in OnInventoryChanged: {ex.Message}", ex);
+                
+                // Fallback direct notification in case of error
+                _data.NotifyInventoryChanged();
+            }
+        }
 
         private void OnDataPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {

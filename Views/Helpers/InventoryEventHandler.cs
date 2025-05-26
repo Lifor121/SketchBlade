@@ -5,6 +5,7 @@ using System.Windows.Input;
 using SketchBlade.Models;
 using SketchBlade.ViewModels;
 using SketchBlade.Views.Controls;
+using SketchBlade.Services;
 
 namespace SketchBlade.Views.Helpers
 {
@@ -88,7 +89,7 @@ namespace SketchBlade.Views.Helpers
                 
                 if (equippedItem != null)
                 {
-                    var itemSlotInfo = new ItemSlotInfo("Equipment", equipmentIndex, equippedItem);
+                    var itemSlotInfo = new Controls.ItemSlotInfo("Equipment", equipmentIndex, equippedItem);
 
                     var dragData = new DataObject("ItemSlotInfo", itemSlotInfo);
                     DragDrop.DoDragDrop(slot, dragData, DragDropEffects.Move);
@@ -116,7 +117,7 @@ namespace SketchBlade.Views.Helpers
                 
                 if (item != null)
                 {
-                    var itemSlotInfo = new ItemSlotInfo("Quick", quickSlotIndex, item);
+                    var itemSlotInfo = new Controls.ItemSlotInfo("Quick", quickSlotIndex, item);
 
                     var dragData = new DataObject("ItemSlotInfo", itemSlotInfo);
                     DragDrop.DoDragDrop(slot, dragData, DragDropEffects.Move);
@@ -130,29 +131,42 @@ namespace SketchBlade.Views.Helpers
         
         public void HandleInventorySlotMouseDown(object sender, MouseButtonEventArgs e)
         {
+            LoggingService.LogInfo($"[DragDrop] *** СОБЫТИЕ HandleInventorySlotMouseDown ПОЛУЧЕНО *** sender: {sender?.GetType().Name}");
             if (sender is not CoreInventorySlot slot)
+            {
+                LoggingService.LogWarning($"[DragDrop] sender не является CoreInventorySlot: {sender?.GetType().Name}");
                 return;
+            }
 
             try
             {
                 int inventoryIndex = slot.SlotIndex;
-                
-                // Use the correct API to get inventory items
-                var item = inventoryIndex >= 0 && inventoryIndex < _viewModel.GameData.Inventory.Items.Count
-                    ? _viewModel.GameData.Inventory.Items[inventoryIndex]
-                    : null;
-                
-                if (item != null)
-                {
-                    var itemSlotInfo = new ItemSlotInfo("Inventory", inventoryIndex, item);
+                string slotType = slot.SlotType; // Get SlotType from the CoreInventorySlot
 
+                // Fetch the item directly from the ViewModel to ensure up-to-date information,
+                // bypassing any potential lag in the CoreInventorySlot.Item DP update.
+                var item = _viewModel.GetItemFromSlot(slotType, inventoryIndex); 
+                
+                // string slotName = slot.SlotName ?? $"{slot.SlotType}[{inventoryIndex}]"; // SlotName was removed
+                string slotName = $"{slotType}[{inventoryIndex}]";
+
+                // LoggingService.LogInfo($"[DragDrop] MouseDown на {slotName} с предметом {item.Name}"); // Original line
+                LoggingService.LogInfo($"[DragDrop] MouseDown на {slotName} с предметом {(item?.Name) ?? "NULL_ITEM_IN_HANDLER"}");
+
+                if (e.LeftButton == MouseButtonState.Pressed && item != null)
+                {
+                    var itemSlotInfo = new Controls.ItemSlotInfo(slotType, inventoryIndex, item);
                     var dragData = new DataObject("ItemSlotInfo", itemSlotInfo);
                     DragDrop.DoDragDrop(slot, dragData, DragDropEffects.Move);
+                }
+                else
+                {
+                    LoggingService.LogDebug($"[DragDrop] MouseDown на {slotType}[{inventoryIndex}], но предмет не найден (или слот пуст). Операция перетаскивания не начнется.");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error in InventorySlot_MouseDown: {ex.Message}");
+                // LoggingService.LogError($"[DragDrop] Исключение в HandleInventorySlotMouseDown: {ex.Message}");
             }
         }
         
@@ -172,7 +186,7 @@ namespace SketchBlade.Views.Helpers
                 
                 if (item != null)
                 {
-                    var itemSlotInfo = new ItemSlotInfo("Craft", craftSlotIndex, item);
+                    var itemSlotInfo = new Controls.ItemSlotInfo("Craft", craftSlotIndex, item);
 
                     var dragData = new DataObject("ItemSlotInfo", itemSlotInfo);
                     DragDrop.DoDragDrop(slot, dragData, DragDropEffects.Move);
@@ -367,6 +381,71 @@ namespace SketchBlade.Views.Helpers
                 "Shield" => 4,
                 _ => 0
             };
+        }
+        
+        public void HandleDrop(object sender, DragEventArgs e, string targetSlotName, int targetSlotIndex)
+        {
+            if (sender is not CoreInventorySlot targetCoreSlot)
+            {
+                // LoggingService.LogWarning($"[DragDrop] HandleDrop: sender is not CoreInventorySlot ({sender?.GetType().Name})");
+                return;
+            }
+
+            try
+            {
+                // LoggingService.LogInfo($"[DragDrop] Drop в {targetSlotName}");
+
+                if (e.Data.GetDataPresent("ItemSlotInfo"))
+                {
+                    var sourceSlotInfo = e.Data.GetData("ItemSlotInfo") as Controls.ItemSlotInfo;
+                    if (sourceSlotInfo == null)
+                    {
+                        // LoggingService.LogWarning("[DragDrop] HandleDrop: sourceSlotInfo is null.");
+                        return;
+                    }
+
+                    // Ensure Item is not null before accessing Name
+                    // string sourceItemName = sourceSlotInfo.Item?.Name ?? "Unknown Item";
+                    // LoggingService.LogInfo($"[DragDrop] Перемещение предмета: {sourceSlotInfo.Type}[{sourceSlotInfo.Index}] ({sourceItemName}) -> {targetSlotName}");
+
+                    var targetSlotType = targetCoreSlot.SlotType;
+                    // var targetItemSlotInfo = new Controls.ItemSlotInfo(targetSlotType, targetSlotIndex, targetCoreSlot.Item);
+
+                    // Pass sourceSlotInfo.Item as the itemBeingDragged
+                    // bool success = _viewModel.MoveItemBetweenSlots(sourceSlotInfo, targetItemSlotInfo, sourceSlotInfo.Item); 
+
+                    // Call the overload that takes types and indices directly
+                    _viewModel.MoveItemBetweenSlots(sourceSlotInfo.SlotType, sourceSlotInfo.SlotIndex, targetSlotType, targetSlotIndex);
+                    // Assuming the operation was successful for UI effect purposes, as the called method is void.
+                    // The actual success/failure is handled internally by the ViewModel and data updates.
+                    bool success = true; 
+
+                    if (success) // This will always be true now based on the assumption above
+                    {
+                        // LoggingService.LogInfo($"[DragDrop] Перемещение успешно завершено.");
+                    }
+                    else
+                    {
+                        // LoggingService.LogWarning($"[DragDrop] Не удалось выполнить перемещение.");
+                    }
+                    e.Effects = success ? DragDropEffects.Move : DragDropEffects.None;
+                }
+                else
+                {
+                    // LoggingService.LogWarning($"[DragDrop] HandleDrop: Отсутствуют данные ItemSlotInfo.");
+                    e.Effects = DragDropEffects.None;
+                }
+            }
+            catch (Exception ex)
+            {
+                // LoggingService.LogError($"[DragDrop] Исключение в HandleDrop: {ex.Message}");
+                e.Effects = DragDropEffects.None;
+            }
+            finally
+            {
+                e.Handled = true;
+                // LoggingService.LogInfo($"[DragDrop] Drop завершен для {targetSlotName} с эффектом {e.Effects}");
+            }
         }
         
         #endregion

@@ -11,11 +11,22 @@ using System.Windows.Threading;
 
 namespace SketchBlade.ViewModels
 {
+    // Define the log levels for simplicity
+    public enum LogLevel
+    {
+        Debug = 0,
+        Info = 1,
+        Warning = 2,
+        Error = 3
+    }
+
     public class SimplifiedCraftingViewModel : INotifyPropertyChanged
     {
         private readonly GameData _gameState;
         private SimplifiedCraftingSystem _craftingSystem;
         private SimplifiedCraftingRecipe? _selectedRecipe;
+        private bool _isRefreshing = false;
+        private DispatcherTimer? _deferredRefreshTimer;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -161,21 +172,67 @@ namespace SketchBlade.ViewModels
         {
             try
             {
-                // Обновляем статус доступности крафта для каждого рецепта
-                foreach (var recipeViewModel in AvailableRecipes)
+                // Prevent multiple refreshes happening in rapid succession
+                if (_isRefreshing)
                 {
-                    recipeViewModel.UpdateCraftability();
+                    // If a refresh is already in progress, defer this one
+                    if (_deferredRefreshTimer == null)
+                    {
+                        _deferredRefreshTimer = new DispatcherTimer
+                        {
+                            // Increase interval for more aggressive debouncing
+                            Interval = TimeSpan.FromMilliseconds(300)
+                        };
+                        _deferredRefreshTimer.Tick += (s, e) =>
+                        {
+                            _deferredRefreshTimer?.Stop();
+                            if (!_isRefreshing)
+                            {
+                                RefreshAvailableRecipes();
+                            }
+                        };
+                    }
+                    
+                    if (!_deferredRefreshTimer.IsEnabled)
+                    {
+                        _deferredRefreshTimer.Start();
+                    }
+                    return;
                 }
 
-                // Обновляем требуемые материалы для выбранного рецепта
-                UpdateRequiredMaterials();
+                _isRefreshing = true;
+                
+                // Process updates in batch using Dispatcher to avoid UI thread blocking
+                System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    try
+                    {
+                        // Обновляем статус доступности крафта для каждого рецепта
+                        foreach (var recipeViewModel in AvailableRecipes)
+                        {
+                            recipeViewModel.UpdateCraftability();
+                        }
 
-                OnPropertyChanged(nameof(CanCraft));
-                LoggingService.LogDebug("Рецепты обновлены");
+                        // Обновляем требуемые материалы для выбранного рецепта
+                        UpdateRequiredMaterials();
+
+                        OnPropertyChanged(nameof(CanCraft));
+                        LoggingService.LogDebug("Рецепты обновлены");
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggingService.LogError($"Ошибка при обновлении рецептов в диспетчере: {ex.Message}", ex);
+                    }
+                    finally
+                    {
+                        _isRefreshing = false;
+                    }
+                }));
             }
             catch (Exception ex)
             {
                 LoggingService.LogError("Ошибка при обновлении рецептов", ex);
+                _isRefreshing = false;
             }
         }
 
@@ -338,18 +395,47 @@ namespace SketchBlade.ViewModels
             {
                 LoggingService.LogDebug("OnInventoryChanged: Инвентарь изменился, обновляем рецепты");
                 
-                // Логируем текущее состояние инвентаря
-                var nonNullCount = _gameState.Inventory.Items.Count(x => x != null);
-                LoggingService.LogDebug($"OnInventoryChanged: В инвентаре {nonNullCount} не-null предметов из {_gameState.Inventory.Items.Count}");
+                // Логируем текущее состояние инвентаря только при необходимости
+                // Если включен детальный лог, показываем подробную информацию
+                bool detailedLogging = false;
+                #if DEBUG
+                detailedLogging = true;
+                #endif
                 
-                foreach (var item in _gameState.Inventory.Items.Where(x => x != null))
+                if (detailedLogging)
                 {
-                    LoggingService.LogDebug($"OnInventoryChanged: Предмет в инвентаре: {item.Name} x{item.StackSize}");
+                    var nonNullCount = _gameState.Inventory.Items.Count(x => x != null);
+                    LoggingService.LogDebug($"OnInventoryChanged: В инвентаре {nonNullCount} не-null предметов из {_gameState.Inventory.Items.Count}");
+                    
+                    foreach (var item in _gameState.Inventory.Items.Where(x => x != null))
+                    {
+                        LoggingService.LogDebug($"OnInventoryChanged: Предмет в инвентаре: {item.Name} x{item.StackSize}");
+                    }
                 }
                 
-                // Принудительно обновляем доступность всех рецептов
-                RefreshAvailableRecipes();
-                LoggingService.LogDebug("OnInventoryChanged: Рецепты обновлены");
+                // Используем DispatcherQueue для отложенного обновления UI с дебаунсингом
+                if (_deferredRefreshTimer == null)
+                {
+                    _deferredRefreshTimer = new DispatcherTimer
+                    {
+                        Interval = TimeSpan.FromMilliseconds(150)
+                    };
+                    _deferredRefreshTimer.Tick += (s, e) =>
+                    {
+                        _deferredRefreshTimer?.Stop();
+                        if (!_isRefreshing)
+                        {
+                            RefreshAvailableRecipes();
+                        }
+                    };
+                }
+                
+                // Перезапускаем таймер при каждом изменении инвентаря,
+                // чтобы обновить UI только после того, как все изменения будут завершены
+                _deferredRefreshTimer.Stop();
+                _deferredRefreshTimer.Start();
+                
+                LoggingService.LogDebug("OnInventoryChanged: Запланировано обновление рецептов");
             }
             catch (Exception ex)
             {

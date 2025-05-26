@@ -44,9 +44,11 @@ namespace SketchBlade.Views.Helpers
                 
                 if (child is CoreInventorySlot slot)
                 {
-                    var slotTypeName = slot.Name;
+                    // Используем SlotType вместо Name для поиска слотов
+                    var slotTypeName = slot.SlotType?.ToString();
                     if (!string.IsNullOrEmpty(slotTypeName) && slotTypeName.Contains(slotType))
                     {
+                        LoggingService.LogInfo($"[DragDrop] Найден слот {slotTypeName}[{slot.SlotIndex}] для типа {slotType}");
                         results.Add(slot);
                     }
                 }
@@ -63,6 +65,8 @@ namespace SketchBlade.Views.Helpers
         {
             try
             {
+                LoggingService.LogInfo($"[DragDrop] ConnectEventHandlers: Начинаем подключение событий");
+                
                 // Подключаем события для слотов крафта, которые генерируются динамически
                 ConnectCraftSlotEvents(parent);
                 
@@ -70,6 +74,8 @@ namespace SketchBlade.Views.Helpers
                 ConnectInventorySlotEvents(parent);
                 ConnectEquipmentSlotEvents(parent);
                 ConnectQuickSlotEvents(parent);
+                
+                LoggingService.LogInfo($"[DragDrop] ConnectEventHandlers: Подключение событий завершено");
             }
             catch (Exception ex)
             {
@@ -112,11 +118,14 @@ namespace SketchBlade.Views.Helpers
             try
             {
                 var inventorySlots = FindSlotControls(parent, "Inventory");
+                LoggingService.LogInfo($"[DragDrop] ConnectInventorySlotEvents: Найдено {inventorySlots.Count} инвентарных слотов");
                 
                 foreach (var slot in inventorySlots)
                 {
                     if (slot != null)
                     {
+                        LoggingService.LogInfo($"[DragDrop] Подключаем события для слота {slot.SlotType}[{slot.SlotIndex}]");
+                        
                         // Mouse events
                         slot.SlotMouseDown += _eventHandler.HandleInventorySlotMouseDown;
                         

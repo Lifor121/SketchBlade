@@ -163,5 +163,55 @@ namespace SketchBlade.Models
                 LoggingService.LogError("Ошибка обновления UI");
             }
         }
+
+        public void NotifyItemsChanged()
+        {
+            // Lightweight update - only notify collection changes without all the heavy UI updates
+            OnPropertyChanged(nameof(Items));
+            OnPropertyChanged(nameof(QuickItems));
+            OnPropertyChanged(nameof(CraftItems));
+            OnPropertyChanged(nameof(CurrentWeight));
+            OnPropertyChanged(nameof(TrashItem));
+            
+            // Don't trigger the full InventoryChanged event or heavy UI updates
+            
+            try
+            {
+                if (System.Windows.Application.Current != null)
+                {
+                    System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        try
+                        {
+                            if (System.Windows.Application.Current.Resources.Contains("GameData"))
+                            {
+                                var gameData = System.Windows.Application.Current.Resources["GameData"] as GameData;
+                                if (gameData != null)
+                                {
+                                    gameData.OnPropertyChanged(nameof(gameData.Inventory));
+                                    
+                                    if (System.Windows.Application.Current.MainWindow?.DataContext is MainViewModel mainVM)
+                                    {
+                                        if (mainVM.InventoryViewModel != null)
+                                        {
+                                            // Only refresh affected slots, not everything
+                                            mainVM.InventoryViewModel.RefreshAllSlots();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            LoggingService.LogError($"NotifyItemsChanged UI update error: {ex.Message}");
+                        }
+                    }), System.Windows.Threading.DispatcherPriority.Normal);
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogError($"NotifyItemsChanged error: {ex.Message}");
+            }
+        }
     }
 } 

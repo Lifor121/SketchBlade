@@ -1,0 +1,41 @@
+{
+  "Gold": 0,
+  "CurrentLocationIndex": 0,
+  "CurrentScreen": "MainMenuView",
+  "Inventory": {
+    "Gold": 0,
+    "Items": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "QuickItems": [
+      null,
+      null
+    ],
+    "CraftItems": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "Locations": []
+}

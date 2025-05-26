@@ -378,13 +378,12 @@ public partial class MainWindow : Window
                         currentView.UpdateLayout();
                         break;
                     case "SettingsView":
-                        // Обновляем экран настроек
+                        // Обновляем экран настроек без принудительного сброса DataContext
                         if (_settingsViewModel != null && currentView.DataContext == _settingsViewModel)
                         {
-                            // Обновляем все привязки данных
-                            currentView.DataContext = null;
-                            currentView.DataContext = _settingsViewModel;
+                            // Просто обновляем layout без сброса DataContext
                             currentView.UpdateLayout();
+                            currentView.InvalidateVisual();
                         }
                         break;
                     case "MainMenuView":
@@ -432,13 +431,12 @@ public partial class MainWindow : Window
                     element.UpdateLayout();
                     element.InvalidateVisual();
                     
-                    // Если это CoreInventorySlot, принудительно обновляем его привязки данных
+                    // Если это CoreInventorySlot, обновляем его без принудительного сброса DataContext
                     if (element is SketchBlade.Views.Controls.CoreInventorySlot slot)
                     {
-                        // Принудительно обновляем DataContext
-                        var context = slot.DataContext;
-                        slot.DataContext = null;
-                        slot.DataContext = context;
+                        // Просто обновляем визуальное отображение без сброса DataContext
+                        // Это предотвращает проблемы с привязкой данных
+                        slot.InvalidateVisual();
                     }
                 }
                 

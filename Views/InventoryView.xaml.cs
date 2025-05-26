@@ -77,11 +77,14 @@ namespace SketchBlade.Views
                     // ОПТИМИЗАЦИЯ: Убираем избыточную реинициализацию крафта
                     // Система крафта инициализируется автоматически при первом обращении
                     
-                    // Принудительно обновляем UI
-                    viewModel.ForceUIUpdate();
+                    // UI обновится автоматически через привязки данных
+                    // ForceUIUpdate() теперь используется только для drag-and-drop операций
                     
                     // Принудительно устанавливаем Item для всех CoreInventorySlot
                     SetInventorySlotItems(viewModel);
+                    
+                    // Подключаем события drag-and-drop после загрузки UI
+                    ConnectSlotEvents();
                     
                     LoggingService.LogDebug("InventoryView_Loaded: Обновление завершено");
                 }
@@ -154,6 +157,9 @@ namespace SketchBlade.Views
             _eventHandler = new InventoryEventHandler(_viewModel);
             _dragDropHandler = new InventoryDragDropHandler(_viewModel);
             _slotManager = new InventorySlotUIManager(_viewModel, _eventHandler, _dragDropHandler);
+            
+            // Подключаем события drag-and-drop
+            ConnectSlotEvents();
         }
         
         private void CleanupHelpers()
@@ -259,13 +265,11 @@ namespace SketchBlade.Views
 
         private void InventorySlot_MouseDown(object? sender, MouseButtonEventArgs e)
         {
+            LoggingService.LogInfo($"[DragDrop] *** СОБЫТИЕ InventorySlot_MouseDown ПОЛУЧЕНО *** sender: {sender?.GetType().Name}");
             _eventHandler?.HandleInventorySlotMouseDown(sender, e);
         }
 
-        private void InventorySlot_Drop(object? sender, DragEventArgs e)
-        {
-            _dragDropHandler?.HandleInventorySlotDrop(sender, e);
-        }
+        // Удален InventorySlot_Drop - теперь используется только программное подключение событий
 
         private void CraftSlot_MouseDown(object? sender, MouseButtonEventArgs e)
         {
