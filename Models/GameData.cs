@@ -35,7 +35,12 @@ namespace SketchBlade.Models
         }
 
         public List<Character> CurrentEnemies { get; set; } = new List<Character>();
-        public List<Item> BattleRewardItems { get; set; } = new List<Item>();
+        private List<Item> _battleRewardItems = new List<Item>();
+        public List<Item> BattleRewardItems 
+        { 
+            get => _battleRewardItems;
+            set => SetProperty(ref _battleRewardItems, value);
+        }
         public int BattleRewardGold { get; set; } = 0;
 
         public int Gold { get; set; } = 0;
@@ -65,7 +70,7 @@ namespace SketchBlade.Models
             BattleRewardGold = 0;
 
             CurrentEnemies.Clear();
-            BattleRewardItems.Clear();
+            BattleRewardItems = new List<Item>();
             Locations.Clear();
             
             Inventory = new Inventory();

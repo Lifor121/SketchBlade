@@ -305,33 +305,6 @@ namespace SketchBlade.Views.Controls.Recipes
                     {
                         gameData.Inventory.OnInventoryChanged();
                     }
-                    
-                    // Принудительно обновляем ViewModel инвентаря
-                    inventoryViewModel.RefreshAllSlots();
-                    inventoryViewModel.ForceUIUpdate();
-                    
-                    // Обновляем UI через Dispatcher для гарантии выполнения на UI потоке
-                    System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        try
-                        {
-                            // Находим и обновляем все ItemsControl в главном окне
-                            var mainWindow = System.Windows.Application.Current.MainWindow;
-                            if (mainWindow != null)
-                            {
-                                var itemsControls = FindVisualChildren<ItemsControl>(mainWindow);
-                                foreach (var element in itemsControls)
-                                {
-                                    element.Items.Refresh();
-                                    element.UpdateLayout();
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            // Error in dispatcher update - continue silently
-                        }
-                    }), System.Windows.Threading.DispatcherPriority.Render);
                 }
             }
             catch (Exception ex)

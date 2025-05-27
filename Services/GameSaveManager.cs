@@ -80,6 +80,7 @@ namespace SketchBlade.Services
                     return null;
                 }
 
+                LoggingService.LogDebug($"LoadGame: Player.IsPlayer = {gameData.Player?.IsPlayer}, Player.Name = {gameData.Player?.Name}");
                 LoggingService.LogInfo("Game loaded successfully");
                 return gameData;
             }

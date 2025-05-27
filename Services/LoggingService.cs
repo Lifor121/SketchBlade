@@ -10,11 +10,11 @@ namespace SketchBlade.Services
     {
         private static readonly string LogFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error_log.txt");
         private static readonly object LogLock = new object();
-        private static LogLevel _currentLogLevel = LogLevel.Warning;
+        private static LogLevel _currentLogLevel = LogLevel.Debug;
         
         // ОПТИМИЗАЦИЯ ПРОИЗВОДИТЕЛЬНОСТИ: Флаг для быстрого включения/выключения debug логирования
         // Установите в true только для отладки критических проблем
-        public static bool EnableDebugLogging = false;
+        public static bool EnableDebugLogging = true;
         
         private const long MAX_LOG_FILE_SIZE = 10 * 1024 * 1024;
         

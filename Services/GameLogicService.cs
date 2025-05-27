@@ -116,6 +116,8 @@ namespace SketchBlade.Services
                     ImagePath = AssetPaths.Characters.PLAYER,
                     EquippedItems = new Dictionary<EquipmentSlot, Item>()
                 };
+                
+                LoggingService.LogDebug($"CreatePlayer: Created player with IsPlayer = {player.IsPlayer}, Name = {player.Name}");
 
                 return player;
             }

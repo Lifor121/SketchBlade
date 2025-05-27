@@ -19,6 +19,8 @@
         <converters:CommandParameterConverter x:Key="CommandParameterConverter"/>
         <converters:TranslationConverter x:Key="TranslationConverter"/>
         <converters:ImagePathToBitmapConverter x:Key="ImagePathToBitmapConverter"/>
+        <converters:AttackingCharacterConverter x:Key="AttackingCharacterConverter"/>
+        <converters:DebugLoggingConverter x:Key="DebugLoggingConverter"/>
         
         <ControlTemplate x:Key="HealthBarTemplate" TargetType="ProgressBar">
             <Border BorderBrush="Gray" BorderThickness="1" Background="#222222">
@@ -106,66 +108,80 @@
             <Border Grid.Column="0" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" 
                    Background="{StaticResource BackgroundBrush}" Margin="20" Padding="15" 
                    CornerRadius="5" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Border.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform/>
+                        <RotateTransform/>
+                        <TranslateTransform X="0" Y="0"/>
+                    </TransformGroup>
+                </Border.RenderTransform>
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Style.Triggers>
+                            <!-- Анимация получения урона игроком (только когда враг атакует и игрок НЕ атакует) -->
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding IsEnemyAttacking, Converter={StaticResource DebugLoggingConverter}, ConverterParameter='Player_IsEnemyAttacking'}" Value="True"/>
+                                    <Condition Binding="{Binding IsPlayerAttacking, Converter={StaticResource DebugLoggingConverter}, ConverterParameter='Player_IsPlayerAttacking'}" Value="False"/>
+                                </MultiDataTrigger.Conditions>
+                                <MultiDataTrigger.EnterActions>
+                                    <!-- Сначала останавливаем анимацию атаки, если она запущена -->
+                                    <StopStoryboard BeginStoryboardName="PlayerAttackStoryboard"/>
+                                    <BeginStoryboard Name="PlayerHitStoryboard">
+                                        <Storyboard>
+                                            <DoubleAnimation 
+                                                Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)" 
+                                                From="0" To="-20" Duration="0:0:0.05" 
+                                                AutoReverse="True" RepeatBehavior="3x"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </MultiDataTrigger.EnterActions>
+                                <MultiDataTrigger.ExitActions>
+                                    <StopStoryboard BeginStoryboardName="PlayerHitStoryboard"/>
+                                </MultiDataTrigger.ExitActions>
+                            </MultiDataTrigger>
+                            <!-- Анимация атаки игрока (приоритет выше, поэтому идет после) -->
+                            <DataTrigger Binding="{Binding IsPlayerAttacking, Converter={StaticResource DebugLoggingConverter}, ConverterParameter='Player_Attack_Trigger'}" Value="True">
+                                <DataTrigger.EnterActions>
+                                    <!-- Сначала останавливаем анимацию дрожания, если она запущена -->
+                                    <StopStoryboard BeginStoryboardName="PlayerHitStoryboard"/>
+                                    <BeginStoryboard Name="PlayerAttackStoryboard">
+                                        <Storyboard>
+                                            <DoubleAnimationUsingKeyFrames 
+                                                Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)">
+                                                <EasingDoubleKeyFrame KeyTime="0:0:0.0" Value="0"/>
+                                                <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="150">
+                                                    <EasingDoubleKeyFrame.EasingFunction>
+                                                        <PowerEase Power="2" EasingMode="EaseOut"/>
+                                                    </EasingDoubleKeyFrame.EasingFunction>
+                                                </EasingDoubleKeyFrame>
+                                                <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="200">
+                                                    <EasingDoubleKeyFrame.EasingFunction>
+                                                        <PowerEase Power="2" EasingMode="EaseOut"/>
+                                                    </EasingDoubleKeyFrame.EasingFunction>
+                                                </EasingDoubleKeyFrame>
+                                                <EasingDoubleKeyFrame KeyTime="0:0:0.5" Value="0">
+                                                    <EasingDoubleKeyFrame.EasingFunction>
+                                                        <PowerEase Power="2" EasingMode="EaseIn"/>
+                                                    </EasingDoubleKeyFrame.EasingFunction>
+                                                </EasingDoubleKeyFrame>
+                                            </DoubleAnimationUsingKeyFrames>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </DataTrigger.EnterActions>
+                                <DataTrigger.ExitActions>
+                                    <StopStoryboard BeginStoryboardName="PlayerAttackStoryboard"/>
+                                </DataTrigger.ExitActions>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
                 <StackPanel>
                     <TextBlock Text="{Binding PlayerCharacter.TranslatedName}" FontSize="20" FontWeight="Bold" 
                              HorizontalAlignment="Center" Margin="0,0,0,10"/>
                     <Grid>
-                        <Image Source="{Binding PlayerCharacter.ImagePath, Converter={StaticResource ImagePathToBitmapConverter}}" Width="150" Height="150" Margin="0,0,0,10">
-                            <Image.RenderTransform>
-                                <TransformGroup>
-                                    <ScaleTransform/>
-                                    <SkewTransform/>
-                                    <RotateTransform/>
-                                    <TranslateTransform X="0" Y="0"/>
-                                </TransformGroup>
-                            </Image.RenderTransform>
-                            <Image.Style>
-                                <Style TargetType="Image">
-                                    <Style.Triggers>
-                                        <!-- Возвращаем анимации игрока -->
-                                        <DataTrigger Binding="{Binding IsPlayerAttacking}" Value="True">
-                                            <DataTrigger.EnterActions>
-                                                <BeginStoryboard>
-                                                    <Storyboard>
-                                                        <DoubleAnimationUsingKeyFrames 
-                                                            Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)">
-                                                            <EasingDoubleKeyFrame KeyTime="0:0:0.0" Value="0"/>
-                                                            <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="150">
-                                                                <EasingDoubleKeyFrame.EasingFunction>
-                                                                    <PowerEase Power="2" EasingMode="EaseOut"/>
-                                                                </EasingDoubleKeyFrame.EasingFunction>
-                                                            </EasingDoubleKeyFrame>
-                                                            <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="200">
-                                                                <EasingDoubleKeyFrame.EasingFunction>
-                                                                    <PowerEase Power="2" EasingMode="EaseOut"/>
-                                                                </EasingDoubleKeyFrame.EasingFunction>
-                                                            </EasingDoubleKeyFrame>
-                                                            <EasingDoubleKeyFrame KeyTime="0:0:0.5" Value="0">
-                                                                <EasingDoubleKeyFrame.EasingFunction>
-                                                                    <PowerEase Power="2" EasingMode="EaseIn"/>
-                                                                </EasingDoubleKeyFrame.EasingFunction>
-                                                            </EasingDoubleKeyFrame>
-                                                        </DoubleAnimationUsingKeyFrames>
-                                                    </Storyboard>
-                                                </BeginStoryboard>
-                                            </DataTrigger.EnterActions>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding IsEnemyAttacking}" Value="True">
-                                            <DataTrigger.EnterActions>
-                                                <BeginStoryboard>
-                                                    <Storyboard>
-                                                        <DoubleAnimation 
-                                                            Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)" 
-                                                            From="0" To="-20" Duration="0:0:0.05" 
-                                                            AutoReverse="True" RepeatBehavior="3x"/>
-                                                    </Storyboard>
-                                                </BeginStoryboard>
-                                            </DataTrigger.EnterActions>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Image.Style>
-                        </Image>
+                        <Image Source="{Binding PlayerCharacter.ImagePath, Converter={StaticResource ImagePathToBitmapConverter}}" Width="150" Height="150" Margin="0,0,0,10"/>
                     </Grid>
                     <Grid Margin="10,5,10,5">
                         <Grid.RowDefinitions>
@@ -299,7 +315,7 @@
                                             <Border BorderBrush="#AAAAAA" BorderThickness="1" Margin="3" Padding="5" 
                                                   Background="#F5F5F5" CornerRadius="3" Width="70" Height="90">
                                                 <StackPanel>
-                                                    <Image Source="{Binding ImagePath}" Width="40" Height="40" 
+                                                    <Image Source="{Binding ImagePath, Converter={StaticResource ImagePathToBitmapConverter}}" Width="40" Height="40" 
                                                          HorizontalAlignment="Center" Margin="0,0,0,3"/>
                                                     <TextBlock Text="{Binding Name}" TextWrapping="Wrap" 
                                                              HorizontalAlignment="Center" FontSize="10"
@@ -329,16 +345,23 @@
             </Border>
             
             <!-- Enemy Characters -->
-            <Border Grid.Column="2" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" 
-                   Background="{StaticResource BackgroundBrush}" Margin="20" Padding="15" 
-                   CornerRadius="5" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <StackPanel Grid.Column="2" Orientation="Vertical" 
+                       HorizontalAlignment="Center" VerticalAlignment="Center" 
+                       Margin="20">
                 <ItemsControl ItemsSource="{Binding Enemies}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" 
                                   Background="{StaticResource SurfaceBrush}" Margin="0,0,0,10" 
-                                  Padding="10" CornerRadius="5"
-                                  Visibility="{Binding IsDefeated, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=inverse}">
+                                  Padding="10" CornerRadius="5">
+                                <Border.RenderTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform/>
+                                        <SkewTransform/>
+                                        <RotateTransform/>
+                                        <TranslateTransform X="0" Y="0"/>
+                                    </TransformGroup>
+                                </Border.RenderTransform>
                                 <Border.InputBindings>
                                     <MouseBinding MouseAction="LeftClick" 
                                                  Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.ClickEnemyCommand}" 
@@ -347,58 +370,118 @@
                                 <Border.Style>
                                     <Style TargetType="Border">
                                         <Style.Triggers>
+                                            <!-- Стиль для побежденных врагов -->
+                                            <DataTrigger Binding="{Binding IsDefeated}" Value="True">
+                                                <Setter Property="Opacity" Value="0.4"/>
+                                                <Setter Property="Background" Value="#666666"/>
+                                                <Setter Property="BorderBrush" Value="#444444"/>
+                                                <Setter Property="IsEnabled" Value="False"/>
+                                            </DataTrigger>
+                                            <!-- Стиль для выбранного врага -->
                                             <DataTrigger Binding="{Binding Converter={StaticResource EnemyToSelectedConverter}}" Value="True">
                                                 <Setter Property="BorderBrush" Value="Gold"/>
                                                 <Setter Property="BorderThickness" Value="3"/>
                                             </DataTrigger>
-                                            <Trigger Property="IsMouseOver" Value="True">
+                                            <!-- Стиль при наведении мыши (только для живых врагов) -->
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding IsDefeated}" Value="False"/>
+                                                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
                                                 <Setter Property="Cursor" Value="Hand"/>
                                                 <Setter Property="Background" Value="#FFEEEEEE"/>
-                                            </Trigger>
+                                            </MultiDataTrigger>
+                                            
+                                            <!-- Анимация атаки врага (когда этот конкретный враг атакует) -->
+                                            <DataTrigger Value="True">
+                                                <DataTrigger.Binding>
+                                                    <MultiBinding Converter="{StaticResource AttackingCharacterConverter}">
+                                                        <Binding Path="."/>
+                                                        <Binding Path="DataContext.AttackingCharacter" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                                                    </MultiBinding>
+                                                </DataTrigger.Binding>
+                                                <DataTrigger.EnterActions>
+                                                    <BeginStoryboard Name="EnemyAttackStoryboard">
+                                                        <Storyboard>
+                                                            <DoubleAnimationUsingKeyFrames 
+                                                                Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)">
+                                                                <EasingDoubleKeyFrame KeyTime="0:0:0.0" Value="0"/>
+                                                                <EasingDoubleKeyFrame KeyTime="0:0:0.15" Value="-150">
+                                                                    <EasingDoubleKeyFrame.EasingFunction>
+                                                                        <PowerEase Power="2" EasingMode="EaseOut"/>
+                                                                    </EasingDoubleKeyFrame.EasingFunction>
+                                                                </EasingDoubleKeyFrame>
+                                                                <EasingDoubleKeyFrame KeyTime="0:0:0.25" Value="-200">
+                                                                    <EasingDoubleKeyFrame.EasingFunction>
+                                                                        <PowerEase Power="2" EasingMode="EaseOut"/>
+                                                                    </EasingDoubleKeyFrame.EasingFunction>
+                                                                </EasingDoubleKeyFrame>
+                                                                <EasingDoubleKeyFrame KeyTime="0:0:0.45" Value="0">
+                                                                    <EasingDoubleKeyFrame.EasingFunction>
+                                                                        <PowerEase Power="2" EasingMode="EaseIn"/>
+                                                                    </EasingDoubleKeyFrame.EasingFunction>
+                                                                </EasingDoubleKeyFrame>
+                                                            </DoubleAnimationUsingKeyFrames>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.EnterActions>
+                                                <DataTrigger.ExitActions>
+                                                    <StopStoryboard BeginStoryboardName="EnemyAttackStoryboard"/>
+                                                </DataTrigger.ExitActions>
+                                            </DataTrigger>
+                                            
+                                            <!-- Анимация получения урона врагом (когда игрок атакует этого врага) -->
+                                            <DataTrigger Value="True">
+                                                <DataTrigger.Binding>
+                                                    <MultiBinding Converter="{StaticResource AttackingCharacterConverter}">
+                                                        <Binding Path="."/>
+                                                        <Binding Path="DataContext.TargetCharacter" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                                                    </MultiBinding>
+                                                </DataTrigger.Binding>
+                                                <DataTrigger.EnterActions>
+                                                    <BeginStoryboard Name="EnemyHitStoryboard">
+                                                        <Storyboard>
+                                                            <DoubleAnimation 
+                                                                Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)" 
+                                                                From="0" To="20" Duration="0:0:0.05" 
+                                                                AutoReverse="True" RepeatBehavior="3x"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.EnterActions>
+                                                <DataTrigger.ExitActions>
+                                                    <StopStoryboard BeginStoryboardName="EnemyHitStoryboard"/>
+                                                </DataTrigger.ExitActions>
+                                            </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Border.Style>
                                 <StackPanel>
                                     <TextBlock Text="{Binding TranslatedName}" FontSize="16" FontWeight="Bold" 
-                                             HorizontalAlignment="Center" Margin="0,0,0,5"/>
+                                             HorizontalAlignment="Center" Margin="0,0,0,5">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsDefeated}" Value="True">
+                                                        <Setter Property="Foreground" Value="#888888"/>
+                                                        <Setter Property="Text" Value="{Binding TranslatedName, StringFormat=\{0\} (Побежден)}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
                                     <Grid>
                                         <Image Source="{Binding ImagePath, Converter={StaticResource ImagePathToBitmapConverter}}" Width="100" Height="100" Margin="0,0,0,5">
-                                            <Image.RenderTransform>
-                                                <TransformGroup>
-                                                    <ScaleTransform/>
-                                                    <SkewTransform/>
-                                                    <RotateTransform/>
-                                                    <TranslateTransform X="0" Y="0"/>
-                                                </TransformGroup>
-                                            </Image.RenderTransform>
                                             <Image.Style>
                                                 <Style TargetType="Image">
                                                     <Style.Triggers>
-                                                        <!-- Возвращаем анимации врагов -->
-                                                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.IsEnemyAttacking}" Value="True">
-                                                            <DataTrigger.EnterActions>
-                                                                <BeginStoryboard>
-                                                                    <Storyboard>
-                                                                        <DoubleAnimation 
-                                                                            Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)" 
-                                                                            From="0" To="-200" Duration="0:0:0.3" 
-                                                                            AutoReverse="True"/>
-                                                                    </Storyboard>
-                                                                </BeginStoryboard>
-                                                            </DataTrigger.EnterActions>
-                                                        </DataTrigger>
-                                                        
-                                                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.IsPlayerAttacking}" Value="True">
-                                                            <DataTrigger.EnterActions>
-                                                                <BeginStoryboard>
-                                                                    <Storyboard>
-                                                                        <DoubleAnimation 
-                                                                            Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)" 
-                                                                            From="0" To="20" Duration="0:0:0.05" 
-                                                                            AutoReverse="True" RepeatBehavior="3x"/>
-                                                                    </Storyboard>
-                                                                </BeginStoryboard>
-                                                            </DataTrigger.EnterActions>
+                                                        <!-- Серый фильтр для побежденных врагов -->
+                                                        <DataTrigger Binding="{Binding IsDefeated}" Value="True">
+                                                            <Setter Property="Effect">
+                                                                <Setter.Value>
+                                                                    <BlurEffect Radius="1"/>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                            <Setter Property="Opacity" Value="0.3"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
@@ -417,31 +500,56 @@
                                         </Grid.RowDefinitions>
                                         
                                         <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Source='Battle.Health', Converter={StaticResource TranslationConverter}}" Margin="0,0,5,2"/>
-                                        <Grid Grid.Row="0" Grid.Column="1" Margin="0,0,0,2">
-                                            <ProgressBar Value="{Binding Health, Mode=OneWay}" Maximum="{Binding MaxHealth, Mode=OneWay}" 
-                                                       Height="15" Template="{StaticResource HealthBarTemplate}"/>
-                                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10">
-                                                <TextBlock.Text>
-                                                    <MultiBinding StringFormat="{}{0}/{1}">
-                                                        <Binding Path="Health" Mode="OneWay" />
-                                                        <Binding Path="MaxHealth" Mode="OneWay" />
-                                                    </MultiBinding>
-                                                </TextBlock.Text>
-                                            </TextBlock>
-                                        </Grid>
+                                        <TextBlock Grid.Row="0" Grid.Column="1" Margin="0,0,0,2">
+                                            <TextBlock.Text>
+                                                <MultiBinding StringFormat="{}{0}/{1}">
+                                                    <Binding Path="CurrentHealth" Mode="OneWay" />
+                                                    <Binding Path="MaxHealth" Mode="OneWay" />
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsDefeated}" Value="True">
+                                                            <Setter Property="Foreground" Value="#888888"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
                                         
                                         <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding Source='Battle.Attack', Converter={StaticResource TranslationConverter}}" Margin="0,0,5,2"/>
-                                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Attack}" Margin="0,0,0,2"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding TotalAttack}" Margin="0,0,0,2">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsDefeated}" Value="True">
+                                                            <Setter Property="Foreground" Value="#888888"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
                                         
                                         <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding Source='Battle.Defense', Converter={StaticResource TranslationConverter}}" Margin="0,0,5,2"/>
-                                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Defense}" Margin="0,0,0,2"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding TotalDefense}" Margin="0,0,0,2">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsDefeated}" Value="True">
+                                                            <Setter Property="Foreground" Value="#888888"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
                                     </Grid>
                                 </StackPanel>
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
-            </Border>
+            </StackPanel>
             
             <!-- Battle log panel -->
             <Border Grid.Column="0" Grid.ColumnSpan="3" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
@@ -520,6 +628,30 @@
                             Width="100" Height="40" Margin="5,0" 
                             Content="{Binding Source='Battle.Attack', Converter={StaticResource TranslationConverter}}"
                             Visibility="{Binding IsPlayerTurn, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                    
+                    <!-- Force End Turn button - only visible when not player turn and battle not over -->
+                    <Button x:Name="ForceEndTurnButton" 
+                            Command="{Binding ForceEndTurnCommand}"
+                            Width="120" Height="40" Margin="5,0" 
+                            Content="Завершить ход"
+                            Background="#FF5722" Foreground="White"
+                            FontSize="11" FontWeight="Bold"
+                            ToolTip="Принудительно завершить текущий ход (используйте при зависании)">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding IsPlayerTurn}" Value="False"/>
+                                            <Condition Binding="{Binding IsBattleOver}" Value="False"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
                     
                     <!-- Complete Battle button when battle is over -->
                     <Button x:Name="CompleteButton" Content="{Binding Source='Battle.Complete', Converter={StaticResource TranslationConverter}}" 

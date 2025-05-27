@@ -58,22 +58,22 @@ namespace SketchBlade.ViewModels
             _gameState = GameData ?? throw new ArgumentNullException(nameof(GameData));
             _craftingSystem = new SimplifiedCraftingSystem();
 
-            // LoggingService.LogDebug("Инициализация SimplifiedCraftingViewModel");
+            // LoggingService.LogDebug("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ SimplifiedCraftingViewModel");
 
             CraftItemCommand = new RelayCommand<object>(_ => CraftSelectedItem());
             RefreshRecipesCommand = new RelayCommand<object>(_ => RefreshAvailableRecipes());
 
             LoadRecipes();
 
-            // Подписываемся на изменение инвентаря
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             if (_gameState.Inventory != null)
             {
                 _gameState.Inventory.InventoryChanged += OnInventoryChanged;
-                // LoggingService.LogDebug("Подписка на изменение инвентаря выполнена");
+                // LoggingService.LogDebug("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
             }
             else
             {
-                LoggingService.LogError("Инвентарь в GameData равен null");
+                LoggingService.LogError("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ GameData пїЅпїЅпїЅпїЅпїЅ null");
             }
         }
 
@@ -82,36 +82,36 @@ namespace SketchBlade.ViewModels
             try
             {
                 AvailableRecipes.Clear();
-                // LoggingService.LogDebug("AvailableRecipes очищена");
+                // LoggingService.LogDebug("AvailableRecipes пїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
                 
-                // Загружаем все доступные рецепты, а не только те, которые можно создать
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 var allRecipes = _craftingSystem.GetAvailableRecipes();
-                // LoggingService.LogDebug($"Всего рецептов в системе: {allRecipes.Count}");
+                // LoggingService.LogDebug($"пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ: {allRecipes.Count}");
                 
-                // ДОБАВЛЕНО: Проверяем и исправляем пути к изображениям для всех рецептов
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 VerifyAndFixImagePaths(allRecipes);
                 
-                // Проверяем каждый рецепт и добавляем все рецепты
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 foreach (var recipe in allRecipes)
                 {
                     bool canCraft = _craftingSystem.CanCraft(recipe, _gameState.Inventory);
-                    // LoggingService.LogDebug($"Рецепт {recipe.Name}: можно создать = {canCraft}");
+                    // LoggingService.LogDebug($"пїЅпїЅпїЅпїЅпїЅпїЅ {recipe.Name}: пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ = {canCraft}");
                     
-                    // Добавляем все рецепты, независимо от доступности
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                     var viewModel = new SimplifiedCraftingRecipeViewModel(recipe, _craftingSystem, _gameState.Inventory);
                     AvailableRecipes.Add(viewModel);
-                    // LoggingService.LogDebug($"Добавлен рецепт в AvailableRecipes: {recipe.Name} (Доступен: {viewModel.CanCraft})");
+                    // LoggingService.LogDebug($"пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ AvailableRecipes: {recipe.Name} (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: {viewModel.CanCraft})");
                 }
 
-                // LoggingService.LogDebug($"Загружено {AvailableRecipes.Count} рецептов");
-                // LoggingService.LogInfo($"Итого рецептов в AvailableRecipes: {AvailableRecipes.Count}");
+                // LoggingService.LogDebug($"пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ {AvailableRecipes.Count} пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
+                // LoggingService.LogInfo($"пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ AvailableRecipes: {AvailableRecipes.Count}");
                 
-                // КРИТИЧЕСКИ ВАЖНО: Принудительно уведомляем UI об изменениях
-                // LoggingService.LogDebug("Отправляем PropertyChanged уведомление для AvailableRecipes");
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ UI пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+                // LoggingService.LogDebug("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ PropertyChanged пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ AvailableRecipes");
                 OnPropertyChanged(nameof(AvailableRecipes));
                 
-                // Дополнительная диагностика
-                // LoggingService.LogDebug($"AvailableRecipes.Count после загрузки: {AvailableRecipes.Count}");
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+                // LoggingService.LogDebug($"AvailableRecipes.Count пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: {AvailableRecipes.Count}");
                 // for (int i = 0; i < AvailableRecipes.Count; i++)
                 // {
                 //     var recipe = AvailableRecipes[i];
@@ -120,51 +120,51 @@ namespace SketchBlade.ViewModels
             }
             catch (Exception ex)
             {
-                LoggingService.LogError("Ошибка при загрузке рецептов", ex);
+                LoggingService.LogError("пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ", ex);
             }
         }
 
         /// <summary>
-        /// Проверяет и исправляет пути к изображениям для всех рецептов
+        /// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         /// </summary>
         private void VerifyAndFixImagePaths(List<SimplifiedCraftingRecipe> recipes)
         {
             try
             {
-                // LoggingService.LogInfo("Проверка и исправление путей к изображениям для рецептов");
+                // LoggingService.LogInfo("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
                 
                 foreach (var recipe in recipes)
                 {
                     if (recipe.Result == null)
                     {
-                        LoggingService.LogWarning($"Результат рецепта {recipe.Name} равен null");
+                        LoggingService.LogWarning($"пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ {recipe.Name} пїЅпїЅпїЅпїЅпїЅ null");
                         continue;
                     }
                     
-                    // Проверяем путь к изображению
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                     if (string.IsNullOrEmpty(recipe.Result.SpritePath))
                     {
-                        LoggingService.LogWarning($"Пустой SpritePath для результата рецепта {recipe.Name}, устанавливаем дефолтный");
+                        LoggingService.LogWarning($"пїЅпїЅпїЅпїЅпїЅпїЅ SpritePath пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ {recipe.Name}, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
                         recipe.Result.SpritePath = Utilities.AssetPaths.DEFAULT_IMAGE;
                     }
                     
-                    // Проверяем существование файла
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                     string fullPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, recipe.Result.SpritePath);
                     if (!System.IO.File.Exists(fullPath))
                     {
-                        LoggingService.LogWarning($"Файл изображения не найден: {fullPath}, используем дефолтный");
+                        LoggingService.LogWarning($"пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ: {fullPath}, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
                         recipe.Result.SpritePath = Utilities.AssetPaths.DEFAULT_IMAGE;
                     }
                     
-                    // Логируем итоговый путь
-                                            // LoggingService.LogDebug($"Итоговый SpritePath для {recipe.Name}: {recipe.Result.SpritePath}");
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+                                            // LoggingService.LogDebug($"пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ SpritePath пїЅпїЅпїЅ {recipe.Name}: {recipe.Result.SpritePath}");
                 }
                 
-                // LoggingService.LogInfo($"Проверка и исправление путей завершены для {recipes.Count} рецептов");
+                // LoggingService.LogInfo($"пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ {recipes.Count} пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"Ошибка при проверке путей к изображениям: {ex.Message}", ex);
+                LoggingService.LogError($"пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: {ex.Message}", ex);
             }
         }
 
@@ -207,21 +207,21 @@ namespace SketchBlade.ViewModels
                 {
                     try
                     {
-                        // Обновляем статус доступности крафта для каждого рецепта
+                        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                         foreach (var recipeViewModel in AvailableRecipes)
                         {
                             recipeViewModel.UpdateCraftability();
                         }
 
-                        // Обновляем требуемые материалы для выбранного рецепта
+                        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                         UpdateRequiredMaterials();
 
                         OnPropertyChanged(nameof(CanCraft));
-                        // LoggingService.LogDebug("Рецепты обновлены");
+                        // LoggingService.LogDebug("пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
                     }
                     catch (Exception ex)
                     {
-                        LoggingService.LogError($"Ошибка при обновлении рецептов в диспетчере: {ex.Message}", ex);
+                        LoggingService.LogError($"пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: {ex.Message}", ex);
                     }
                     finally
                     {
@@ -231,7 +231,7 @@ namespace SketchBlade.ViewModels
             }
             catch (Exception ex)
             {
-                LoggingService.LogError("Ошибка при обновлении рецептов", ex);
+                LoggingService.LogError("пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ", ex);
                 _isRefreshing = false;
             }
         }
@@ -260,7 +260,7 @@ namespace SketchBlade.ViewModels
             }
             catch (Exception ex)
             {
-                LoggingService.LogError("Ошибка при обновлении требуемых материалов", ex);
+                LoggingService.LogError("пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ", ex);
             }
         }
 
@@ -273,88 +273,88 @@ namespace SketchBlade.ViewModels
 
         public void CraftSelectedItem()
         {
-            // LoggingService.LogInfo($"[CRAFT-SYSTEM] ========== НАЧАЛО CraftSelectedItem ==========");
-            // LoggingService.LogInfo($"[CRAFT-SYSTEM] CraftSelectedItem: Вызван метод крафта. SelectedRecipe: {SelectedRecipe?.Name ?? "null"}, CanCraft: {CanCraft}");
+            // LoggingService.LogInfo($"[CRAFT-SYSTEM] ========== пїЅпїЅпїЅпїЅпїЅпїЅ CraftSelectedItem ==========");
+            // LoggingService.LogInfo($"[CRAFT-SYSTEM] CraftSelectedItem: пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ. SelectedRecipe: {SelectedRecipe?.Name ?? "null"}, CanCraft: {CanCraft}");
             
             if (SelectedRecipe == null)
             {
-                LoggingService.LogWarning("[CRAFT-SYSTEM] CraftSelectedItem: Рецепт не выбран");
+                LoggingService.LogWarning("[CRAFT-SYSTEM] CraftSelectedItem: пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ");
                 return;
             }
             
             if (!CanCraft)
             {
-                LoggingService.LogWarning($"[CRAFT-SYSTEM] CraftSelectedItem: Недостаточно материалов для крафта {SelectedRecipe.Name}");
+                LoggingService.LogWarning($"[CRAFT-SYSTEM] CraftSelectedItem: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ {SelectedRecipe.Name}");
                 
-                // Логируем недостающие материалы
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 var missingMaterials = _craftingSystem.GetMissingMaterials(SelectedRecipe, _gameState.Inventory);
                 foreach (var missing in missingMaterials)
                 {
-                    LoggingService.LogWarning($"[CRAFT-SYSTEM] CraftSelectedItem: Недостает {missing.Value} {missing.Key}");
+                    LoggingService.LogWarning($"[CRAFT-SYSTEM] CraftSelectedItem: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ {missing.Value} {missing.Key}");
                 }
                 return;
             }
 
             try
             {
-                // LoggingService.LogInfo($"[CRAFT-SYSTEM] === НАЧАЛО КРАФТА: {SelectedRecipe.Name} ===");
+                // LoggingService.LogInfo($"[CRAFT-SYSTEM] === пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ: {SelectedRecipe.Name} ===");
                 
-                // Логируем состояние инвентаря ПЕРЕД крафтом
-                // LoggingService.LogInfo($"[CRAFT-SYSTEM] Состояние инвентаря ПЕРЕД крафтом:");
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+                // LoggingService.LogInfo($"[CRAFT-SYSTEM] пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ:");
                 // for (int i = 0; i < _gameState.Inventory.Items.Count; i++)
                 // {
                 //     var item = _gameState.Inventory.Items[i];
-                //     LoggingService.LogInfo($"[CRAFT-SYSTEM]   Инвентарь[{i}]: {item?.Name ?? "null"}");
+                //     LoggingService.LogInfo($"[CRAFT-SYSTEM]   пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ[{i}]: {item?.Name ?? "null"}");
                 // }
                 
-                // LoggingService.LogInfo($"[CRAFT-SYSTEM] Вызываем _craftingSystem.Craft()...");
+                // LoggingService.LogInfo($"[CRAFT-SYSTEM] пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ _craftingSystem.Craft()...");
                 bool success = _craftingSystem.Craft(SelectedRecipe, _gameState.Inventory);
-                // LoggingService.LogInfo($"[CRAFT-SYSTEM] _craftingSystem.Craft() вернул: {success}");
+                // LoggingService.LogInfo($"[CRAFT-SYSTEM] _craftingSystem.Craft() пїЅпїЅпїЅпїЅпїЅпїЅ: {success}");
                 
                 if (success)
                 {
-                    // LoggingService.LogInfo($"[CRAFT-SYSTEM] Крафт выполнен успешно: {SelectedRecipe.Name}");
+                    // LoggingService.LogInfo($"[CRAFT-SYSTEM] пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ: {SelectedRecipe.Name}");
                     
-                    // Логируем состояние инвентаря ПОСЛЕ крафта
-                    // LoggingService.LogInfo($"[CRAFT-SYSTEM] Состояние инвентаря ПОСЛЕ крафта:");
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+                    // LoggingService.LogInfo($"[CRAFT-SYSTEM] пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ:");
                     // for (int i = 0; i < _gameState.Inventory.Items.Count; i++)
                     // {
                     //     var item = _gameState.Inventory.Items[i];
-                    //     LoggingService.LogInfo($"[CRAFT-SYSTEM]   Инвентарь[{i}]: {item?.Name ?? "null"}");
+                    //     LoggingService.LogInfo($"[CRAFT-SYSTEM]   пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ[{i}]: {item?.Name ?? "null"}");
                     // }
                     
-                    // Обновляем рецепты и уведомляем об изменении инвентаря
-                    // LoggingService.LogInfo($"[CRAFT-SYSTEM] Обновляем рецепты...");
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+                    // LoggingService.LogInfo($"[CRAFT-SYSTEM] пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ...");
                     RefreshAvailableRecipes();
-                    // LoggingService.LogInfo($"[CRAFT-SYSTEM] Уведомляем об изменении инвентаря...");
+                    // LoggingService.LogInfo($"[CRAFT-SYSTEM] пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ...");
                     _gameState.Inventory.OnInventoryChanged();
                     
-                    // Простое обновление UI без избыточных вызовов
-                    // LoggingService.LogInfo($"[CRAFT-SYSTEM] Ищем InventoryViewModel...");
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ UI пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+                    // LoggingService.LogInfo($"[CRAFT-SYSTEM] пїЅпїЅпїЅпїЅ InventoryViewModel...");
                     var inventoryVM = FindInventoryViewModel();
                     if (inventoryVM != null)
                     {
-                        // LoggingService.LogInfo($"[CRAFT-SYSTEM] InventoryViewModel найден, вызываем RefreshAllSlots()...");
+                        // LoggingService.LogInfo($"[CRAFT-SYSTEM] InventoryViewModel пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ RefreshAllSlots()...");
                         inventoryVM.RefreshAllSlots();
-                        // LoggingService.LogInfo($"[CRAFT-SYSTEM] RefreshAllSlots() завершен");
+                        // LoggingService.LogInfo($"[CRAFT-SYSTEM] RefreshAllSlots() пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
                     }
                     else
                     {
-                        LoggingService.LogError($"[CRAFT-SYSTEM] InventoryViewModel НЕ НАЙДЕН!");
+                        LoggingService.LogError($"[CRAFT-SYSTEM] InventoryViewModel пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ!");
                     }
                     
-                    // LoggingService.LogInfo($"[CRAFT-SYSTEM] === КРАФТ ЗАВЕРШЕН: {SelectedRecipe.Name} ===");
+                    // LoggingService.LogInfo($"[CRAFT-SYSTEM] === пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: {SelectedRecipe.Name} ===");
                 }
                 else
                 {
-                    LoggingService.LogError($"[CRAFT-SYSTEM] Не удалось создать предмет: {SelectedRecipe.Name}");
+                    LoggingService.LogError($"[CRAFT-SYSTEM] пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ: {SelectedRecipe.Name}");
                 }
                 
-                // LoggingService.LogInfo($"[CRAFT-SYSTEM] ========== КОНЕЦ CraftSelectedItem ==========");
+                // LoggingService.LogInfo($"[CRAFT-SYSTEM] ========== пїЅпїЅпїЅпїЅпїЅ CraftSelectedItem ==========");
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"[CRAFT-SYSTEM] Ошибка при крафте предмета {SelectedRecipe?.Name}: {ex.Message}", ex);
+                LoggingService.LogError($"[CRAFT-SYSTEM] пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ {SelectedRecipe?.Name}: {ex.Message}", ex);
                 LoggingService.LogError($"[CRAFT-SYSTEM] StackTrace: {ex.StackTrace}");
             }
         }
@@ -363,46 +363,46 @@ namespace SketchBlade.ViewModels
         {
             try
             {
-                // Способ 1: Через Application.Current.Resources
+                // пїЅпїЅпїЅпїЅпїЅпїЅ 1: пїЅпїЅпїЅпїЅпїЅ Application.Current.Resources
                 if (System.Windows.Application.Current.Resources.Contains("InventoryViewModel"))
                 {
                     var vm = System.Windows.Application.Current.Resources["InventoryViewModel"] as InventoryViewModel;
                     if (vm != null)
                     {
-                        // LoggingService.LogInfo("InventoryViewModel найден через Application.Current.Resources");
+                        // LoggingService.LogInfo("InventoryViewModel пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ Application.Current.Resources");
                         return vm;
                     }
                 }
                 
-                // Способ 2: Через MainWindow
+                // пїЅпїЅпїЅпїЅпїЅпїЅ 2: пїЅпїЅпїЅпїЅпїЅ MainWindow
                 var mainWindow = System.Windows.Application.Current.MainWindow;
                 if (mainWindow?.DataContext is MainViewModel mainVM)
                 {
-                    // Попытаемся получить доступ к InventoryViewModel через MainViewModel
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ InventoryViewModel пїЅпїЅпїЅпїЅпїЅ MainViewModel
                     var inventoryVM = GetInventoryViewModelFromMainViewModel(mainVM);
                     if (inventoryVM != null)
                     {
-                        // LoggingService.LogInfo("InventoryViewModel найден через MainWindow.DataContext");
+                        // LoggingService.LogInfo("InventoryViewModel пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ MainWindow.DataContext");
                         return inventoryVM;
                     }
                 }
                 
-                // Способ 3: Поиск во всех окнах приложения
+                // пїЅпїЅпїЅпїЅпїЅпїЅ 3: пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 foreach (System.Windows.Window window in System.Windows.Application.Current.Windows)
                 {
                     if (window.DataContext is InventoryViewModel inventoryVM)
                     {
-                        // LoggingService.LogInfo("InventoryViewModel найден в окне приложения");
+                        // LoggingService.LogInfo("InventoryViewModel пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
                         return inventoryVM;
                     }
                 }
                 
-                LoggingService.LogError("InventoryViewModel не найден ни одним из способов");
+                LoggingService.LogError("InventoryViewModel пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
                 return null;
             }
             catch (Exception ex)
             {
-                LoggingService.LogError("Ошибка при поиске InventoryViewModel", ex);
+                LoggingService.LogError("пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ InventoryViewModel", ex);
                 return null;
             }
         }
@@ -411,14 +411,14 @@ namespace SketchBlade.ViewModels
         {
             try
             {
-                // Используем рефлексию для получения InventoryViewModel
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ InventoryViewModel
                 var inventoryVMProperty = mainVM.GetType().GetProperty("InventoryViewModel");
                 if (inventoryVMProperty != null)
                 {
                     return inventoryVMProperty.GetValue(mainVM) as InventoryViewModel;
                 }
                 
-                // Альтернативно, попытаемся найти поле
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
                 var inventoryVMField = mainVM.GetType().GetField("_inventoryViewModel", 
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                 if (inventoryVMField != null)
@@ -430,7 +430,7 @@ namespace SketchBlade.ViewModels
             }
             catch (Exception ex)
             {
-                LoggingService.LogError("Ошибка при получении InventoryViewModel из MainViewModel", ex);
+                LoggingService.LogError("пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ InventoryViewModel пїЅпїЅ MainViewModel", ex);
                 return null;
             }
         }
@@ -439,10 +439,10 @@ namespace SketchBlade.ViewModels
         {
             try
             {
-                // LoggingService.LogDebug("OnInventoryChanged: Инвентарь изменился, обновляем рецепты");
+                // LoggingService.LogDebug("OnInventoryChanged: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
                 
-                // Логируем текущее состояние инвентаря только при необходимости
-                // Если включен детальный лог, показываем подробную информацию
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+                // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 bool detailedLogging = false;
                 #if DEBUG
                 detailedLogging = true;
@@ -451,15 +451,15 @@ namespace SketchBlade.ViewModels
                 if (detailedLogging)
                 {
                     var nonNullCount = _gameState.Inventory.Items.Count(x => x != null);
-                    // LoggingService.LogDebug($"OnInventoryChanged: В инвентаре {nonNullCount} не-null предметов из {_gameState.Inventory.Items.Count}");
+                    // LoggingService.LogDebug($"OnInventoryChanged: пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ {nonNullCount} пїЅпїЅ-null пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ {_gameState.Inventory.Items.Count}");
                     
                     // foreach (var item in _gameState.Inventory.Items.Where(x => x != null))
                     // {
-                    //     LoggingService.LogDebug($"OnInventoryChanged: Предмет в инвентаре: {item.Name} x{item.StackSize}");
+                    //     LoggingService.LogDebug($"OnInventoryChanged: пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: {item.Name} x{item.StackSize}");
                     // }
                 }
                 
-                // Используем DispatcherQueue для отложенного обновления UI с дебаунсингом
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ DispatcherQueue пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ UI пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 if (_deferredRefreshTimer == null)
                 {
                     _deferredRefreshTimer = new DispatcherTimer
@@ -476,38 +476,38 @@ namespace SketchBlade.ViewModels
                     };
                 }
                 
-                // Перезапускаем таймер при каждом изменении инвентаря,
-                // чтобы обновить UI только после того, как все изменения будут завершены
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ,
+                // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ UI пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                 _deferredRefreshTimer.Stop();
                 _deferredRefreshTimer.Start();
                 
-                // LoggingService.LogDebug("OnInventoryChanged: Запланировано обновление рецептов");
+                // LoggingService.LogDebug("OnInventoryChanged: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
             }
             catch (Exception ex)
             {
-                LoggingService.LogError("Ошибка в OnInventoryChanged", ex);
+                LoggingService.LogError("пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ OnInventoryChanged", ex);
             }
         }
 
         public string GetMissingMaterials()
         {
             if (SelectedRecipe == null)
-                return "Рецепт не выбран";
+                return "пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ";
 
             try
             {
                 var missingMaterials = _craftingSystem.GetMissingMaterials(SelectedRecipe, _gameState.Inventory);
                 
                 if (missingMaterials.Count == 0)
-                    return "Все материалы доступны";
+                    return "пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ";
 
                 var missingList = missingMaterials.Select(m => $"{m.Key}: {m.Value}").ToArray();
                 return string.Join("\n", missingList);
             }
             catch (Exception ex)
             {
-                LoggingService.LogError("Ошибка при получении недостающих материалов", ex);
-                return "Ошибка при проверке материалов";
+                LoggingService.LogError("пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ", ex);
+                return "пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ";
             }
         }
 
@@ -555,30 +555,30 @@ namespace SketchBlade.ViewModels
             _craftingSystem = craftingSystem ?? throw new ArgumentNullException(nameof(craftingSystem));
             _inventory = inventory ?? throw new ArgumentNullException(nameof(inventory));
 
-            // Отладочная информация для диагностики привязки данных
-            // LoggingService.LogDebug($"[CraftingRecipeVM] Создан ViewModel для рецепта: {_recipe.Name}");
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+            // LoggingService.LogDebug($"[CraftingRecipeVM] пїЅпїЅпїЅпїЅпїЅпїЅ ViewModel пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ: {_recipe.Name}");
             // LoggingService.LogDebug($"[CraftingRecipeVM] Result: {_recipe.Result?.Name ?? "null"}");
             // LoggingService.LogDebug($"[CraftingRecipeVM] Result SpritePath: {_recipe.Result?.SpritePath ?? "null"}");
             
-            // КРИТИЧЕСКИ ВАЖНО: Проверяем и исправляем SpritePath если он пустой
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ SpritePath пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
             if (_recipe.Result != null && string.IsNullOrEmpty(_recipe.Result.SpritePath))
             {
-                LoggingService.LogWarning($"[CraftingRecipeVM] SpritePath пустой для {_recipe.Result.Name}, устанавливаем дефолтный");
+                LoggingService.LogWarning($"[CraftingRecipeVM] SpritePath пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ {_recipe.Result.Name}, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
                 _recipe.Result.SpritePath = AssetPaths.DEFAULT_IMAGE;
             }
             
-            // Проверяем существование файла изображения
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             if (_recipe.Result != null && !string.IsNullOrEmpty(_recipe.Result.SpritePath))
             {
                 var fullPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _recipe.Result.SpritePath);
                 if (!System.IO.File.Exists(fullPath))
                 {
-                    LoggingService.LogWarning($"[CraftingRecipeVM] Файл изображения не найден: {fullPath}, используем дефолтный");
+                    LoggingService.LogWarning($"[CraftingRecipeVM] пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ: {fullPath}, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
                     _recipe.Result.SpritePath = AssetPaths.DEFAULT_IMAGE;
                 }
                 else
                 {
-                    // LoggingService.LogDebug($"[CraftingRecipeVM] Файл изображения найден: {fullPath}");
+                    // LoggingService.LogDebug($"[CraftingRecipeVM] пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ: {fullPath}");
                 }
             }
 

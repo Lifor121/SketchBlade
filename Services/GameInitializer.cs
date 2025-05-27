@@ -27,9 +27,11 @@ namespace SketchBlade.Services
                 CurrentHealth = 100,
                 Attack = 10,
                 Defense = 5,
+                IsPlayer = true,  // ИСПРАВЛЕНИЕ: добавляем IsPlayer = true
                 ImagePath = AssetPaths.Characters.PLAYER
             };
 
+            LoggingService.LogDebug($"InitializePlayer: Created player with IsPlayer = {gameData.Player.IsPlayer}, Name = {gameData.Player.Name}");
             LoggingService.LogInfo("Player character initialized");
         }
 
@@ -119,35 +121,45 @@ namespace SketchBlade.Services
 
         private void SetupLootTables(ObservableCollection<Location> locations)
         {
+            // Используем LocationType для более надежного поиска локаций
             var lootTables = new[]
             {
-                ("Village", new[] { "Wood", "Herbs", "Cloth", "Water Flask" }),
-                ("Forest", new[] { "Wood", "Herbs", "Iron Ore", "Crystal Dust", "Feathers" }),
-                ("Cave", new[] { "Iron Ore", "Iron Ingot", "Gunpowder", "Gold Ore" }),
-                ("Ruins", new[] { "Gold Ore", "Gold Ingot", "Poison Extract", "Luminite Fragment" }),
-                ("Castle", new[] { "Gold Ingot", "Luminite Fragment", "Luminite" })
+                (LocationType.Village, new[] { "Wood", "Herbs", "Cloth", "Water Flask" }),
+                (LocationType.Forest, new[] { "Wood", "Herbs", "Iron Ore", "Crystal Dust", "Feathers" }),
+                (LocationType.Cave, new[] { "Iron Ore", "Iron Ingot", "Gunpowder", "Gold Ore" }),
+                (LocationType.Ruins, new[] { "Gold Ore", "Gold Ingot", "Poison Extract", "Luminite Fragment" }),
+                (LocationType.Castle, new[] { "Gold Ingot", "Luminite Fragment", "Luminite" })
             };
 
-            foreach (var (locationName, materials) in lootTables)
+            foreach (var (locationType, materials) in lootTables)
             {
-                var location = locations.FirstOrDefault(l => l.Name == locationName);
+                var location = locations.FirstOrDefault(l => l.LocationType == locationType);
                 if (location != null)
                 {
                     location.LootTable = materials.ToList();
+                    LoggingService.LogInfo($"SetupLootTables: Настроена таблица лута для {locationType}: [{string.Join(", ", materials)}]");
+                }
+                else
+                {
+                    LoggingService.LogWarning($"SetupLootTables: Не найдена локация типа {locationType}");
                 }
             }
         }
 
         private void SetupStartingLocation(GameData gameData)
         {
-            var village = gameData.Locations.FirstOrDefault(l => l.Name == "Village");
+            var village = gameData.Locations.FirstOrDefault(l => l.LocationType == LocationType.Village);
             if (village != null)
             {
                 gameData.CurrentLocation = village;
                 gameData.CurrentLocationIndex = 0;
                 village.IsUnlocked = true;
                 
-                LoggingService.LogInfo("Starting location set to Village");
+                LoggingService.LogInfo($"Starting location set to {village.Name} (Village)");
+            }
+            else
+            {
+                LoggingService.LogError("Village location not found!");
             }
         }
 

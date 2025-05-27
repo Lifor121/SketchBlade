@@ -233,8 +233,15 @@ namespace SketchBlade.Models
             { 
                 _spritePath = value; 
                 NotifyPropertyChanged(); 
+                NotifyPropertyChanged(nameof(ImagePath)); // Уведомляем об изменении ImagePath
             } 
         }
+        
+        /// <summary>
+        /// Alias for SpritePath for XAML compatibility
+        /// </summary>
+        [JsonIgnore]
+        public string ImagePath => SpritePath;
         
         public Dictionary<string, int> StatBonuses { get; set; } = new Dictionary<string, int>();
         

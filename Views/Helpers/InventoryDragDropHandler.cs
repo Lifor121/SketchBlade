@@ -325,39 +325,19 @@ namespace SketchBlade.Views.Helpers
         {
             try
             {
-                // Используем тот же механизм обновления, что и при переключении экранов
-                // для обеспечения консистентности поведения UI
+                // Используем только ForceUpdateUIControls как указано в требованиях
+                ForceUpdateUIControls();
                 
-                // 1. Сначала обновляем данные инвентаря
-                _viewModel.GameData.Inventory.OnInventoryChanged();
+                // ИСПРАВЛЕНИЕ: Обновляем статы персонажа после drag-and-drop
+                _viewModel.NotifyPropertyChangedPublic(nameof(_viewModel.PlayerHealth));
+                _viewModel.NotifyPropertyChangedPublic(nameof(_viewModel.PlayerDamage));
+                _viewModel.NotifyPropertyChangedPublic(nameof(_viewModel.PlayerDefense));
                 
-                // 2. Принудительно обновляем ViewModel инвентаря (как при переключении экранов)
-                Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                // Обновляем крафтинг если нужно
+                if (_viewModel.SimplifiedCraftingViewModel != null)
                 {
-                    try 
-                    {
-                        // Используем тот же метод, что вызывается при переключении экранов
-                        _viewModel.RefreshAllSlots();
-                        
-                        _viewModel.ForceUIUpdate();
-                        
-                        // Обновляем крафтинг если нужно
-                        if (_viewModel.SimplifiedCraftingViewModel != null)
-                        {
-                            _viewModel.SimplifiedCraftingViewModel.RefreshAvailableRecipes();
-                        }
-                        
-                        // Принудительно обновляем главное окно (как при переключении экранов)
-                        if (Application.Current.MainWindow is MainWindow mainWindow)
-                        {
-                            mainWindow.RefreshCurrentScreen();
-                        }
-                    } 
-                    catch (Exception innerEx)
-                    {
-                        // Error in UI update - continue silently
-                    }
-                }), System.Windows.Threading.DispatcherPriority.Render); // Используем высокий приоритет для немедленного обновления
+                    _viewModel.SimplifiedCraftingViewModel.RefreshAvailableRecipes();
+                }
             }
             catch (Exception ex)
             {
@@ -369,13 +349,15 @@ namespace SketchBlade.Views.Helpers
         {
             try
             {
-                // Обновляем основной ViewModel инвентаря
-                _viewModel.RefreshAllSlots();
-                
-                // НОВОЕ: Принудительно обновляем UI контролы (это главное!)
+                // Принудительно обновляем UI контролы (это главное!)
                 ForceUpdateUIControls();
                 
-                // Обновляем крафт ОДИН РАЗ в конце (без вызова OnInventoryChanged)
+                // ИСПРАВЛЕНИЕ: Обновляем статы персонажа после drag-and-drop
+                _viewModel.NotifyPropertyChangedPublic(nameof(_viewModel.PlayerHealth));
+                _viewModel.NotifyPropertyChangedPublic(nameof(_viewModel.PlayerDamage));
+                _viewModel.NotifyPropertyChangedPublic(nameof(_viewModel.PlayerDefense));
+                
+                // Обновляем крафт ОДИН РАЗ в конце
                 if (_viewModel.SimplifiedCraftingViewModel != null)
                 {
                     _viewModel.SimplifiedCraftingViewModel.RefreshAvailableRecipes();

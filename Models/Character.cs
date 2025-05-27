@@ -121,6 +121,11 @@ namespace SketchBlade.Models
             { 
                 _maxHealth = value; 
                 OnPropertyChanged(); 
+                OnPropertyChanged(nameof(HealthDisplay));
+                OnPropertyChanged(nameof(TotalMaxHealth));
+                
+                // Пересчитываем процент здоровья
+                HealthPercent = (double)_currentHealth / _maxHealth * 100;
             } 
         }
         
@@ -141,6 +146,7 @@ namespace SketchBlade.Models
                 _currentHealth = Math.Max(0, Math.Min(value, MaxHealth)); 
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(Health));
+                OnPropertyChanged(nameof(HealthDisplay));
                 
                 HealthPercent = (double)_currentHealth / MaxHealth * 100;
                 IsDefeated = _currentHealth <= 0;
@@ -154,6 +160,7 @@ namespace SketchBlade.Models
             { 
                 _attack = value; 
                 OnPropertyChanged(); 
+                OnPropertyChanged(nameof(TotalAttack));
             } 
         }
         
@@ -164,6 +171,7 @@ namespace SketchBlade.Models
             { 
                 _defense = value; 
                 OnPropertyChanged(); 
+                OnPropertyChanged(nameof(TotalDefense));
             } 
         }
         
@@ -437,7 +445,11 @@ namespace SketchBlade.Models
                     EquippedItems.Remove(slot);
                     CalculateStats();
                     
+                    OnPropertyChanged(nameof(EquippedItems));
                     OnPropertyChanged(GetEquipmentPropertyName(slot));
+                    OnPropertyChanged(nameof(TotalAttack));
+                    OnPropertyChanged(nameof(TotalDefense));
+                    OnPropertyChanged(nameof(TotalMaxHealth));
                     
                     return item;
                 }
@@ -589,6 +601,7 @@ namespace SketchBlade.Models
         {
             _temporaryAttackBonus = bonusAmount;
             _attackBonusTurnsRemaining = turnsDuration;
+            OnPropertyChanged(nameof(TotalAttack));
         }
 
         public void SetTemporaryDefenseBonus(int bonusAmount, int turnsDuration)
@@ -654,6 +667,20 @@ namespace SketchBlade.Models
         public void SetDefeated(bool defeated)
         {
             IsDefeated = defeated;
+        }
+
+        /// <summary>
+        /// Принудительно обновляет UI для этого персонажа
+        /// </summary>
+        public void RefreshUI()
+        {
+            OnPropertyChanged(nameof(CurrentHealth));
+            OnPropertyChanged(nameof(MaxHealth));
+            OnPropertyChanged(nameof(HealthDisplay));
+            OnPropertyChanged(nameof(TotalAttack));
+            OnPropertyChanged(nameof(TotalDefense));
+            OnPropertyChanged(nameof(IsDefeated));
+            OnPropertyChanged(nameof(HealthPercent));
         }
     }
 } 

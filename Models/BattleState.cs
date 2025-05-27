@@ -35,6 +35,7 @@ namespace SketchBlade.Models
         private int _enemyAbilityDamage = 0;
         
         private bool _rewardsProcessed = false;
+        private int _currentEnemyIndex = 0;
 
         public Character PlayerCharacter
         {
@@ -156,6 +157,12 @@ namespace SketchBlade.Models
             set => SetProperty(ref _rewardsProcessed, value);
         }
 
+        public int CurrentEnemyIndex
+        {
+            get => _currentEnemyIndex;
+            set => SetProperty(ref _currentEnemyIndex, value);
+        }
+
         public int PlayerHealth => PlayerCharacter?.CurrentHealth ?? 0;
         public int PlayerMaxHealth => PlayerCharacter?.MaxHealth ?? 0;
         public double PlayerHealthPercent => PlayerCharacter != null ? 
@@ -176,6 +183,7 @@ namespace SketchBlade.Models
             BattleWon = false;
             TurnCounter = 0;
             RewardsProcessed = false;
+            CurrentEnemyIndex = 0;
             
             BattleLog.Clear();
             Enemies.Clear();
