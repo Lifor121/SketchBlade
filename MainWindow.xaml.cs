@@ -1,4 +1,4 @@
-п»їusing System;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using SketchBlade.Models;
@@ -13,7 +13,7 @@ using System.IO;
 namespace SketchBlade;
 
 /// <summary>
-/// Р›РѕРіРёРєР° РІР·Р°РёРјРѕРґРµР№СЃС‚РІРёСЏ РґР»СЏ MainWindow.xaml
+/// Логика взаимодействия для MainWindow.xaml
 /// </summary>
 public partial class MainWindow : Window
 {
@@ -27,48 +27,28 @@ public partial class MainWindow : Window
     {
         try
         {
-            // РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РїР°РїРѕРє СЃ РёР·РѕР±СЂР°Р¶РµРЅРёСЏРјРё
+            // Инициализация папок с изображениями
             Helpers.ImageHelper.InitializeDirectories();
             
-            // РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ РїР°РїРѕРє Assets/Images
+            // Проверка наличия папок Assets/Images
             string basePath = AppDomain.CurrentDomain.BaseDirectory;
             if (!Directory.Exists(Path.Combine(basePath, "Assets/Images")))
             {
-                MessageBox.Show("РџР°РїРєР° Assets/Images РЅРµ РЅР°Р№РґРµРЅР°. РџСЂРѕРіСЂР°РјРјР° РјРѕР¶РµС‚ СЂР°Р±РѕС‚Р°С‚СЊ РЅРµРєРѕСЂСЂРµРєС‚РЅРѕ.", 
-                    "РџСЂРµРґСѓРїСЂРµР¶РґРµРЅРёРµ", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Папка Assets/Images не найдена. Программа может работать некорректно.", 
+                    "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
             
             // Check if ViewModels are already initialized
             if (_mainViewModel != null)
             {
-                File.AppendAllText("error_log.txt", 
-                    $"[{DateTime.Now}] Warning: MainWindow already initialized\r\n");
                 return;
             }
             
             InitializeComponent();
             
-            LoggingService.LogDebug("=== РЎРћР—Р”РђРќРР• MainViewModel ===");
             _mainViewModel = new MainViewModel(screenName => NavigateToScreen(screenName));
-            LoggingService.LogDebug("MainViewModel СЃРѕР·РґР°РЅ СѓСЃРїРµС€РЅРѕ");
             
-            LoggingService.LogDebug("РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј DataContext");
             DataContext = _mainViewModel;
-            LoggingService.LogDebug("DataContext СѓСЃС‚Р°РЅРѕРІР»РµРЅ");
-            
-            // РџСЂРѕРІРµСЂСЏРµРј, С‡С‚Рѕ NavigateCommand РґРѕСЃС‚СѓРїРЅР°
-            if (_mainViewModel.NavigateCommand != null)
-            {
-                LoggingService.LogDebug("NavigateCommand РґРѕСЃС‚СѓРїРЅР°");
-                LoggingService.LogDebug($"NavigateCommand.CanExecute(\"WorldMapView\"): {_mainViewModel.NavigateCommand.CanExecute("WorldMapView")}");
-            }
-            else
-            {
-                LoggingService.LogError("NavigateCommand СЂР°РІРЅР° null!", null);
-            }
-            
-            LoggingService.LogDebug("РџСЂРѕРІРµСЂСЏРµРј CurrentScreen РїРѕСЃР»Рµ СЃРѕР·РґР°РЅРёСЏ MainViewModel");
-            LoggingService.LogDebug($"MainViewModel.CurrentScreen: {_mainViewModel.CurrentScreen}");
             
             InitializeLanguageService();
             
@@ -80,17 +60,8 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            File.AppendAllText("error_log.txt", 
-                $"[{DateTime.Now}] Error in MainWindow constructor: {ex.Message}\r\n{ex.StackTrace}\r\n");
-            
-            if (ex.InnerException != null)
-            {
-                File.AppendAllText("error_log.txt", 
-                    $"Inner exception: {ex.InnerException.Message}\r\n{ex.InnerException.StackTrace}\r\n");
-            }
-            
-            MessageBox.Show($"РџСЂРѕРёР·РѕС€Р»Р° РѕС€РёР±РєР° РїСЂРё РёРЅРёС†РёР°Р»РёР·Р°С†РёРё РїСЂРёР»РѕР¶РµРЅРёСЏ: {ex.Message}", 
-                "РћС€РёР±РєР°", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show($"Произошла ошибка при инициализации приложения: {ex.Message}", 
+                "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
@@ -104,8 +75,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            File.AppendAllText("error_log.txt", 
-                $"[{DateTime.Now}] Error initializing language service: {ex.Message}\r\n{ex.StackTrace}\r\n");
+            // Error initializing language service - continue silently
         }
     }
 
@@ -152,7 +122,7 @@ public partial class MainWindow : Window
         {
             await UIService.Instance.FadeTransitionAsync(ContentFrame, screen);
             
-            // РЈСЃС‚Р°РЅРѕРІРєР° С„РѕРєСѓСЃР° РґР»СЏ InventoryView
+            // Установка фокуса для InventoryView
             if (screenName == "InventoryView" && screen is InventoryView inventoryView)
             {
                 inventoryView.Focusable = true;
@@ -167,41 +137,39 @@ public partial class MainWindow : Window
     {
         try
         {
-            LoggingService.LogDebug($"=== РќРђР’РР“РђР¦РРЇ: {screenName} ===");
-            LoggingService.LogDebug($"РўРµРєСѓС‰РёР№ СЌРєСЂР°РЅ: {_mainViewModel.CurrentScreen}");
             
             // Handle special case: Going from battle to world map
             bool isFromBattleToWorldMap = _mainViewModel.CurrentScreen == "BattleView" && screenName == "WorldMapView";
             if (isFromBattleToWorldMap)
             {
-                // 1. РџСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕ СѓСЃС‚Р°РЅР°РІР»РёРІР°РµРј CurrentScreen
+                // 1. Принудительно устанавливаем CurrentScreen
                 _mainViewModel.CurrentScreen = "WorldMapView";
                 
-                // 2. РќРµРјРµРґР»РµРЅРЅРѕ СЃРєСЂС‹РІР°РµРј Р»СЋР±РѕР№ С‚РµРєСѓС‰РёР№ Р°РєС‚РёРІРЅС‹Р№ BattleView
+                // 2. Немедленно скрываем любой текущий активный BattleView
                 if (ContentFrame.Content is UserControl currentView)
                 {
-                    // РЎРєСЂС‹РІР°РµРј Р»СЋР±РѕРµ С‚РµРєСѓС‰РµРµ СЃРѕРґРµСЂР¶РёРјРѕРµ, РѕСЃРѕР±РµРЅРЅРѕ РµСЃР»Рё СЌС‚Рѕ BattleView
+                    // Скрываем любое текущее содержимое, особенно если это BattleView
                     currentView.Visibility = Visibility.Collapsed;
                 }
                 
-                // 3. РЎРѕР·РґР°РµРј MapViewModel РµСЃР»Рё РѕРЅ РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚
+                // 3. Создаем MapViewModel если он не существует
                 if (_mapViewModel == null)
                 {
                     _mapViewModel = new MapViewModel(_mainViewModel.GameData, 
                         screenName => NavigateToScreen(screenName));
                 }
                 
-                // 4. РЎРѕР·РґР°РµРј РЅРѕРІРѕРµ РїСЂРµРґСѓСЃС‚Р°РЅРѕРІР»РµРЅРЅРѕРµ РїСЂРµРґСЃС‚Р°РІР»РµРЅРёРµ РєР°СЂС‚С‹ РјРёСЂР° РЅР°РїСЂСЏРјСѓСЋ
+                // 4. Создаем новое предустановленное представление карты мира напрямую
                 var worldMapView = new WorldMapView { DataContext = _mapViewModel };
                 worldMapView.Visibility = Visibility.Visible;
                 worldMapView.Opacity = 1.0;
                 
-                // 5. РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј СЃРѕРґРµСЂР¶РёРјРѕРµ РЅР°РїСЂСЏРјСѓСЋ Р±РµР· РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ Р°РЅРёРјР°С†РёРё
+                // 5. Устанавливаем содержимое напрямую без использования анимации
                 ContentFrame.Content = worldMapView;
                 ContentFrame.UpdateLayout();
                 worldMapView.UpdateLayout();
                 
-                // РџРµСЂРµС…РѕРґ Р·Р°РІРµСЂС€РµРЅ - РІС‹С…РѕРґРёРј РёР· РјРµС‚РѕРґР°
+                // Переход завершен - выходим из метода
                 return;
             }
 
@@ -234,8 +202,6 @@ public partial class MainWindow : Window
 
             if (!canNavigate)
             {
-                File.AppendAllText("error_log.txt", 
-                    $"[{DateTime.Now}] Navigation blocked: Unknown screen '{screenName}'\r\n");
                 return;
             }
 
@@ -245,7 +211,7 @@ public partial class MainWindow : Window
             // Create the view based on the screen name
             UserControl view;
 
-            // Р’С‹РїРѕР»РЅСЏРµРј РЅР°РІРёРіР°С†РёСЋ РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ СѓРєР°Р·Р°РЅРЅРѕРіРѕ СЌРєСЂР°РЅР°
+            // Выполняем навигацию в зависимости от указанного экрана
             switch (screenName)
             {
                 case "MainMenuView":
@@ -255,32 +221,32 @@ public partial class MainWindow : Window
                     view = new InventoryView { DataContext = _inventoryViewModel };
                     break;
                 case "WorldMapView":
-                    LoggingService.LogDebug("=== РќРђР’РР“РђР¦РРЇ РќРђ РљРђР РўРЈ РњРР Рђ ===");
-                    // РЎРѕР·РґР°РµРј MapViewModel РµСЃР»Рё РѕРЅ РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚
+                    // LoggingService.LogDebug("=== НАВИГАЦИЯ НА КАРТУ МИРА ===");
+                    // Создаем MapViewModel если он не существует
                     if (_mapViewModel == null)
                     {
-                        LoggingService.LogDebug("РЎРѕР·РґР°РµРј РЅРѕРІС‹Р№ MapViewModel");
+                        // LoggingService.LogDebug("Создаем новый MapViewModel");
                         _mapViewModel = new MapViewModel(_mainViewModel.GameData, 
                             screenName => NavigateToScreen(screenName));
-                        LoggingService.LogDebug("MapViewModel СЃРѕР·РґР°РЅ СѓСЃРїРµС€РЅРѕ");
+                        // LoggingService.LogDebug("MapViewModel создан успешно");
                     }
                     else
                     {
-                        LoggingService.LogDebug("РСЃРїРѕР»СЊР·СѓРµРј СЃСѓС‰РµСЃС‚РІСѓСЋС‰РёР№ MapViewModel");
+                        // LoggingService.LogDebug("Используем существующий MapViewModel");
                     }
                     
-                    LoggingService.LogDebug("РЎРѕР·РґР°РµРј WorldMapView");
+                    // LoggingService.LogDebug("Создаем WorldMapView");
                     view = new WorldMapView { DataContext = _mapViewModel };
-                    LoggingService.LogDebug("WorldMapView СЃРѕР·РґР°РЅ СѓСЃРїРµС€РЅРѕ");
+                    // LoggingService.LogDebug("WorldMapView создан успешно");
                     
-                    // РћР±РЅРѕРІР»СЏРµРј РїСЂРµРґСЃС‚Р°РІР»РµРЅРёРµ РєР°СЂС‚С‹ РїРѕСЃР»Рµ РЅР°РІРёРіР°С†РёРё - РёСЃРїРѕР»СЊР·СѓРµРј Р»РµРіРєРёР№ РјРµС‚РѕРґ
-                    LoggingService.LogDebug("Р’С‹Р·С‹РІР°РµРј RefreshLocations");
+                    // Обновляем представление карты после навигации - используем легкий метод
+                    // LoggingService.LogDebug("Вызываем RefreshLocations");
                     _mapViewModel.RefreshLocations();
-                    LoggingService.LogDebug("RefreshLocations Р·Р°РІРµСЂС€РµРЅ");
+                    // LoggingService.LogDebug("RefreshLocations завершен");
                     break;
                 case "BattleView":
-                    // Р’РЎР•Р“Р”Рђ СЃРѕР·РґР°РµРј РЅРѕРІС‹Р№ BattleViewModel РґР»СЏ РєР°Р¶РґРѕРіРѕ Р±РѕСЏ
-                    // С‡С‚РѕР±С‹ РёР·Р±РµР¶Р°С‚СЊ РїСЂРѕР±Р»РµРј СЃ РїРµСЂРµРёСЃРїРѕР»СЊР·РѕРІР°РЅРёРµРј СЃС‚Р°СЂРѕРіРѕ СЃРѕСЃС‚РѕСЏРЅРёСЏ
+                    // ВСЕГДА создаем новый BattleViewModel для каждого боя
+                    // чтобы избежать проблем с переиспользованием старого состояния
                     if (_battleViewModel != null)
                     {
                         _battleViewModel.Dispose();
@@ -288,13 +254,12 @@ public partial class MainWindow : Window
                     _battleViewModel = new BattleViewModel(_mainViewModel.GameData, 
                         screenName => NavigateToScreen(screenName));
                     
-                    // Р’РЎР•Р“Р”Рђ СЃРѕР·РґР°РµРј РЅРѕРІС‹Р№ BattleView РґР»СЏ РєР°Р¶РґРѕРіРѕ Р±РѕСЏ
-                    // С‡С‚РѕР±С‹ РёР·Р±РµР¶Р°С‚СЊ РїСЂРѕР±Р»РµРј СЃ РєСЌС€РёСЂРѕРІР°РЅРёРµРј DataContext
+                    // ВСЕГДА создаем новый BattleView для каждого боя
+                    // чтобы избежать проблем с кэшированием DataContext
                     view = new BattleView { DataContext = _battleViewModel };
-                    LoggingService.LogDebug($"Created new BattleView with new BattleViewModel. IsBattleOver: {_battleViewModel.IsBattleOver}");
                     break;
                 case "SettingsView":
-                    // РЎРѕР·РґР°РµРј SettingsViewModel РµСЃР»Рё РѕРЅ РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚
+                    // Создаем SettingsViewModel если он не существует
                     if (_settingsViewModel == null)
                     {
                         _settingsViewModel = new SettingsViewModel(_mainViewModel.GameData,
@@ -306,19 +271,12 @@ public partial class MainWindow : Window
                     return;
             }
 
-            // РђРЅРёРјР°С†РёРѕРЅРЅС‹Р№ РїРµСЂРµС…РѕРґ РґР»СЏ РѕР±С‹С‡РЅС‹С… СЃР»СѓС‡Р°РµРІ
+            // Анимационный переход для обычных случаев
             UIService.Instance.FadeTransitionAsync(ContentFrame, view).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            File.AppendAllText("error_log.txt", 
-                $"[{DateTime.Now}] Error navigating to screen {screenName}: {ex.Message}\r\n{ex.StackTrace}\r\n");
-            
-            if (ex.InnerException != null)
-            {
-                File.AppendAllText("error_log.txt", 
-                    $"Inner exception: {ex.InnerException.Message}\r\n{ex.InnerException.StackTrace}\r\n");
-            }
+            // Error navigating - continue silently
         }
     }
     
@@ -346,13 +304,13 @@ public partial class MainWindow : Window
     {
         try 
         {
-            // РџСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕ РѕР±РЅРѕРІР»СЏРµРј РІСЃРµ СЂРµСЃСѓСЂСЃС‹ Application
+            // Принудительно обновляем все ресурсы Application
             if (Application.Current.Resources.Contains("GameData"))
             {
                 var GameData = Application.Current.Resources["GameData"] as GameData;
                 if (GameData != null)
                 {
-                    // РџСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕ РѕР±РЅРѕРІР»СЏРµРј РІСЃРµ СЌР»РµРјРµРЅС‚С‹ РїРѕ РёР·РјРµРЅРµРЅРёСЋ GameData
+                    // Принудительно обновляем все элементы по изменению GameData
                     Application.Current.Resources["GameData"] = null;
                     Application.Current.Resources["GameData"] = GameData;
                 }
@@ -378,16 +336,16 @@ public partial class MainWindow : Window
                         currentView.UpdateLayout();
                         break;
                     case "SettingsView":
-                        // РћР±РЅРѕРІР»СЏРµРј СЌРєСЂР°РЅ РЅР°СЃС‚СЂРѕРµРє Р±РµР· РїСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕРіРѕ СЃР±СЂРѕСЃР° DataContext
+                        // Обновляем экран настроек без принудительного сброса DataContext
                         if (_settingsViewModel != null && currentView.DataContext == _settingsViewModel)
                         {
-                            // РџСЂРѕСЃС‚Рѕ РѕР±РЅРѕРІР»СЏРµРј layout Р±РµР· СЃР±СЂРѕСЃР° DataContext
+                            // Просто обновляем layout без сброса DataContext
                             currentView.UpdateLayout();
                             currentView.InvalidateVisual();
                         }
                         break;
                     case "MainMenuView":
-                        // РћР±РЅРѕРІР»СЏРµРј РіР»Р°РІРЅРѕРµ РјРµРЅСЋ
+                        // Обновляем главное меню
                         if (_mainViewModel != null && currentView.DataContext == _mainViewModel)
                         {
                             currentView.UpdateLayout();
@@ -402,15 +360,14 @@ public partial class MainWindow : Window
                 currentView.UpdateLayout();
                 currentView.InvalidateVisual();
                 
-                // РћР±РЅРѕРІР»СЏРµРј РіР»Р°РІРЅРѕРµ РѕРєРЅРѕ
+                // Обновляем главное окно
                 this.UpdateLayout();
                 this.InvalidateVisual();
             }
         }
         catch (Exception ex)
         {
-            File.AppendAllText("error_log.txt", 
-                $"[{DateTime.Now}] Error in RefreshCurrentScreen: {ex.Message}\r\n{ex.StackTrace}\r\n");
+            // Error refreshing screen - continue silently
         }
     }
     
@@ -425,29 +382,28 @@ public partial class MainWindow : Window
             {
                 var child = System.Windows.Media.VisualTreeHelper.GetChild(parent, i);
                 
-                // Р•СЃР»Рё СЌС‚Рѕ FrameworkElement, РїСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕ РѕР±РЅРѕРІР»СЏРµРј РµРіРѕ
+                // Если это FrameworkElement, принудительно обновляем его
                 if (child is FrameworkElement element)
                 {
                     element.UpdateLayout();
                     element.InvalidateVisual();
                     
-                    // Р•СЃР»Рё СЌС‚Рѕ CoreInventorySlot, РѕР±РЅРѕРІР»СЏРµРј РµРіРѕ Р±РµР· РїСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕРіРѕ СЃР±СЂРѕСЃР° DataContext
+                    // Если это CoreInventorySlot, обновляем его без принудительного сброса DataContext
                     if (element is SketchBlade.Views.Controls.CoreInventorySlot slot)
                     {
-                        // РџСЂРѕСЃС‚Рѕ РѕР±РЅРѕРІР»СЏРµРј РІРёР·СѓР°Р»СЊРЅРѕРµ РѕС‚РѕР±СЂР°Р¶РµРЅРёРµ Р±РµР· СЃР±СЂРѕСЃР° DataContext
-                        // Р­С‚Рѕ РїСЂРµРґРѕС‚РІСЂР°С‰Р°РµС‚ РїСЂРѕР±Р»РµРјС‹ СЃ РїСЂРёРІСЏР·РєРѕР№ РґР°РЅРЅС‹С…
+                        // Просто обновляем визуальное отображение без сброса DataContext
+                        // Это предотвращает проблемы с привязкой данных
                         slot.InvalidateVisual();
                     }
                 }
                 
-                // Р РµРєСѓСЂСЃРёРІРЅРѕ РѕР±РЅРѕРІР»СЏРµРј РґРѕС‡РµСЂРЅРёРµ СЌР»РµРјРµРЅС‚С‹
+                // Рекурсивно обновляем дочерние элементы
                 ForceUpdateAllChildren(child);
             }
         }
         catch (Exception ex)
         {
-            File.AppendAllText("error_log.txt", 
-                $"[{DateTime.Now}] Error in ForceUpdateAllChildren: {ex.Message}\r\n");
+            // Error updating children - continue silently
         }
     }
 
@@ -467,8 +423,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            File.AppendAllText("error_log.txt", 
-                $"[{DateTime.Now}] Error updating UI after language change: {ex.Message}\r\n{ex.StackTrace}\r\n");
+            // Error updating UI after language change - continue silently
         }
     }
 
@@ -476,7 +431,7 @@ public partial class MainWindow : Window
     {
         try
         {
-            // Р“РѕСЂСЏС‡РёРµ РєР»Р°РІРёС€Рё РґР»СЏ РѕС‚Р»Р°РґРєРё
+            // Горячие клавиши для отладки
             if (e.Key == Key.F1)
             {
                 ShowDebugInfo();
@@ -487,7 +442,7 @@ public partial class MainWindow : Window
                 RefreshUI();
                 e.Handled = true;
             }
-            // Р”РѕР±Р°РІР»СЏРµРј РіРѕСЂСЏС‡СѓСЋ РєР»Р°РІРёС€Сѓ РґР»СЏ РѕС‡РёСЃС‚РєРё Р»РѕРіРѕРІ
+            // Добавляем горячую клавишу для очистки логов
             else if (e.Key == Key.L && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
             {
                 ClearLogs();
@@ -496,7 +451,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            LoggingService.LogError($"Error in MainWindow_KeyDown: {ex.Message}", ex);
+            // Error in key handling - continue silently
         }
     }
     
@@ -505,21 +460,19 @@ public partial class MainWindow : Window
         try
         {
             var result = MessageBox.Show(
-                "РћС‡РёСЃС‚РёС‚СЊ С„Р°Р№Р» Р»РѕРіРѕРІ? Р­С‚Рѕ РґРµР№СЃС‚РІРёРµ РЅРµР»СЊР·СЏ РѕС‚РјРµРЅРёС‚СЊ.",
-                "РћС‡РёСЃС‚РєР° Р»РѕРіРѕРІ",
+                "Очистить файл логов? Это действие нельзя отменить.",
+                "Очистка логов",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question);
                 
             if (result == MessageBoxResult.Yes)
             {
-                LoggingService.ClearLogs();
-                MessageBox.Show("Р›РѕРіРё РѕС‡РёС‰РµРЅС‹ СѓСЃРїРµС€РЅРѕ!", "РРЅС„РѕСЂРјР°С†РёСЏ", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Логи очищены успешно!", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
         catch (Exception ex)
         {
-            LoggingService.LogError($"Error clearing logs: {ex.Message}", ex);
-            MessageBox.Show($"РћС€РёР±РєР° РїСЂРё РѕС‡РёСЃС‚РєРµ Р»РѕРіРѕРІ: {ex.Message}", "РћС€РёР±РєР°", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show($"Ошибка при очистке логов: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
     
@@ -550,7 +503,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            LoggingService.LogError($"Error showing debug info: {ex.Message}", ex);
+            // Error showing debug info - continue silently
         }
     }
     
@@ -559,11 +512,11 @@ public partial class MainWindow : Window
         try
         {
             RefreshCurrentScreen();
-            MessageBox.Show("UI РѕР±РЅРѕРІР»РµРЅ!", "РРЅС„РѕСЂРјР°С†РёСЏ", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("UI обновлен!", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (Exception ex)
         {
-            LoggingService.LogError($"Error refreshing UI: {ex.Message}", ex);
+            // Error refreshing UI - continue silently
         }
     }
     
@@ -571,25 +524,14 @@ public partial class MainWindow : Window
     {
         try
         {
-            LoggingService.LogDebug("=== РљРќРћРџРљРђ РљРђР РўР« РњРР Рђ РќРђР–РђРўРђ ===");
-            LoggingService.LogDebug($"Sender: {sender?.GetType().Name}");
-            LoggingService.LogDebug($"DataContext: {DataContext?.GetType().Name}");
-            LoggingService.LogDebug($"MainViewModel.NavigateCommand: {_mainViewModel?.NavigateCommand != null}");
-            
             if (_mainViewModel?.NavigateCommand != null)
             {
-                LoggingService.LogDebug("Р’С‹Р·С‹РІР°РµРј NavigateCommand.Execute(\"WorldMapView\")");
                 _mainViewModel.NavigateCommand.Execute("WorldMapView");
-                LoggingService.LogDebug("NavigateCommand.Execute Р·Р°РІРµСЂС€РµРЅ");
-            }
-            else
-            {
-                LoggingService.LogError("NavigateCommand РЅРµРґРѕСЃС‚СѓРїРЅР°!", null);
             }
         }
         catch (Exception ex)
         {
-            LoggingService.LogError($"Error in WorldMapButton_Click: {ex.Message}", ex);
+            // Error in WorldMapButton_Click - continue silently
         }
     }
 } 

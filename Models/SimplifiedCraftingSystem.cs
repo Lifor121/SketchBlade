@@ -315,6 +315,9 @@ namespace SketchBlade.Models
                         remaining -= toRemove;
                         anyChanges = true;
                     }
+                    
+                    // ИСПРАВЛЕНИЕ: Принудительно обновляем UI сразу после изменения StackSize
+                    ForceUpdateInventoryUI();
                 }
             }
             
@@ -345,6 +348,36 @@ namespace SketchBlade.Models
             {
                 LoggingService.LogError($"Ошибка при создании результата крафта для {recipe.Name}", ex);
                 return null;
+            }
+        }
+
+        /// <summary>
+        /// Принудительное обновление UI инвентаря (аналогично ForceUpdateUIControls в InventoryViewModel)
+        /// </summary>
+        private void ForceUpdateInventoryUI()
+        {
+            try
+            {
+                // Получаем InventoryViewModel из ресурсов приложения
+                if (System.Windows.Application.Current?.Resources.Contains("InventoryViewModel") == true)
+                {
+                    var inventoryViewModel = System.Windows.Application.Current.Resources["InventoryViewModel"] as ViewModels.InventoryViewModel;
+                    if (inventoryViewModel != null)
+                    {
+                        // Используем Dispatcher для обновления на UI потоке
+                        System.Windows.Application.Current.Dispatcher.BeginInvoke(new System.Action(() =>
+                        {
+                            // Вызываем метод принудительного обновления UI
+                            var forceUpdateMethod = inventoryViewModel.GetType().GetMethod("ForceUpdateUIControls", 
+                                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                            forceUpdateMethod?.Invoke(inventoryViewModel, null);
+                        }), System.Windows.Threading.DispatcherPriority.Render);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogError($"ForceUpdateInventoryUI error: {ex.Message}", ex);
             }
         }
 

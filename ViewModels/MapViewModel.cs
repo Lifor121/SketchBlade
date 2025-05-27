@@ -1,4 +1,4 @@
-п»їusing System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -38,17 +38,17 @@ namespace SketchBlade.ViewModels
     }
     
     /// <summary>
-    /// РЈРїСЂРѕС‰РµРЅРЅС‹Р№ СЃРµСЂРІРёСЃ Р»РѕРіРёСЂРѕРІР°РЅРёСЏ - С‚РѕР»СЊРєРѕ РєСЂРёС‚РёС‡РµСЃРєРёРµ РѕС€РёР±РєРё
+    /// Упрощенный сервис логирования - только критические ошибки
     /// </summary>
     public class MapViewModel : INotifyPropertyChanged
     {
         private readonly GameData _gameState;
         private readonly Action<string> _navigateAction;
-        private bool _isRefreshing = false; // Р¤Р»Р°Рі РґР»СЏ РїСЂРµРґРѕС‚РІСЂР°С‰РµРЅРёСЏ С†РёРєР»РёС‡РµСЃРєРёС… РІС‹Р·РѕРІРѕРІ
-        private static int _refreshCallCount = 0; // РЎС‡РµС‚С‡РёРє РґР»СЏ РѕС‚СЃР»РµР¶РёРІР°РЅРёСЏ РіР»СѓР±РёРЅС‹ РІС‹Р·РѕРІРѕРІ
-        private const int MAX_REFRESH_DEPTH = 3; // РњР°РєСЃРёРјР°Р»СЊРЅР°СЏ РіР»СѓР±РёРЅР° СЂРµРєСѓСЂСЃРёРІРЅС‹С… РІС‹Р·РѕРІРѕРІ
+        private bool _isRefreshing = false; // Флаг для предотвращения циклических вызовов
+        private static int _refreshCallCount = 0; // Счетчик для отслеживания глубины вызовов
+        private const int MAX_REFRESH_DEPTH = 3; // Максимальная глубина рекурсивных вызовов
         
-        // РџСѓР±Р»РёС‡РЅРѕРµ СЃРІРѕР№СЃС‚РІРѕ РґР»СЏ РґРѕСЃС‚СѓРїР° Рє GameData
+        // Публичное свойство для доступа к GameData
         public GameData GameData => _gameState;
         
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -70,17 +70,17 @@ namespace SketchBlade.ViewModels
         { 
             get 
             {
-                // Р•СЃР»Рё CurrentLocation null, РїС‹С‚Р°РµРјСЃСЏ СѓСЃС‚Р°РЅРѕРІРёС‚СЊ РµРіРѕ РЅР° РѕСЃРЅРѕРІРµ CurrentLocationIndex
+                // Если CurrentLocation null, пытаемся установить его на основе CurrentLocationIndex
                 if (_gameState.CurrentLocation == null && _gameState.Locations != null && _gameState.Locations.Count > 0)
                 {
-                    // РЈР±РµР¶РґР°РµРјСЃСЏ С‡С‚Рѕ РёРЅРґРµРєСЃ РєРѕСЂСЂРµРєС‚РЅС‹Р№
+                    // Убеждаемся что индекс корректный
                     if (_gameState.CurrentLocationIndex < 0 || _gameState.CurrentLocationIndex >= _gameState.Locations.Count)
                     {
                         _gameState.CurrentLocationIndex = 0;
                     }
                     
                     _gameState.CurrentLocation = _gameState.Locations[_gameState.CurrentLocationIndex];
-                    LoggingService.LogDebug($"Auto-initialized CurrentLocation to: {_gameState.CurrentLocation.Name}");
+                    // LoggingService.LogDebug($"Auto-initialized CurrentLocation to: {_gameState.CurrentLocation.Name}");
                 }
                 
                 return _gameState.CurrentLocation ?? 
@@ -125,7 +125,7 @@ namespace SketchBlade.ViewModels
             {
                 if (CurrentLocation == null) return false;
                 
-                // Р РјРѕР¶РµРј РїСѓС‚РµС€РµСЃС‚РІРѕРІР°С‚СЊ, РµСЃР»Рё Р»РѕРєР°С†РёСЏ СЂР°Р·Р±Р»РѕРєРёСЂРѕРІР°РЅР° Рё РґРѕСЃС‚СѓРїРЅР°
+                // Рможем путешествовать, если локация разблокирована и доступна
                 bool canTravel = CurrentLocation.IsUnlocked && CurrentLocation.CheckAvailability(_gameState);
                 
                 return canTravel;
@@ -138,11 +138,11 @@ namespace SketchBlade.ViewModels
             {
                 if (CurrentLocation == null) return false;
                 
-                // РРЎРџР РђР’Р›Р•РќРќРђРЇ Р›РћР“РРљРђ: РњРѕР¶РµРј СЃСЂР°Р¶Р°С‚СЊСЃСЏ СЃ РіРµСЂРѕРµРј С‚РѕР»СЊРєРѕ РµСЃР»Рё:
-                // 1. РЈ Р»РѕРєР°С†РёРё РµСЃС‚СЊ РіРµСЂРѕР№
-                // 2. Р›РѕРєР°С†РёСЏ СЂР°Р·Р±Р»РѕРєРёСЂРѕРІР°РЅР°
-                // 3. Р›РѕРєР°С†РёСЏ РґРѕСЃС‚СѓРїРЅР° РґР»СЏ РїРѕСЃРµС‰РµРЅРёСЏ
-                // 4. Р“РµСЂРѕР№ РµС‰Рµ РќР• РїРѕР±РµР¶РґРµРЅ (СЃРѕРіР»Р°СЃРЅРѕ README - С‚РѕР»СЊРєРѕ РѕРґРёРЅ СЂР°Р·)
+                // ИСПРАВЛЕННАЯ ЛОГИКА: Можем сражаться с героем только если:
+                // 1. У локации есть герой
+                // 2. Локация разблокирована
+                // 3. Локация доступна для посещения
+                // 4. Герой еще НЕ побежден (согласно README - только один раз)
                 return CurrentLocation.Hero != null && 
                        CurrentLocation.IsUnlocked &&
                        CurrentLocation.CheckAvailability(_gameState) &&
@@ -156,66 +156,66 @@ namespace SketchBlade.ViewModels
             {
                 if (CurrentLocation == null) return false;
                 
-                // РРЎРџР РђР’Р›Р•РќРќРђРЇ Р›РћР“РРљРђ: РњРѕР¶РµРј СЃСЂР°Р¶Р°С‚СЊСЃСЏ СЃ РјРѕР±Р°РјРё С‚РѕР»СЊРєРѕ РµСЃР»Рё:
-                // 1. Р›РѕРєР°С†РёСЏ СЂР°Р·Р±Р»РѕРєРёСЂРѕРІР°РЅР°
-                // 2. Р›РѕРєР°С†РёСЏ РґРѕСЃС‚СѓРїРЅР° РґР»СЏ РїРѕСЃРµС‰РµРЅРёСЏ
+                // ИСПРАВЛЕННАЯ ЛОГИКА: Можем сражаться с мобами только если:
+                // 1. Локация разблокирована
+                // 2. Локация доступна для посещения
                 return CurrentLocation.IsUnlocked && CurrentLocation.CheckAvailability(_gameState);
             }
         }
         
-        // Р РїСЂРѕРІРµСЂРєР°, Р·Р°Р±Р»РѕРєРёСЂРѕРІР°РЅР° Р»Рё Р»РѕРєР°С†РёСЏ
+        // Рпроверка, заблокирована ли локация
         public bool IsLocationLocked => CurrentLocation != null && 
                                      (!CurrentLocation.IsUnlocked || !CurrentLocation.CheckAvailability(_gameState));
         
-        // Р РґРµС‚Р°Р»Рё Р»РѕРєР°С†РёРё РґР»СЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ
+        // Рдетали локации для отображения
         public string LocationDetailsText
         {
             get
             {
                 if (CurrentLocation == null)
-                    return "Р›РѕРєР°С†РёСЏ РЅРµ РІС‹Р±СЂР°РЅР°";
+                    return "Локация не выбрана";
 
                 var details = new System.Text.StringBuilder();
-                details.AppendLine($"РќР°Р·РІР°РЅРёРµ: {CurrentLocation.Name}");
-                details.AppendLine($"РўРёРї: {GetLocationTypeText(CurrentLocation.Type)}");
-                details.AppendLine($"РЎР»РѕР¶РЅРѕСЃС‚СЊ: {GetDifficultyText(CurrentLocation.Difficulty)}");
-                details.AppendLine($"РћРїРёСЃР°РЅРёРµ: {CurrentLocation.Description}");
+                details.AppendLine($"Название: {CurrentLocation.Name}");
+                details.AppendLine($"Тип: {GetLocationTypeText(CurrentLocation.Type)}");
+                details.AppendLine($"Сложность: {GetDifficultyText(CurrentLocation.Difficulty)}");
+                details.AppendLine($"Описание: {CurrentLocation.Description}");
 
                 if (CurrentLocation.IsUnlocked)
                 {
-                    details.AppendLine("РЎС‚Р°С‚СѓСЃ: СЂР°Р·Р±Р»РѕРєРёСЂРѕРІР°РЅР°");
+                    details.AppendLine("Статус: разблокирована");
                     
                     if (CurrentLocation.Hero != null)
                     {
                         if (CurrentLocation.HeroDefeated)
                         {
-                            details.AppendLine($"Р‘РѕСЃСЃ: {CurrentLocation.Hero.Name} (РџРѕР±РµР¶РґРµРЅ)");
+                            details.AppendLine($"Босс: {CurrentLocation.Hero.Name} (Побежден)");
                         }
                         else
                         {
-                            details.AppendLine($"Р‘РѕСЃСЃ: {CurrentLocation.Hero.Name} (Р”РѕСЃС‚СѓРїРµРЅ РґР»СЏ Р±РёС‚РІС‹)");
+                            details.AppendLine($"Босс: {CurrentLocation.Hero.Name} (Доступен для битвы)");
                         }
                     }
                     
                     if (CurrentLocation.IsCompleted)
                     {
-                        details.AppendLine("Р›РѕРєР°С†РёСЏ РїСЂРѕР№РґРµРЅР°");
+                        details.AppendLine("Локация пройдена");
                     }
                 }
                 else
                 {
-                    details.AppendLine("РЎС‚Р°С‚СѓСЃ: Р·Р°Р±Р»РѕРєРёСЂРѕРІР°РЅР°");
+                    details.AppendLine("Статус: заблокирована");
                     
-                    // РџРѕРєР°Р·С‹РІР°РµРј С‚СЂРµР±РѕРІР°РЅРёСЏ РґР»СЏ СЂР°Р·Р±Р»РѕРєРёСЂРѕРІР°РЅРёСЏ
+                    // Показываем требования для разблокирования
                     if (CurrentLocation.MinPlayerLevel > 1)
                     {
-                        details.AppendLine($"РўСЂРµР±СѓРµРјС‹Р№ СѓСЂРѕРІРµРЅСЊ: {CurrentLocation.MinPlayerLevel}");
+                        details.AppendLine($"Требуемый уровень: {CurrentLocation.MinPlayerLevel}");
                     }
                     
                     if (CurrentLocation.RequiredCompletedLocations.Count > 0)
                     {
                         string requiredLocations = string.Join(", ", CurrentLocation.RequiredCompletedLocations);
-                        details.AppendLine($"РўСЂРµР±СѓРµС‚СЃСЏ РїСЂРѕР№С‚Рё: {requiredLocations}");
+                        details.AppendLine($"Требуется пройти: {requiredLocations}");
                     }
                 }
 
@@ -227,12 +227,12 @@ namespace SketchBlade.ViewModels
         {
             return type switch
             {
-                LocationType.Village => "Р”РµСЂРµРІРЅСЏ",
-                LocationType.Forest => "Р›РµСЃ",
-                LocationType.Cave => "РџРµС‰РµСЂС‹",
-                LocationType.Ruins => "Р СѓРёРЅС‹",
-                LocationType.Castle => "Р—Р°РјРѕРє",
-                _ => "РќРµРёР·РІРµСЃС‚РЅРѕ"
+                LocationType.Village => "Деревня",
+                LocationType.Forest => "Лес",
+                LocationType.Cave => "Пещеры",
+                LocationType.Ruins => "Руины",
+                LocationType.Castle => "Замок",
+                _ => "Неизвестно"
             };
         }
         
@@ -240,11 +240,11 @@ namespace SketchBlade.ViewModels
         {
             return difficulty switch
             {
-                LocationDifficultyLevel.Easy => "Р›РµРіРєР°СЏ",
-                LocationDifficultyLevel.Medium => "РЎСЂРµРґРЅСЏСЏ",
-                LocationDifficultyLevel.Hard => "РЎР»РѕР¶РЅР°СЏ",
-                LocationDifficultyLevel.VeryHard => "РћС‡РµРЅСЊ СЃР»РѕР¶РЅР°СЏ",
-                _ => "РќРµРёР·РІРµСЃС‚РЅРѕ"
+                LocationDifficultyLevel.Easy => "Легкая",
+                LocationDifficultyLevel.Medium => "Средняя",
+                LocationDifficultyLevel.Hard => "Сложная",
+                LocationDifficultyLevel.VeryHard => "Очень сложная",
+                _ => "Неизвестно"
             };
         }
         
@@ -262,7 +262,7 @@ namespace SketchBlade.ViewModels
             _gameState = gameData ?? throw new ArgumentNullException(nameof(gameData));
             _navigateAction = navigateAction ?? throw new ArgumentNullException(nameof(navigateAction));
             
-            // РРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј CurrentLocation РµСЃР»Рё РѕРЅР° null
+            // Инициализируем CurrentLocation если она null
             if (_gameState.CurrentLocation == null && _gameState.Locations != null && _gameState.Locations.Count > 0)
             {
                 _gameState.CurrentLocationIndex = Math.Max(0, Math.Min(_gameState.CurrentLocationIndex, _gameState.Locations.Count - 1));
@@ -274,13 +274,13 @@ namespace SketchBlade.ViewModels
             
             DiagnoseLocationOrder();
             
-            // РРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј СЃРІРѕР№СЃС‚РІР° РЅР°РІРёРіР°С†РёРё
+            // Инициализируем свойства навигации
             UpdateNavigationProperties();
             
-            // РРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј РёРЅРґРёРєР°С‚РѕСЂС‹ Р»РѕРєР°С†РёР№
+            // Инициализируем индикаторы локаций
             UpdateLocationIndicators();
             
-            // РџСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕ РѕР±РЅРѕРІР»СЏРµРј РєРѕРјР°РЅРґС‹ РїРѕСЃР»Рµ РёРЅРёС†РёР°Р»РёР·Р°С†РёРё
+            // Принудительно обновляем команды после инициализации
             RefreshCommands();
         }
         
@@ -301,52 +301,52 @@ namespace SketchBlade.ViewModels
             FightMobsCommand = new RelayCommand<object>(_ => FightMobs(), _ => CanFightMobs, "FightMobs");
         }
         
-        // РњРµС‚РѕРґ РґР»СЏ РїСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕРіРѕ РѕР±РЅРѕРІР»РµРЅРёСЏ РІСЃРµС… РєРѕРјР°РЅРґ
+        // Метод для принудительного обновления всех команд
         private void RefreshCommands()
         {
-            LoggingService.LogDebug("RefreshCommands: РџСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕ РѕР±РЅРѕРІР»СЏРµРј РІСЃРµ РєРѕРјР°РЅРґС‹");
+            // LoggingService.LogDebug("RefreshCommands: Принудительно обновляем все команды");
             
-            // РћР±РЅРѕРІР»СЏРµРј СЃРІРѕР№СЃС‚РІР° РЅР°РІРёРіР°С†РёРё
+            // Обновляем свойства навигации
             UpdateNavigationProperties();
             
-            // РџСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕ РѕР±РЅРѕРІР»СЏРµРј РєРѕРјР°РЅРґС‹ С‡РµСЂРµР· CommandManager
+            // Принудительно обновляем команды через CommandManager
             CommandManager.InvalidateRequerySuggested();
             
-            // РўР°РєР¶Рµ РѕР±РЅРѕРІР»СЏРµРј РІСЃРµ СЃРІСЏР·Р°РЅРЅС‹Рµ СЃРІРѕР№СЃС‚РІР°
+            // Также обновляем все связанные свойства
             OnPropertyChanged(nameof(CanNavigatePrevious));
             OnPropertyChanged(nameof(CanNavigateNext));
             OnPropertyChanged(nameof(CanTravelToLocation));
             OnPropertyChanged(nameof(CanFightHero));
             OnPropertyChanged(nameof(CanFightMobs));
             
-            LoggingService.LogDebug($"RefreshCommands: CanNavigatePrevious={CanNavigatePrevious}, CanNavigateNext={CanNavigateNext}");
-            LoggingService.LogDebug($"RefreshCommands: CanFightMobs={CanFightMobs}, CanFightHero={CanFightHero}");
+            // LoggingService.LogDebug($"RefreshCommands: CanNavigatePrevious={CanNavigatePrevious}, CanNavigateNext={CanNavigateNext}");
+            // LoggingService.LogDebug($"RefreshCommands: CanFightMobs={CanFightMobs}, CanFightHero={CanFightHero}");
         }
         
-        // РњРµС‚РѕРґ РґР»СЏ РѕР±РЅРѕРІР»РµРЅРёСЏ СЃРІРѕР№СЃС‚РІ РЅР°РІРёРіР°С†РёРё
+        // Метод для обновления свойств навигации
         private void UpdateNavigationProperties()
         {
             CanNavigatePrevious = _gameState.CurrentLocationIndex > 0;
             CanNavigateNext = _gameState.Locations != null && 
                              _gameState.CurrentLocationIndex < _gameState.Locations.Count - 1;
             
-            LoggingService.LogDebug($"UpdateNavigationProperties: Index={_gameState.CurrentLocationIndex}, CanPrev={CanNavigatePrevious}, CanNext={CanNavigateNext}");
+            // LoggingService.LogDebug($"UpdateNavigationProperties: Index={_gameState.CurrentLocationIndex}, CanPrev={CanNavigatePrevious}, CanNext={CanNavigateNext}");
         }
         
         // Method to refresh the view when it becomes visible
         public void RefreshView()
         {
-            // РџСЂРµРґРѕС‚РІСЂР°С‰Р°РµРј С†РёРєР»РёС‡РµСЃРєРёРµ РІС‹Р·РѕРІС‹
+            // Предотвращаем циклические вызовы
             if (_isRefreshing)
             {
-                LoggingService.LogDebug("RefreshView: РЈР¶Рµ РІ СЃРѕСЃС‚РѕСЏРЅРёРё РѕР±РЅРѕРІР»РµРЅРёСЏ, РїСЂРѕРїСѓСЃРєР°РµРј");
+                // LoggingService.LogDebug("RefreshView: Уже в состоянии обновления, пропускаем");
                 return;
             }
             
-            // Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅР°СЏ Р·Р°С‰РёС‚Р° РѕС‚ СЃР»РёС€РєРѕРј РіР»СѓР±РѕРєРѕР№ СЂРµРєСѓСЂСЃРёРё
+            // Дополнительная защита от слишком глубокой рекурсии
             if (_refreshCallCount >= MAX_REFRESH_DEPTH)
             {
-                LoggingService.LogDebug($"RefreshView: Р”РѕСЃС‚РёРіРЅСѓС‚Р° РјР°РєСЃРёРјР°Р»СЊРЅР°СЏ РіР»СѓР±РёРЅР° СЂРµРєСѓСЂСЃРёРё ({_refreshCallCount}), РїСЂРѕРїСѓСЃРєР°РµРј");
+                // LoggingService.LogDebug($"RefreshView: Достигнута максимальная глубина рекурсии ({_refreshCallCount}), пропускаем");
                 return;
             }
             
@@ -355,23 +355,23 @@ namespace SketchBlade.ViewModels
             
             try
             {
-                LoggingService.LogDebug($"RefreshView: РќР°С‡Р°Р»Рѕ РѕР±РЅРѕРІР»РµРЅРёСЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ Р»РѕРєР°С†РёР№ (РІС‹Р·РѕРІ #{_refreshCallCount})");
+                // LoggingService.LogDebug($"RefreshView: Начало обновления отображения локаций (вызов #{_refreshCallCount})");
                 
-                // РЈР±РµР¶РґР°РµРјСЃСЏ, С‡С‚Рѕ CurrentLocation СѓСЃС‚Р°РЅРѕРІР»РµРЅ
+                // Убеждаемся, что CurrentLocation установлен
                 if (_gameState.CurrentLocation == null && _gameState.Locations != null && _gameState.Locations.Count > 0)
                 {
                     _gameState.CurrentLocation = _gameState.Locations[_gameState.CurrentLocationIndex];
-                    LoggingService.LogDebug($"RefreshView: РЈСЃС‚Р°РЅРѕРІР»РµРЅ CurrentLocation = {_gameState.CurrentLocation.Name}");
+                    // LoggingService.LogDebug($"RefreshView: Установлен CurrentLocation = {_gameState.CurrentLocation.Name}");
                 }
                 
-                LoggingService.LogDebug($"RefreshView: РћР±РЅРѕРІР»СЏРµРј СЃС‚Р°С‚СѓСЃС‹ РґР»СЏ {_gameState.Locations?.Count ?? 0} Р»РѕРєР°С†РёР№");
+                // LoggingService.LogDebug($"RefreshView: Обновляем статусы для {_gameState.Locations?.Count ?? 0} локаций");
                 
-                // РџСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕ РїСЂРѕРІРµСЂСЏРµРј РІСЃРµ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё Рё СЃС‚Р°С‚СѓСЃС‹ Р»РѕРєР°С†РёР№
+                // Принудительно проверяем все зависимости и статусы локаций
                 if (_gameState.Locations != null)
                 {
                     foreach (var location in _gameState.Locations)
                     {
-                        LoggingService.LogDebug($"RefreshView: Checking location {location.Name}: Unlocked={location.IsUnlocked}, Completed={location.IsCompleted}, HeroDefeated={location.HeroDefeated}");
+                        // LoggingService.LogDebug($"RefreshView: Checking location {location.Name}: Unlocked={location.IsUnlocked}, Completed={location.IsCompleted}, HeroDefeated={location.HeroDefeated}");
                         
                         // Update all the relevant properties for this location
                         if (location.IsUnlocked)
@@ -380,7 +380,7 @@ namespace SketchBlade.ViewModels
                             location.IsAvailable = !location.IsCompleted || location.CompletionCount < 10;
                         }
                         
-                        LoggingService.LogDebug($"RefreshView: Р›РѕРєР°С†РёСЏ {location.Name}: Р Р°Р·Р±Р»РѕРєРёСЂРѕРІР°РЅР°={location.IsUnlocked}, Р—Р°РІРµСЂС€РµРЅР°={location.IsCompleted}, Р”РѕСЃС‚СѓРїРЅР°={location.IsAvailable}");
+                        // LoggingService.LogDebug($"RefreshView: Локация {location.Name}: Разблокирована={location.IsUnlocked}, Завершена={location.IsCompleted}, Доступна={location.IsAvailable}");
                     }
                 }
                 
@@ -405,7 +405,7 @@ namespace SketchBlade.ViewModels
                     UpdateLocationIndicators();
                 }));
                 
-                LoggingService.LogDebug("RefreshView: Р—Р°РІРµСЂС€РµРЅРѕ РѕР±РЅРѕРІР»РµРЅРёРµ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ Р»РѕРєР°С†РёР№");
+                // LoggingService.LogDebug("RefreshView: Завершено обновление отображения локаций");
             }
             catch (Exception ex)
             {
@@ -423,52 +423,52 @@ namespace SketchBlade.ViewModels
         
         private void NavigateToPreviousLocation()
         {
-            LoggingService.LogDebug("=== NavigateToPreviousLocation: РќРђР§РђР›Рћ ===");
-            LoggingService.LogDebug($"CanNavigatePrevious: {CanNavigatePrevious}");
+            // LoggingService.LogDebug("=== NavigateToPreviousLocation: НАЧАЛО ===");
+            // LoggingService.LogDebug($"CanNavigatePrevious: {CanNavigatePrevious}");
             
             if (!CanNavigatePrevious)
             {
-                LoggingService.LogDebug("NavigateToPreviousLocation: РќР°РІРёРіР°С†РёСЏ РЅР°Р·Р°Рґ РЅРµРґРѕСЃС‚СѓРїРЅР°");
+                // LoggingService.LogDebug("NavigateToPreviousLocation: Навигация назад недоступна");
                 return;
             }
                 
             try
             {
-                LoggingService.LogDebug($"РўРµРєСѓС‰РёР№ РёРЅРґРµРєСЃ РґРѕ РёР·РјРµРЅРµРЅРёСЏ: {_gameState.CurrentLocationIndex}");
+                // LoggingService.LogDebug($"Текущий индекс до изменения: {_gameState.CurrentLocationIndex}");
                 _gameState.CurrentLocationIndex--;
-                LoggingService.LogDebug($"РќРѕРІС‹Р№ РёРЅРґРµРєСЃ: {_gameState.CurrentLocationIndex}");
+                // LoggingService.LogDebug($"Новый индекс: {_gameState.CurrentLocationIndex}");
                 
                 if (_gameState.Locations != null && _gameState.CurrentLocationIndex >= 0 && 
                     _gameState.CurrentLocationIndex < _gameState.Locations.Count)
                 {
                     _gameState.CurrentLocation = _gameState.Locations[_gameState.CurrentLocationIndex];
-                    LoggingService.LogDebug($"РЈСЃС‚Р°РЅРѕРІР»РµРЅР° РЅРѕРІР°СЏ Р»РѕРєР°С†РёСЏ: {_gameState.CurrentLocation.Name}");
+                    // LoggingService.LogDebug($"Установлена новая локация: {_gameState.CurrentLocation.Name}");
                     
-                    // РћР±РЅРѕРІР»СЏРµРј С‚РѕР»СЊРєРѕ СЃС‚Р°С‚СѓСЃ РІС‹Р±РѕСЂР° РІ РёРЅРґРёРєР°С‚РѕСЂР°С…
-                    LoggingService.LogDebug($"РћР±РЅРѕРІР»СЏРµРј СЃС‚Р°С‚СѓСЃ РІС‹Р±РѕСЂР° РґР»СЏ {LocationIndicators.Count} РёРЅРґРёРєР°С‚РѕСЂРѕРІ");
+                    // Обновляем только статус выбора в индикаторах
+                    // LoggingService.LogDebug($"Обновляем статус выбора для {LocationIndicators.Count} индикаторов");
                     foreach (var indicator in LocationIndicators)
                     {
                         bool wasSelected = indicator.IsSelected;
                         indicator.IsSelected = (indicator.Index == _gameState.CurrentLocationIndex);
                         if (wasSelected != indicator.IsSelected)
                         {
-                            LoggingService.LogDebug($"РРЅРґРёРєР°С‚РѕСЂ {indicator.Index}: {wasSelected} -> {indicator.IsSelected}");
+                            // LoggingService.LogDebug($"Индикатор {indicator.Index}: {wasSelected} -> {indicator.IsSelected}");
                         }
                     }
                     
-                    LoggingService.LogDebug("Р’С‹Р·С‹РІР°РµРј OnLocationChanged");
+                    // LoggingService.LogDebug("Вызываем OnLocationChanged");
                     OnLocationChanged(_gameState.CurrentLocation, NavigationDirection.Previous);
                 }
                 else
                 {
-                    LoggingService.LogDebug("РРЅРґРµРєСЃ РІС‹С€РµР» Р·Р° РіСЂР°РЅРёС†С‹, СЃР±СЂР°СЃС‹РІР°РµРј РЅР° 0");
+                    // LoggingService.LogDebug("Индекс вышел за границы, сбрасываем на 0");
                     _gameState.CurrentLocationIndex = 0;
                 }
 
-                // РћР±РЅРѕРІР»СЏРµРј UI СЃРІРѕР№СЃС‚РІР°
-                LoggingService.LogDebug("РџР»Р°РЅРёСЂСѓРµРј РѕР±РЅРѕРІР»РµРЅРёРµ UI СЃРІРѕР№СЃС‚РІ С‡РµСЂРµР· Dispatcher");
+                // Обновляем UI свойства
+                // LoggingService.LogDebug("Планируем обновление UI свойств через Dispatcher");
                 Application.Current.Dispatcher.BeginInvoke(new Action(() => {
-                    LoggingService.LogDebug("Р’С‹РїРѕР»РЅСЏРµРј РѕР±РЅРѕРІР»РµРЅРёРµ UI СЃРІРѕР№СЃС‚РІ");
+                    // LoggingService.LogDebug("Выполняем обновление UI свойств");
                     OnPropertyChanged(nameof(CurrentLocation));
                     OnPropertyChanged(nameof(CanNavigatePrevious));
                     OnPropertyChanged(nameof(CanNavigateNext));
@@ -479,65 +479,65 @@ namespace SketchBlade.ViewModels
                     OnPropertyChanged(nameof(LocationDetailsText));
                     
                     RefreshCommands();
-                    LoggingService.LogDebug("UI СЃРІРѕР№СЃС‚РІР° РѕР±РЅРѕРІР»РµРЅС‹");
+                    // LoggingService.LogDebug("UI свойства обновлены");
                 }));
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"РћС€РёР±РєР° РІ NavigateToPreviousLocation: {ex.Message}", ex);
+                LoggingService.LogError($"Ошибка в NavigateToPreviousLocation: {ex.Message}", ex);
             }
             
-            LoggingService.LogDebug("=== NavigateToPreviousLocation: РљРћРќР•Р¦ ===");
+            // LoggingService.LogDebug("=== NavigateToPreviousLocation: КОНЕЦ ===");
         }
         
         private void NavigateToNextLocation()
         {
-            LoggingService.LogDebug("=== NavigateToNextLocation: РќРђР§РђР›Рћ ===");
-            LoggingService.LogDebug($"CanNavigateNext: {CanNavigateNext}");
+            // LoggingService.LogDebug("=== NavigateToNextLocation: НАЧАЛО ===");
+            // LoggingService.LogDebug($"CanNavigateNext: {CanNavigateNext}");
             
             if (!CanNavigateNext)
             {
-                LoggingService.LogDebug("NavigateToNextLocation: РќР°РІРёРіР°С†РёСЏ РІРїРµСЂРµРґ РЅРµРґРѕСЃС‚СѓРїРЅР°");
+                // LoggingService.LogDebug("NavigateToNextLocation: Навигация вперед недоступна");
                 return;
             }
             
             try
             {
-                LoggingService.LogDebug($"РўРµРєСѓС‰РёР№ РёРЅРґРµРєСЃ РґРѕ РёР·РјРµРЅРµРЅРёСЏ: {_gameState.CurrentLocationIndex}");
+                // LoggingService.LogDebug($"Текущий индекс до изменения: {_gameState.CurrentLocationIndex}");
                 _gameState.CurrentLocationIndex++;
-                LoggingService.LogDebug($"РќРѕРІС‹Р№ РёРЅРґРµРєСЃ: {_gameState.CurrentLocationIndex}");
+                // LoggingService.LogDebug($"Новый индекс: {_gameState.CurrentLocationIndex}");
                 
                 if (_gameState.Locations != null && _gameState.CurrentLocationIndex >= 0 && 
                     _gameState.CurrentLocationIndex < _gameState.Locations.Count)
                 {
                     _gameState.CurrentLocation = _gameState.Locations[_gameState.CurrentLocationIndex];
-                    LoggingService.LogDebug($"РЈСЃС‚Р°РЅРѕРІР»РµРЅР° РЅРѕРІР°СЏ Р»РѕРєР°С†РёСЏ: {_gameState.CurrentLocation.Name}");
+                    // LoggingService.LogDebug($"Установлена новая локация: {_gameState.CurrentLocation.Name}");
                     
-                    // РћР±РЅРѕРІР»СЏРµРј С‚РѕР»СЊРєРѕ СЃС‚Р°С‚СѓСЃ РІС‹Р±РѕСЂР° РІ РёРЅРґРёРєР°С‚РѕСЂР°С…
-                    LoggingService.LogDebug($"РћР±РЅРѕРІР»СЏРµРј СЃС‚Р°С‚СѓСЃ РІС‹Р±РѕСЂР° РґР»СЏ {LocationIndicators.Count} РёРЅРґРёРєР°С‚РѕСЂРѕРІ");
+                    // Обновляем только статус выбора в индикаторах
+                    // LoggingService.LogDebug($"Обновляем статус выбора для {LocationIndicators.Count} индикаторов");
                     foreach (var indicator in LocationIndicators)
                     {
                         bool wasSelected = indicator.IsSelected;
                         indicator.IsSelected = (indicator.Index == _gameState.CurrentLocationIndex);
                         if (wasSelected != indicator.IsSelected)
                         {
-                            LoggingService.LogDebug($"РРЅРґРёРєР°С‚РѕСЂ {indicator.Index}: {wasSelected} -> {indicator.IsSelected}");
+                            // LoggingService.LogDebug($"Индикатор {indicator.Index}: {wasSelected} -> {indicator.IsSelected}");
                         }
                     }
                     
-                    LoggingService.LogDebug("Р’С‹Р·С‹РІР°РµРј OnLocationChanged");
+                    // LoggingService.LogDebug("Вызываем OnLocationChanged");
                     OnLocationChanged(_gameState.CurrentLocation, NavigationDirection.Next);
                 }
                 else
                 {
-                    LoggingService.LogDebug("РРЅРґРµРєСЃ РІС‹С€РµР» Р·Р° РіСЂР°РЅРёС†С‹, СЃР±СЂР°СЃС‹РІР°РµРј РЅР° РјР°РєСЃРёРјР°Р»СЊРЅС‹Р№");
+                    // LoggingService.LogDebug("Индекс вышел за границы, сбрасываем на максимальный");
                     _gameState.CurrentLocationIndex = Math.Max(0, _gameState.Locations?.Count - 1 ?? 0);
                 }
 
-                // РћР±РЅРѕРІР»СЏРµРј UI СЃРІРѕР№СЃС‚РІР°
-                LoggingService.LogDebug("РџР»Р°РЅРёСЂСѓРµРј РѕР±РЅРѕРІР»РµРЅРёРµ UI СЃРІРѕР№СЃС‚РІ С‡РµСЂРµР· Dispatcher");
+                // Обновляем UI свойства
+                // LoggingService.LogDebug("Планируем обновление UI свойств через Dispatcher");
                 Application.Current.Dispatcher.BeginInvoke(new Action(() => {
-                    LoggingService.LogDebug("Р’С‹РїРѕР»РЅСЏРµРј РѕР±РЅРѕРІР»РµРЅРёРµ UI СЃРІРѕР№СЃС‚РІ");
+                    // LoggingService.LogDebug("Выполняем обновление UI свойств");
                     OnPropertyChanged(nameof(CurrentLocation));
                     OnPropertyChanged(nameof(CanNavigatePrevious));
                     OnPropertyChanged(nameof(CanNavigateNext));
@@ -548,25 +548,25 @@ namespace SketchBlade.ViewModels
                     OnPropertyChanged(nameof(LocationDetailsText));
                     
                     RefreshCommands();
-                    LoggingService.LogDebug("UI СЃРІРѕР№СЃС‚РІР° РѕР±РЅРѕРІР»РµРЅС‹");
+                    // LoggingService.LogDebug("UI свойства обновлены");
                 }));
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"РћС€РёР±РєР° РІ NavigateToNextLocation: {ex.Message}", ex);
+                LoggingService.LogError($"Ошибка в NavigateToNextLocation: {ex.Message}", ex);
             }
             
-            LoggingService.LogDebug("=== NavigateToNextLocation: РљРћРќР•Р¦ ===");
+            // LoggingService.LogDebug("=== NavigateToNextLocation: КОНЕЦ ===");
         }
         
         private void TravelToLocation()
         {
-            LoggingService.LogDebug("TravelToLocation method called");
-            LoggingService.LogDebug($"CanTravelToLocation: {CanTravelToLocation}, CurrentLocation is null: {CurrentLocation == null}");
+            // LoggingService.LogDebug("TravelToLocation method called");
+            // LoggingService.LogDebug($"CanTravelToLocation: {CanTravelToLocation}, CurrentLocation is null: {CurrentLocation == null}");
             
             if (!CanTravelToLocation || CurrentLocation == null)
             {
-                LoggingService.LogDebug("Cannot travel to location - preconditions not met");
+                // LoggingService.LogDebug("Cannot travel to location - preconditions not met");
                 return;
             }
             
@@ -581,24 +581,24 @@ namespace SketchBlade.ViewModels
                     // Defensive checks for current location
                     if (string.IsNullOrEmpty(locationCopy.SpritePath))
                     {
-                        LoggingService.LogDebug("Warning: Location sprite path is empty");
+                        // LoggingService.LogDebug("Warning: Location sprite path is empty");
                         // Set default path based on location type
                         locationCopy.SpritePath = AssetPaths.Locations.GetLocationPath(locationCopy.Type.ToString().ToLower());
-                        LoggingService.LogDebug($"Set default sprite path: {locationCopy.SpritePath}");
+                        // LoggingService.LogDebug($"Set default sprite path: {locationCopy.SpritePath}");
                     }
                     else
                     {
-                        LoggingService.LogDebug($"Location sprite path: {locationCopy.SpritePath}");
+                        // LoggingService.LogDebug($"Location sprite path: {locationCopy.SpritePath}");
                     }
                     
                     // Since we're using file paths instead of BitmapImage objects, we shouldn't 
                     // hit NotSupportedException during serialization
                     
-                    LoggingService.LogDebug($"Traveling to location: {locationCopy.Name}");
+                    // LoggingService.LogDebug($"Traveling to location: {locationCopy.Name}");
                     
                     // Check if this is the first time visiting this location
                     bool firstVisit = !locationCopy.IsCompleted;
-                    LoggingService.LogDebug($"First visit: {firstVisit}");
+                    // LoggingService.LogDebug($"First visit: {firstVisit}");
                     
                     // Random encounter check (30% chance if not completed yet)
                     bool triggerEncounter = false;
@@ -607,11 +607,11 @@ namespace SketchBlade.ViewModels
                         Random random = new Random();
                         triggerEncounter = random.Next(100) < 30;
                     }
-                    LoggingService.LogDebug($"Trigger encounter: {triggerEncounter}");
+                    // LoggingService.LogDebug($"Trigger encounter: {triggerEncounter}");
                     
                     if (triggerEncounter)
                     {
-                        LoggingService.LogDebug("Random encounter triggered!");
+                        // LoggingService.LogDebug("Random encounter triggered!");
                         
                         try
                         {
@@ -620,15 +620,15 @@ namespace SketchBlade.ViewModels
                             
                             // First set the current screen in GameData
                             _gameState.CurrentScreen = "BattleView";
-                            LoggingService.LogDebug($"GameData.CurrentScreen set to {_gameState.CurrentScreen}");
+                            // LoggingService.LogDebug($"GameData.CurrentScreen set to {_gameState.CurrentScreen}");
                             
                             // Navigate to battle using dispatcher to avoid thread issues
                             Application.Current.Dispatcher.BeginInvoke(new Action(() => {
                                 try
                                 {
-                                    LoggingService.LogDebug("Navigating to battle screen");
+                                    // LoggingService.LogDebug("Navigating to battle screen");
                                     _navigateAction("BattleScreen");
-                                    LoggingService.LogDebug("Navigation to battle screen completed");
+                                    // LoggingService.LogDebug("Navigation to battle screen completed");
                                 }
                                 catch (Exception ex)
                                 {
@@ -649,7 +649,7 @@ namespace SketchBlade.ViewModels
                         {
                             locationCopy.IsCompleted = true;
                             locationCopy.CompletionCount++;
-                            LoggingService.LogDebug("First visit to location completed");
+                            // LoggingService.LogDebug("First visit to location completed");
                             
                             // Make sure the actual CurrentLocation gets updated too
                             if (_gameState.CurrentLocation != null)
@@ -732,7 +732,7 @@ namespace SketchBlade.ViewModels
                         CurrentLocation.CompletionCount++;
                         
                         // Mark location as completed
-                        LoggingService.LogDebug("Marked location as completed despite image error");
+                        // LoggingService.LogDebug("Marked location as completed despite image error");
                         
                         // Update UI safely
                         Application.Current.Dispatcher.BeginInvoke(new Action(() => {
@@ -768,40 +768,40 @@ namespace SketchBlade.ViewModels
             catch (System.InvalidOperationException ex)
             {
                 LoggingService.LogError($"InvalidOperationException in TravelToLocation: {ex.Message}", ex);
-                MessageBox.Show($"РћС€РёР±РєР° РїСЂРё РїРµСЂРµРјРµС‰РµРЅРёРё РІ Р»РѕРєР°С†РёСЋ: {ex.Message}", "РћС€РёР±РєР° РїРµСЂРµРјРµС‰РµРЅРёСЏ", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Ошибка при перемещении в локацию: {ex.Message}", "Ошибка перемещения", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             catch (Exception ex)
             {
                 LoggingService.LogError($"Error traveling to location: {ex.Message}", ex);
-                MessageBox.Show($"РћС€РёР±РєР° РїСЂРё РїРµСЂРµРјРµС‰РµРЅРёРё РІ Р»РѕРєР°С†РёСЋ: {ex.Message}", "РћС€РёР±РєР° РїРµСЂРµРјРµС‰РµРЅРёСЏ", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Ошибка при перемещении в локацию: {ex.Message}", "Ошибка перемещения", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         
         private void FightHero()
         {
-            LoggingService.LogDebug("FightHero method called");
-            LoggingService.LogDebug($"CanFightHero: {CanFightHero}, CurrentLocation is null: {CurrentLocation == null}, CurrentLocation.Hero is null: {CurrentLocation?.Hero == null}");
+            // LoggingService.LogDebug("FightHero method called");
+            // LoggingService.LogDebug($"CanFightHero: {CanFightHero}, CurrentLocation is null: {CurrentLocation == null}, CurrentLocation.Hero is null: {CurrentLocation?.Hero == null}");
             
             if (!CanFightHero || CurrentLocation?.Hero == null)
             {
-                LoggingService.LogDebug("Cannot fight hero - preconditions not met");
+                // LoggingService.LogDebug("Cannot fight hero - preconditions not met");
                 return;
             }
             
             try
             {
-                LoggingService.LogDebug($"Starting boss fight with {CurrentLocation.Hero.Name} in {CurrentLocation.Name}");
+                // LoggingService.LogDebug($"Starting boss fight with {CurrentLocation.Hero.Name} in {CurrentLocation.Name}");
                 
-                // Р’РђР–РќРћ: РџСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕ РѕС‡РёС‰Р°РµРј CurrentEnemies РїРµСЂРµРґ РєР°Р¶РґС‹Рј Р±РѕРµРј
+                // ВАЖНО: Принудительно очищаем CurrentEnemies перед каждым боем
                 _gameState.CurrentEnemies.Clear();
-                LoggingService.LogDebug("Cleared CurrentEnemies before battle");
+                // LoggingService.LogDebug("Cleared CurrentEnemies before battle");
                 
-                // РЎРѕР·РґР°РµРј РљРћРџРР® РіРµСЂРѕСЏ РґР»СЏ Р±РѕСЏ, С‡С‚РѕР±С‹ РЅРµ РёР·РјРµРЅСЏС‚СЊ РѕСЂРёРіРёРЅР°Р»СЊРЅРѕРіРѕ РіРµСЂРѕСЏ
+                // Создаем КОПИЮ героя для боя, чтобы не изменять оригинального героя
                 var heroCopy = new Character
                 {
                     Name = CurrentLocation.Hero.Name,
                     MaxHealth = CurrentLocation.Hero.MaxHealth,
-                    CurrentHealth = CurrentLocation.Hero.MaxHealth, // Р’Р°Р¶РЅРѕ: РїРѕР»РЅРѕРµ Р·РґРѕСЂРѕРІСЊРµ
+                    CurrentHealth = CurrentLocation.Hero.MaxHealth, // Важно: полное здоровье
                     Attack = CurrentLocation.Hero.Attack,
                     Defense = CurrentLocation.Hero.Defense,
                     Level = CurrentLocation.Hero.Level,
@@ -811,23 +811,23 @@ namespace SketchBlade.ViewModels
                     IsPlayer = false
                 };
                 
-                // РџСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕ СЃР±СЂР°СЃС‹РІР°РµРј СЃС‚Р°С‚СѓСЃ РїРѕСЂР°Р¶РµРЅРёСЏ
+                // Принудительно сбрасываем статус поражения
                 heroCopy.SetDefeated(false);
                 
-                LoggingService.LogDebug($"Created hero copy: {heroCopy.Name}, Health: {heroCopy.CurrentHealth}/{heroCopy.MaxHealth}, IsDefeated: {heroCopy.IsDefeated}");
+                // LoggingService.LogDebug($"Created hero copy: {heroCopy.Name}, Health: {heroCopy.CurrentHealth}/{heroCopy.MaxHealth}, IsDefeated: {heroCopy.IsDefeated}");
                 
-                // Р”РѕР±Р°РІР»СЏРµРј РєРѕРїРёСЋ РіРµСЂРѕСЏ РІ CurrentEnemies
+                // Добавляем копию героя в CurrentEnemies
                 _gameState.CurrentEnemies.Add(heroCopy);
-                LoggingService.LogDebug($"Added hero to CurrentEnemies. Total enemies: {_gameState.CurrentEnemies.Count}");
+                // LoggingService.LogDebug($"Added hero to CurrentEnemies. Total enemies: {_gameState.CurrentEnemies.Count}");
                 
-                // Р’РђР–РќРћ: РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј CurrentScreen РІ BattleView
+                // ВАЖНО: Устанавливаем CurrentScreen в BattleView
                 _gameState.CurrentScreen = "BattleView";
-                LoggingService.LogDebug($"GameData.CurrentScreen set to: {_gameState.CurrentScreen}");
+                // LoggingService.LogDebug($"GameData.CurrentScreen set to: {_gameState.CurrentScreen}");
                 
                 // Navigate directly to the BattleView
-                LoggingService.LogDebug("Navigating to BattleView using _navigateAction");
+                // LoggingService.LogDebug("Navigating to BattleView using _navigateAction");
                 _navigateAction("BattleView");
-                LoggingService.LogDebug("Navigation completed successfully");
+                // LoggingService.LogDebug("Navigation completed successfully");
             }
             catch (Exception ex)
             {
@@ -838,46 +838,46 @@ namespace SketchBlade.ViewModels
         
         private void FightMobs()
         {
-            LoggingService.LogDebug("FightMobs method called");
-            LoggingService.LogDebug($"CanFightMobs: {CanFightMobs}, CurrentLocation is null: {CurrentLocation == null}");
+            // LoggingService.LogDebug("FightMobs method called");
+            // LoggingService.LogDebug($"CanFightMobs: {CanFightMobs}, CurrentLocation is null: {CurrentLocation == null}");
             
             if (!CanFightMobs || CurrentLocation == null)
             {
-                LoggingService.LogDebug("Cannot fight mobs - preconditions not met");
+                // LoggingService.LogDebug("Cannot fight mobs - preconditions not met");
                 return;
             }
             
             try
             {
-                LoggingService.LogDebug($"Starting mob battle in {CurrentLocation.Name}");
+                // LoggingService.LogDebug($"Starting mob battle in {CurrentLocation.Name}");
                 
-                // Р’РђР–РќРћ: РџСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕ РѕС‡РёС‰Р°РµРј CurrentEnemies РїРµСЂРµРґ РєР°Р¶РґС‹Рј Р±РѕРµРј
+                // ВАЖНО: Принудительно очищаем CurrentEnemies перед каждым боем
                 _gameState.CurrentEnemies.Clear();
-                LoggingService.LogDebug("Cleared CurrentEnemies before mob battle");
+                // LoggingService.LogDebug("Cleared CurrentEnemies before mob battle");
                 
-                // Р“РµРЅРµСЂРёСЂСѓРµРј РЅРѕРІС‹С… РІСЂР°РіРѕРІ РґР»СЏ С‚РµРєСѓС‰РµР№ Р»РѕРєР°С†РёРё
+                // Генерируем новых врагов для текущей локации
                 var enemies = GameLogicService.Instance.GenerateEnemies(CurrentLocation, _gameState.Player?.Level ?? 1);
-                LoggingService.LogDebug($"Generated {enemies.Count} enemies for {CurrentLocation.Name}");
+                // LoggingService.LogDebug($"Generated {enemies.Count} enemies for {CurrentLocation.Name}");
                 
-                // Р”РѕР±Р°РІР»СЏРµРј РІСЂР°РіРѕРІ РІ CurrentEnemies Рё СѓР±РµР¶РґР°РµРјСЃСЏ, С‡С‚Рѕ РѕРЅРё РЅРµ РїРѕР±РµР¶РґРµРЅС‹
+                // Добавляем врагов в CurrentEnemies и убеждаемся, что они не побеждены
                 foreach (var enemy in enemies)
                 {
-                    enemy.SetDefeated(false); // РџСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕ СЃР±СЂР°СЃС‹РІР°РµРј СЃС‚Р°С‚СѓСЃ РїРѕСЂР°Р¶РµРЅРёСЏ
-                    enemy.CurrentHealth = enemy.MaxHealth; // Р’РѕСЃСЃС‚Р°РЅР°РІР»РёРІР°РµРј РїРѕР»РЅРѕРµ Р·РґРѕСЂРѕРІСЊРµ
+                    enemy.SetDefeated(false); // Принудительно сбрасываем статус поражения
+                    enemy.CurrentHealth = enemy.MaxHealth; // Восстанавливаем полное здоровье
                     _gameState.CurrentEnemies.Add(enemy);
-                    LoggingService.LogDebug($"Added enemy: {enemy.Name}, Health: {enemy.CurrentHealth}/{enemy.MaxHealth}, IsDefeated: {enemy.IsDefeated}");
+                    // LoggingService.LogDebug($"Added enemy: {enemy.Name}, Health: {enemy.CurrentHealth}/{enemy.MaxHealth}, IsDefeated: {enemy.IsDefeated}");
                 }
                 
-                LoggingService.LogDebug($"Total enemies in CurrentEnemies: {_gameState.CurrentEnemies.Count}");
+                // LoggingService.LogDebug($"Total enemies in CurrentEnemies: {_gameState.CurrentEnemies.Count}");
                 
-                // Р’РђР–РќРћ: РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј CurrentScreen РІ BattleView
+                // ВАЖНО: Устанавливаем CurrentScreen в BattleView
                 _gameState.CurrentScreen = "BattleView";
-                LoggingService.LogDebug($"GameData.CurrentScreen set to: {_gameState.CurrentScreen}");
+                // LoggingService.LogDebug($"GameData.CurrentScreen set to: {_gameState.CurrentScreen}");
                 
                 // Navigate directly to the BattleView
-                LoggingService.LogDebug("Navigating to BattleView using _navigateAction");
+                // LoggingService.LogDebug("Navigating to BattleView using _navigateAction");
                 _navigateAction("BattleView");
-                LoggingService.LogDebug("Navigation completed successfully");
+                // LoggingService.LogDebug("Navigation completed successfully");
             }
             catch (Exception ex)
             {
@@ -888,22 +888,22 @@ namespace SketchBlade.ViewModels
         
         private void UpdateLocationIndicators()
         {
-            LoggingService.LogDebug("=== UpdateLocationIndicators: РќРђР§РђР›Рћ ===");
+            // LoggingService.LogDebug("=== UpdateLocationIndicators: НАЧАЛО ===");
             
             if (_gameState.Locations == null || _gameState.Locations.Count == 0)
             {
-                LoggingService.LogDebug("UpdateLocationIndicators: Р›РѕРєР°С†РёРё РѕС‚СЃСѓС‚СЃС‚РІСѓСЋС‚, РѕС‡РёС‰Р°РµРј РёРЅРґРёРєР°С‚РѕСЂС‹");
+                // LoggingService.LogDebug("UpdateLocationIndicators: Локации отсутствуют, очищаем индикаторы");
                 LocationIndicators.Clear();
                 return;
             }
             
-            LoggingService.LogDebug($"UpdateLocationIndicators: Р›РѕРєР°С†РёР№: {_gameState.Locations.Count}, РРЅРґРёРєР°С‚РѕСЂРѕРІ: {LocationIndicators.Count}");
-            LoggingService.LogDebug($"UpdateLocationIndicators: РўРµРєСѓС‰РёР№ РёРЅРґРµРєСЃ Р»РѕРєР°С†РёРё: {_gameState.CurrentLocationIndex}");
+            // LoggingService.LogDebug($"UpdateLocationIndicators: Локаций: {_gameState.Locations.Count}, Индикаторов: {LocationIndicators.Count}");
+            // LoggingService.LogDebug($"UpdateLocationIndicators: Текущий индекс локации: {_gameState.CurrentLocationIndex}");
             
-            // Р•СЃР»Рё РєРѕР»РёС‡РµСЃС‚РІРѕ РёРЅРґРёРєР°С‚РѕСЂРѕРІ РЅРµ СЃРѕРІРїР°РґР°РµС‚ СЃ РєРѕР»РёС‡РµСЃС‚РІРѕРј Р»РѕРєР°С†РёР№, РїРµСЂРµСЃРѕР·РґР°РµРј РёС…
+            // Если количество индикаторов не совпадает с количеством локаций, пересоздаем их
             if (LocationIndicators.Count != _gameState.Locations.Count)
             {
-                LoggingService.LogDebug("UpdateLocationIndicators: РљРѕР»РёС‡РµСЃС‚РІРѕ РёРЅРґРёРєР°С‚РѕСЂРѕРІ РЅРµ СЃРѕРІРїР°РґР°РµС‚, РїРµСЂРµСЃРѕР·РґР°РµРј");
+                // LoggingService.LogDebug("UpdateLocationIndicators: Количество индикаторов не совпадает, пересоздаем");
                 LocationIndicators.Clear();
                 
                 for (int i = 0; i < _gameState.Locations.Count; i++)
@@ -919,13 +919,13 @@ namespace SketchBlade.ViewModels
                     };
                     
                     LocationIndicators.Add(indicator);
-                    LoggingService.LogDebug($"UpdateLocationIndicators: РЎРѕР·РґР°РЅ РёРЅРґРёРєР°С‚РѕСЂ {i}: Selected={indicator.IsSelected}, Completed={indicator.IsCompleted}, Unlocked={indicator.IsUnlocked}");
+                    // LoggingService.LogDebug($"UpdateLocationIndicators: Создан индикатор {i}: Selected={indicator.IsSelected}, Completed={indicator.IsCompleted}, Unlocked={indicator.IsUnlocked}");
                 }
             }
             else
             {
-                LoggingService.LogDebug("UpdateLocationIndicators: РћР±РЅРѕРІР»СЏРµРј СЃСѓС‰РµСЃС‚РІСѓСЋС‰РёРµ РёРЅРґРёРєР°С‚РѕСЂС‹");
-                // РћР±РЅРѕРІР»СЏРµРј СЃСѓС‰РµСЃС‚РІСѓСЋС‰РёРµ РёРЅРґРёРєР°С‚РѕСЂС‹ Р±РµР· РїРµСЂРµСЃРѕР·РґР°РЅРёСЏ
+                // LoggingService.LogDebug("UpdateLocationIndicators: Обновляем существующие индикаторы");
+                // Обновляем существующие индикаторы без пересоздания
                 for (int i = 0; i < _gameState.Locations.Count; i++)
                 {
                     var location = _gameState.Locations[i];
@@ -941,13 +941,13 @@ namespace SketchBlade.ViewModels
                     
                     if (wasSelected != indicator.IsSelected)
                     {
-                        LoggingService.LogDebug($"UpdateLocationIndicators: РРЅРґРёРєР°С‚РѕСЂ {i} РёР·РјРµРЅРёР» РІС‹Р±РѕСЂ: {wasSelected} -> {indicator.IsSelected}");
+                        // LoggingService.LogDebug($"UpdateLocationIndicators: Индикатор {i} изменил выбор: {wasSelected} -> {indicator.IsSelected}");
                     }
                 }
             }
             
-            LoggingService.LogDebug($"UpdateLocationIndicators: РС‚РѕРіРѕ РёРЅРґРёРєР°С‚РѕСЂРѕРІ РїРѕСЃР»Рµ РѕР±РЅРѕРІР»РµРЅРёСЏ: {LocationIndicators.Count}");
-            LoggingService.LogDebug("=== UpdateLocationIndicators: РљРћРќР•Р¦ ===");
+            // LoggingService.LogDebug($"UpdateLocationIndicators: Итого индикаторов после обновления: {LocationIndicators.Count}");
+            // LoggingService.LogDebug("=== UpdateLocationIndicators: КОНЕЦ ===");
         }
 
         // Update the details for the current location
@@ -978,96 +978,96 @@ namespace SketchBlade.ViewModels
         // Method to refresh the location data
         public void RefreshLocations()
         {
-            LoggingService.LogDebug("=== RefreshLocations: РќРђР§РђР›Рћ ===");
+            // LoggingService.LogDebug("=== RefreshLocations: НАЧАЛО ===");
             
-            // РџСЂРµРґРѕС‚РІСЂР°С‰Р°РµРј С†РёРєР»РёС‡РµСЃРєРёРµ РІС‹Р·РѕРІС‹ - РќР• Р’Р«Р—Р«Р’РђР•Рњ RefreshView!
+            // Предотвращаем циклические вызовы - НЕ ВЫЗЫВАЕМ RefreshView!
             if (_isRefreshing)
             {
-                LoggingService.LogDebug("RefreshLocations: РЈР¶Рµ РІ СЃРѕСЃС‚РѕСЏРЅРёРё РѕР±РЅРѕРІР»РµРЅРёСЏ, РїСЂРѕРїСѓСЃРєР°РµРј");
+                // LoggingService.LogDebug("RefreshLocations: Уже в состоянии обновления, пропускаем");
                 return;
             }
             
             try
             {
-                LoggingService.LogDebug("RefreshLocations: Refreshing world map data");
-                LoggingService.LogDebug($"RefreshLocations: РўРµРєСѓС‰РёР№ РёРЅРґРµРєСЃ Р»РѕРєР°С†РёРё: {_gameState.CurrentLocationIndex}");
-                LoggingService.LogDebug($"RefreshLocations: РљРѕР»РёС‡РµСЃС‚РІРѕ Р»РѕРєР°С†РёР№: {_gameState.Locations?.Count ?? 0}");
-                LoggingService.LogDebug($"RefreshLocations: РљРѕР»РёС‡РµСЃС‚РІРѕ РёРЅРґРёРєР°С‚РѕСЂРѕРІ: {LocationIndicators.Count}");
+                // LoggingService.LogDebug("RefreshLocations: Refreshing world map data");
+                // LoggingService.LogDebug($"RefreshLocations: Текущий индекс локации: {_gameState.CurrentLocationIndex}");
+                // LoggingService.LogDebug($"RefreshLocations: Количество локаций: {_gameState.Locations?.Count ?? 0}");
+                // LoggingService.LogDebug($"RefreshLocations: Количество индикаторов: {LocationIndicators.Count}");
                 
-                // РќР• Р’Р«Р—Р«Р’РђР•Рњ RefreshView() - СЌС‚Рѕ СЃРѕР·РґР°РµС‚ С†РёРєР»РёС‡РµСЃРєРёРµ РІС‹Р·РѕРІС‹!
-                // Р’РјРµСЃС‚Рѕ СЌС‚РѕРіРѕ РІС‹РїРѕР»РЅСЏРµРј С‚РѕР»СЊРєРѕ РЅРµРѕР±С…РѕРґРёРјС‹Рµ РѕР±РЅРѕРІР»РµРЅРёСЏ
+                // НЕ ВЫЗЫВАЕМ RefreshView() - это создает циклические вызовы!
+                // Вместо этого выполняем только необходимые обновления
                 
                 // Update the location indicators without using reflection
-                LoggingService.LogDebug("RefreshLocations: Р’С‹Р·С‹РІР°РµРј UpdateLocationIndicators");
+                // LoggingService.LogDebug("RefreshLocations: Вызываем UpdateLocationIndicators");
                 UpdateLocationIndicators();
                 
                 // Force update of current location data  
-                LoggingService.LogDebug("RefreshLocations: Р’С‹Р·С‹РІР°РµРј UpdateLocationDetails");
+                // LoggingService.LogDebug("RefreshLocations: Вызываем UpdateLocationDetails");
                 UpdateLocationDetails();
                 
                 // Notify property changes for UI-related properties
-                LoggingService.LogDebug("RefreshLocations: РћР±РЅРѕРІР»СЏРµРј UI СЃРІРѕР№СЃС‚РІР°");
+                // LoggingService.LogDebug("RefreshLocations: Обновляем UI свойства");
                 OnPropertyChanged(nameof(CurrentLocation));
                 OnPropertyChanged(nameof(LocationDetailsText));
                 OnPropertyChanged(nameof(CanTravelToLocation));
                 OnPropertyChanged(nameof(CanFightHero));
                 OnPropertyChanged(nameof(CanFightMobs));
                 
-                LoggingService.LogDebug("RefreshLocations: РћР±РЅРѕРІР»РµРЅРёРµ Р·Р°РІРµСЂС€РµРЅРѕ СѓСЃРїРµС€РЅРѕ");
+                // LoggingService.LogDebug("RefreshLocations: Обновление завершено успешно");
             }
             catch (Exception ex)
             {
                 LoggingService.LogError($"Error in RefreshLocations: {ex.Message}", ex);
             }
             
-            LoggingService.LogDebug("=== RefreshLocations: РљРћРќР•Р¦ ===");
+            // LoggingService.LogDebug("=== RefreshLocations: КОНЕЦ ===");
         }
 
-        // РћС‚Р»Р°РґРѕС‡РЅС‹Р№ РјРµС‚РѕРґ РґР»СЏ РґРёР°РіРЅРѕСЃС‚РёРєРё РїРѕСЂСЏРґРєР° Р»РѕРєР°С†РёР№
+        // Отладочный метод для диагностики порядка локаций
         private void DiagnoseLocationOrder()
         {
-            LoggingService.LogDebug("=== Р”РРђР“РќРћРЎРўРРљРђ РџРћР РЇР”РљРђ Р›РћРљРђР¦РР™ ===");
+            // LoggingService.LogDebug("=== ДИАГНОСТИКА ПОРЯДКА ЛОКАЦИЙ ===");
             
             if (_gameState.Locations == null || _gameState.Locations.Count == 0)
             {
-                LoggingService.LogError("ERROR: Р›РѕРєР°С†РёРё РЅРµ РёРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°РЅС‹!", null);
+                LoggingService.LogError("ERROR: Локации не инициализированы!", null);
                 return;
             }
 
-            LoggingService.LogDebug($"Р’СЃРµРіРѕ Р»РѕРєР°С†РёР№: {_gameState.Locations.Count}");
-            LoggingService.LogDebug($"РўРµРєСѓС‰РёР№ РёРЅРґРµРєСЃ: {_gameState.CurrentLocationIndex}");
+            // LoggingService.LogDebug($"Всего локаций: {_gameState.Locations.Count}");
+            // LoggingService.LogDebug($"Текущий индекс: {_gameState.CurrentLocationIndex}");
             
             for (int i = 0; i < _gameState.Locations.Count; i++)
             {
                 var location = _gameState.Locations[i];
-                LoggingService.LogDebug($"РРЅРґРµРєСЃ {i}: {location.Name} ({location.Type}) -> {location.SpritePath}");
+                // LoggingService.LogDebug($"Индекс {i}: {location.Name} ({location.Type}) -> {location.SpritePath}");
                 
-                // РџСЂРѕРІРµСЂСЏРµРј СЃРѕРѕС‚РІРµС‚СЃС‚РІРёРµ SpritePath Рё Type
+                // Проверяем соответствие SpritePath и Type
                 string expectedPath = AssetPaths.Locations.GetLocationPath(location.Type.ToString().ToLower());
                 if (location.SpritePath != expectedPath)
                 {
-                    LoggingService.LogDebug($"  WARNING: SpritePath mismatch! Expected: {expectedPath}, Actual: {location.SpritePath}");
+                    // LoggingService.LogDebug($"  WARNING: SpritePath mismatch! Expected: {expectedPath}, Actual: {location.SpritePath}");
                 }
             }
             
             if (_gameState.CurrentLocation != null)
             {
-                LoggingService.LogDebug($"РўРµРєСѓС‰Р°СЏ Р»РѕРєР°С†РёСЏ: {_gameState.CurrentLocation.Name} ({_gameState.CurrentLocation.Type})");
-                LoggingService.LogDebug($"РўРµРєСѓС‰РёР№ SpritePath: {_gameState.CurrentLocation.SpritePath}");
+                // LoggingService.LogDebug($"Текущая локация: {_gameState.CurrentLocation.Name} ({_gameState.CurrentLocation.Type})");
+                // LoggingService.LogDebug($"Текущий SpritePath: {_gameState.CurrentLocation.SpritePath}");
                 
-                // РџСЂРѕРІРµСЂСЏРµРј РїСЂР°РІРёР»СЊРЅРѕСЃС‚СЊ С‚РµРєСѓС‰РµР№ Р»РѕРєР°С†РёРё
+                // Проверяем правильность текущей локации
                 string expectedCurrentPath = AssetPaths.Locations.GetLocationPath(_gameState.CurrentLocation.Type.ToString().ToLower());
                 if (_gameState.CurrentLocation.SpritePath != expectedCurrentPath)
                 {
-                    LoggingService.LogDebug($"  WARNING: Current location SpritePath mismatch! Expected: {expectedCurrentPath}");
+                    // LoggingService.LogDebug($"  WARNING: Current location SpritePath mismatch! Expected: {expectedCurrentPath}");
                 }
             }
             else
             {
-                LoggingService.LogError("ERROR: CurrentLocation СЂР°РІРЅР° null!", null);
+                LoggingService.LogError("ERROR: CurrentLocation равна null!", null);
             }
             
-            LoggingService.LogDebug("=== РљРћРќР•Р¦ Р”РРђР“РќРћРЎРўРРљР ===");
+            // LoggingService.LogDebug("=== КОНЕЦ ДИАГНОСТИКИ ===");
         }
     }
 } 

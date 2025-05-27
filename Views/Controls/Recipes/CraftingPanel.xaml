@@ -58,7 +58,6 @@
                                                    Width="50" Height="50"
                                                    Margin="3"
                                                    Cursor="Hand"
-                                                   ToolTip="{Binding Name}"
                                                    MouseDown="CraftableItem_MouseDown">
                                         <!-- Добавляем визуальный индикатор возможности крафта -->
                                         <controls:CoreInventorySlot.Style>

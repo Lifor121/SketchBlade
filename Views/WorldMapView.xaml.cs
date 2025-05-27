@@ -1,4 +1,4 @@
-п»їusing System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using System.Windows.Media;
@@ -25,7 +25,7 @@ namespace SketchBlade.Views
     public partial class WorldMapView : UserControl
     {
         private LocationChangedEventArgs? _pendingLocationChange;
-        private bool _isProcessingLocationChange = false; // Р¤Р»Р°Рі РґР»СЏ РїСЂРµРґРѕС‚РІСЂР°С‰РµРЅРёСЏ РјРЅРѕР¶РµСЃС‚РІРµРЅРЅС‹С… РѕР±СЂР°Р±РѕС‚РѕРє
+        private bool _isProcessingLocationChange = false; // Флаг для предотвращения множественных обработок
         
         public WorldMapView()
         {
@@ -42,12 +42,12 @@ namespace SketchBlade.Views
         {
             try
             {
-                LoggingService.LogDebug("=== WorldMapView_Loaded START ===");
+                // LoggingService.LogDebug("=== WorldMapView_Loaded START ===");
                 
                 // Subscribe to location change events if the data context is MapViewModel
                 if (DataContext is MapViewModel viewModel)
                 {
-                    LoggingService.LogDebug("DataContext is MapViewModel, subscribing to events");
+                    // LoggingService.LogDebug("DataContext is MapViewModel, subscribing to events");
                     viewModel.LocationChanged += OnLocationChanged;
                     
                     // Load the current location image
@@ -56,7 +56,7 @@ namespace SketchBlade.Views
                     // Apply any pending location change
                     if (_pendingLocationChange != null)
                     {
-                        LoggingService.LogDebug("Applying pending location change");
+                        // LoggingService.LogDebug("Applying pending location change");
                         OnLocationChanged(this, _pendingLocationChange);
                         _pendingLocationChange = null;
                     }
@@ -64,18 +64,18 @@ namespace SketchBlade.Views
                     viewModel.RefreshLocations();
                     
                     // Log initial UI state
-                    LogUIState("After initial load");
+                    // LogUIState("After initial load"); // Отключено для производительности
                 }
                 else
                 {
-                    LoggingService.LogDebug("DataContext is NOT MapViewModel");
+                    // LoggingService.LogDebug("DataContext is NOT MapViewModel");
                 }
                 
-                LoggingService.LogDebug("=== WorldMapView_Loaded END ===");
+                // LoggingService.LogDebug("=== WorldMapView_Loaded END ===");
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"Error in WorldMapView_Loaded: {ex.Message}", ex);
+                // LoggingService.LogError($"Error in WorldMapView_Loaded: {ex.Message}", ex);
             }
         }
         
@@ -91,7 +91,7 @@ namespace SketchBlade.Views
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"Error in WorldMapView_Unloaded: {ex.Message}", ex);
+                // LoggingService.LogError($"Error in WorldMapView_Unloaded: {ex.Message}", ex);
             }
         }
         
@@ -135,7 +135,7 @@ namespace SketchBlade.Views
                         }
                         catch (Exception ex)
                         {
-                            LoggingService.LogError($"Error setting image binding: {ex.Message}", ex);
+                            // LoggingService.LogError($"Error setting image binding: {ex.Message}", ex);
                             try
                             {
                                 LocationImage.Source = ResourceService.Instance.GetImage(AssetPaths.DEFAULT_IMAGE);
@@ -147,16 +147,16 @@ namespace SketchBlade.Views
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"Error in LoadCurrentLocationImage: {ex.Message}", ex);
+                // LoggingService.LogError($"Error in LoadCurrentLocationImage: {ex.Message}", ex);
             }
         }
         
         private void OnLocationChanged(object sender, LocationChangedEventArgs e)
         {
-            // РџСЂРµРґРѕС‚РІСЂР°С‰Р°РµРј РјРЅРѕР¶РµСЃС‚РІРµРЅРЅС‹Рµ РѕР±СЂР°Р±РѕС‚РєРё РѕРґРЅРѕРіРѕ Рё С‚РѕРіРѕ Р¶Рµ СЃРѕР±С‹С‚РёСЏ
+            // Предотвращаем множественные обработки одного и того же события
             if (_isProcessingLocationChange)
             {
-                LoggingService.LogDebug("OnLocationChanged: РЈР¶Рµ РѕР±СЂР°Р±Р°С‚С‹РІР°РµС‚СЃСЏ СЃРјРµРЅР° Р»РѕРєР°С†РёРё, РїСЂРѕРїСѓСЃРєР°РµРј");
+                // LoggingService.LogDebug("OnLocationChanged: Уже обрабатывается смена локации, пропускаем");
                 return;
             }
             
@@ -164,61 +164,61 @@ namespace SketchBlade.Views
             
             try
             {
-                LoggingService.LogDebug("=== РћР‘Р РђР‘РћРўРљРђ РЎРњР•РќР« Р›РћРљРђР¦РР ===");
-                LoggingService.LogDebug($"РќР°РїСЂР°РІР»РµРЅРёРµ: {e.Direction}");
-                LoggingService.LogDebug($"РќРѕРІР°СЏ Р»РѕРєР°С†РёСЏ: {e.NewLocation.Name} ({e.NewLocation.Type})");
-                LoggingService.LogDebug($"РџСѓС‚СЊ Рє СЃРїСЂР°Р№С‚Сѓ (РґРѕ РїСЂРѕРІРµСЂРєРё): {e.NewLocation.SpritePath}");
+                // LoggingService.LogDebug("=== ОБРАБОТКА СМЕНЫ ЛОКАЦИИ ===");
+                // LoggingService.LogDebug($"Направление: {e.Direction}");
+                // LoggingService.LogDebug($"Новая локация: {e.NewLocation.Name} ({e.NewLocation.Type})");
+                // LoggingService.LogDebug($"Путь к спрайту (до проверки): {e.NewLocation.SpritePath}");
                 
                 if (string.IsNullOrEmpty(e.NewLocation.SpritePath))
                 {
                     string locationTypeName = e.NewLocation.Type.ToString().ToLower();
                     string typePath = AssetPaths.Locations.GetLocationPath(locationTypeName);
                     
-                    LoggingService.LogDebug($"РЎРїСЂР°Р№С‚ РїСѓС‚СЊ РїСѓСЃС‚РѕР№, СЃРѕР·РґР°РµРј РЅРѕРІС‹Р№: {typePath}");
+                    // LoggingService.LogDebug($"Спрайт путь пустой, создаем новый: {typePath}");
                     
                     string fullPath = System.IO.Path.Combine(
                         AppDomain.CurrentDomain.BaseDirectory, 
                         typePath
                     );
                     
-                    LoggingService.LogDebug($"РџРѕР»РЅС‹Р№ РїСѓС‚СЊ: {fullPath}");
-                    LoggingService.LogDebug($"Р¤Р°Р№Р» СЃСѓС‰РµСЃС‚РІСѓРµС‚: {System.IO.File.Exists(fullPath)}");
+                    // LoggingService.LogDebug($"Полный путь: {fullPath}");
+                    // LoggingService.LogDebug($"Файл существует: {System.IO.File.Exists(fullPath)}");
                     
                     if (System.IO.File.Exists(fullPath))
                     {
                         e.NewLocation.SpritePath = typePath;
-                        LoggingService.LogDebug($"РЈСЃС‚Р°РЅРѕРІР»РµРЅ РїСѓС‚СЊ Рє СЃРїСЂР°Р№С‚Сѓ: {typePath}");
+                        // LoggingService.LogDebug($"Установлен путь к спрайту: {typePath}");
                     }
                     else
                     {
                         e.NewLocation.SpritePath = AssetPaths.DEFAULT_IMAGE;
-                        LoggingService.LogDebug("Р¤Р°Р№Р» РЅРµ РЅР°Р№РґРµРЅ, РёСЃРїРѕР»СЊР·СѓРµРј def.png");
+                        // LoggingService.LogDebug("Файл не найден, используем def.png");
                     }
                 }
                 
-                LoggingService.LogDebug($"Р¤РёРЅР°Р»СЊРЅС‹Р№ РїСѓС‚СЊ Рє СЃРїСЂР°Р№С‚Сѓ: {e.NewLocation.SpritePath}");
+                // LoggingService.LogDebug($"Финальный путь к спрайту: {e.NewLocation.SpritePath}");
                 
                 // Preload the image to ensure it's available
                 var image = ResourceService.Instance.GetImage(e.NewLocation.SpritePath);
-                LoggingService.LogDebug($"РР·РѕР±СЂР°Р¶РµРЅРёРµ Р·Р°РіСЂСѓР¶РµРЅРѕ: {image != null}");
+                // LoggingService.LogDebug($"Изображение загружено: {image != null}");
                 
-                // Р’С‹РїРѕР»РЅСЏРµРј РѕР±РЅРѕРІР»РµРЅРёРµ UI С‚РѕР»СЊРєРѕ РѕРґРёРЅ СЂР°Р·
+                // Выполняем обновление UI только один раз
                 Dispatcher.BeginInvoke(new Action(() => {
                     try
                     {
-                        LogUIState("Before transition");
+                        // LogUIState("Before transition"); // Отключено для производительности
                         
-                        // РЈРїСЂРѕС‰РµРЅРЅС‹Р№ РїРѕРґС…РѕРґ: РїСЂРѕСЃС‚Рѕ РјРµРЅСЏРµРј РёР·РѕР±СЂР°Р¶РµРЅРёРµ Р±РµР· СЃР»РѕР¶РЅРѕР№ Р°РЅРёРјР°С†РёРё
-                        // Р­С‚Рѕ РїСЂРµРґРѕС‚РІСЂР°С‰Р°РµС‚ РёСЃС‡РµР·РЅРѕРІРµРЅРёРµ РєСЂСѓР¶РѕС‡РєРѕРІ Рё СЃС‚СЂРµР»РѕС‡РµРє
-                        LoggingService.LogDebug("Using simplified image transition without complex animation");
+                        // Упрощенный подход: просто меняем изображение без сложной анимации
+                        // Это предотвращает исчезновение кружочков и стрелочек
+                        // LoggingService.LogDebug("Using simplified image transition without complex animation");
                         LocationImage.Source = ResourceService.Instance.GetImage(e.NewLocation.SpritePath);
-                        LoggingService.LogDebug("Image source changed successfully");
+                        // LoggingService.LogDebug("Image source changed successfully");
                         
-                        LogUIState("After simplified transition");
+                        // LogUIState("After simplified transition"); // Отключено для производительности
                     }
                     catch (Exception ex)
                     {
-                        LoggingService.LogError($"Error during transition: {ex.Message}", ex);
+                        // LoggingService.LogError($"Error during transition: {ex.Message}", ex);
                         // Fallback to default image
                         try
                         {
@@ -228,17 +228,17 @@ namespace SketchBlade.Views
                     }
                     finally
                     {
-                        // РЎР±СЂР°СЃС‹РІР°РµРј С„Р»Р°Рі РѕР±СЂР°Р±РѕС‚РєРё РїРѕСЃР»Рµ Р·Р°РІРµСЂС€РµРЅРёСЏ
+                        // Сбрасываем флаг обработки после завершения
                         _isProcessingLocationChange = false;
-                        LoggingService.LogDebug("Location change processing completed");
+                        // LoggingService.LogDebug("Location change processing completed");
                     }
                 }));
                 
-                LoggingService.LogDebug("=== РљРћРќР•Р¦ РћР‘Р РђР‘РћРўРљР РЎРњР•РќР« Р›РћРљРђР¦РР ===");
+                // LoggingService.LogDebug("=== КОНЕЦ ОБРАБОТКИ СМЕНЫ ЛОКАЦИИ ===");
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"Error in OnLocationChanged: {ex.Message}", ex);
+                // LoggingService.LogError($"Error in OnLocationChanged: {ex.Message}", ex);
                 
                 try
                 {
@@ -263,83 +263,9 @@ namespace SketchBlade.Views
         
         private void LogUIState(string context)
         {
-            try
-            {
-                LoggingService.LogDebug($"=== UI STATE: {context} ===");
-                
-                // Log LocationImage state
-                LoggingService.LogDebug($"LocationImage.ActualWidth: {LocationImage.ActualWidth}");
-                LoggingService.LogDebug($"LocationImage.ActualHeight: {LocationImage.ActualHeight}");
-                LoggingService.LogDebug($"LocationImage.Width: {LocationImage.Width}");
-                LoggingService.LogDebug($"LocationImage.Height: {LocationImage.Height}");
-                LoggingService.LogDebug($"LocationImage.MaxWidth: {LocationImage.MaxWidth}");
-                LoggingService.LogDebug($"LocationImage.MaxHeight: {LocationImage.MaxHeight}");
-                LoggingService.LogDebug($"LocationImage.Stretch: {LocationImage.Stretch}");
-                LoggingService.LogDebug($"LocationImage.Visibility: {LocationImage.Visibility}");
-                
-                // Log parent Viewbox state
-                if (LocationImage.Parent is Border border)
-                {
-                    LoggingService.LogDebug($"Border.ActualWidth: {border.ActualWidth}");
-                    LoggingService.LogDebug($"Border.ActualHeight: {border.ActualHeight}");
-                    LoggingService.LogDebug($"Border.MaxWidth: {border.MaxWidth}");
-                    LoggingService.LogDebug($"Border.MaxHeight: {border.MaxHeight}");
-                    LoggingService.LogDebug($"Border.HorizontalAlignment: {border.HorizontalAlignment}");
-                    LoggingService.LogDebug($"Border.VerticalAlignment: {border.VerticalAlignment}");
-                }
-                else if (LocationImage.Parent is Viewbox viewbox)
-                {
-                    LoggingService.LogDebug($"Viewbox.ActualWidth: {viewbox.ActualWidth}");
-                    LoggingService.LogDebug($"Viewbox.ActualHeight: {viewbox.ActualHeight}");
-                    LoggingService.LogDebug($"Viewbox.Stretch: {viewbox.Stretch}");
-                }
-                else
-                {
-                    LoggingService.LogDebug($"LocationImage parent type: {LocationImage.Parent?.GetType().Name ?? "null"}");
-                }
-                
-                // Find and log indicators state
-                var indicatorsControl = FindName("LocationIndicators") as ItemsControl;
-                if (indicatorsControl == null)
-                {
-                    // Try to find it in the visual tree
-                    indicatorsControl = FindVisualChild<ItemsControl>(this);
-                }
-                
-                if (indicatorsControl != null)
-                {
-                    LoggingService.LogDebug($"LocationIndicators found");
-                    LoggingService.LogDebug($"LocationIndicators.Visibility: {indicatorsControl.Visibility}");
-                    LoggingService.LogDebug($"LocationIndicators.ActualWidth: {indicatorsControl.ActualWidth}");
-                    LoggingService.LogDebug($"LocationIndicators.ActualHeight: {indicatorsControl.ActualHeight}");
-                    LoggingService.LogDebug($"LocationIndicators.ItemsSource count: {(indicatorsControl.ItemsSource as System.Collections.ICollection)?.Count ?? 0}");
-                }
-                else
-                {
-                    LoggingService.LogDebug("LocationIndicators NOT found");
-                }
-                
-                // Find and log navigation buttons
-                var navigationPanel = FindVisualChild<StackPanel>(this, sp => sp.Orientation == Orientation.Horizontal);
-                if (navigationPanel != null)
-                {
-                    LoggingService.LogDebug($"Navigation panel found");
-                    LoggingService.LogDebug($"Navigation panel.Visibility: {navigationPanel.Visibility}");
-                    LoggingService.LogDebug($"Navigation panel.ActualWidth: {navigationPanel.ActualWidth}");
-                    LoggingService.LogDebug($"Navigation panel.ActualHeight: {navigationPanel.ActualHeight}");
-                    LoggingService.LogDebug($"Navigation panel children count: {navigationPanel.Children.Count}");
-                }
-                else
-                {
-                    LoggingService.LogDebug("Navigation panel NOT found");
-                }
-                
-                LoggingService.LogDebug($"=== END UI STATE: {context} ===");
-            }
-            catch (Exception ex)
-            {
-                LoggingService.LogError($"Error in LogUIState: {ex.Message}", ex);
-            }
+            // Метод полностью отключен для улучшения производительности
+            // Раскомментируйте код ниже только для отладки критических UI проблем
+            return;
         }
         
         private T FindVisualChild<T>(DependencyObject parent, Func<T, bool> predicate = null) where T : DependencyObject

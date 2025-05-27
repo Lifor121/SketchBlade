@@ -104,7 +104,7 @@ namespace SketchBlade.Services
             EnsureConfigDirectoryExists();
             Load();
             SetDefaultValues();
-            LoggingService.LogDebug("ConfigService initialized");
+            // LoggingService.LogDebug("ConfigService initialized");
         }
 
         #region Configuration Management
@@ -391,7 +391,7 @@ namespace SketchBlade.Services
                 SetDefaultIfNotExists(NOTIFICATION_DURATION, 3.0);
                 SetDefaultIfNotExists("MaxNotifications", 5);
 
-                LoggingService.LogDebug("Default configuration values set");
+                // LoggingService.LogDebug("Default configuration values set");
             }
             catch (Exception ex)
             {

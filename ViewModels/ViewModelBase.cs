@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using SketchBlade.Services;
@@ -31,7 +31,7 @@ namespace SketchBlade.ViewModels
 
         protected void LogDebug(string message, [CallerMemberName] string? context = null)
         {
-            LoggingService.LogDebug($"[{context ?? GetType().Name}] {message}");
+            // LoggingService.LogDebug($"[{context ?? GetType().Name}] {message}");
         }
 
         protected void LogWarning(string message, [CallerMemberName] string? context = null)

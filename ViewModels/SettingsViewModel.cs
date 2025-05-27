@@ -117,9 +117,6 @@ namespace SketchBlade.ViewModels
             }
             catch (Exception ex)
             {
-                System.IO.File.AppendAllText("error_log.txt",
-                    $"[{DateTime.Now}] Error applying setting {propertyName}: {ex.Message}\r\n");
-                
                 // Показываем уведомление только при ошибках
                 MessageBox.Show(
                     LocalizationService.Instance.GetTranslation("Settings.ApplyError"),
@@ -136,25 +133,16 @@ namespace SketchBlade.ViewModels
             
             // Обновляем весь экран настроек мгновенно
             RefreshSettingsScreen();
-            
-            System.IO.File.AppendAllText("error_log.txt",
-                $"[{DateTime.Now}] Language applied: {Settings.Language}\r\n");
         }
         
         private void ApplyDifficultyChange()
         {
             // Сложность применяется без уведомлений - будет использована в следующих боях
-            // Логирование для отладки
-            System.IO.File.AppendAllText("error_log.txt",
-                $"[{DateTime.Now}] Difficulty changed to: {Settings.Difficulty}\r\n");
         }
         
         private void ApplyDamageNumbersSettingChange()
         {
             // Уведомляем все элементы что настройка показа урона изменилась
-            System.IO.File.AppendAllText("error_log.txt",
-                $"[{DateTime.Now}] Damage numbers setting changed to: {Settings.ShowCombatDamageNumbers}\r\n");
-                
             // Принудительно обновляем GameData чтобы боевой экран получил обновление
             _gameState.OnPropertyChanged(nameof(_gameState.Settings));
         }
@@ -240,8 +228,6 @@ namespace SketchBlade.ViewModels
             }
             catch (Exception ex)
             {
-                System.IO.File.AppendAllText("error_log.txt",
-                    $"[{DateTime.Now}] Error resetting settings: {ex.Message}\r\n");
                 MessageBox.Show(
                     LocalizationService.Instance.GetTranslation("Settings.ResetError"),
                     LocalizationService.Instance.GetTranslation("Settings.Title"),

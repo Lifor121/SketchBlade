@@ -1,4 +1,4 @@
-п»їusing System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -71,11 +71,11 @@ namespace SketchBlade.ViewModels
         private ICommand? _navigateCommand;
         public ICommand NavigateCommand => _navigateCommand ??= new RelayCommand(
             param => {
-                LoggingService.LogDebug($"NavigateCommand РІС‹РїРѕР»РЅСЏРµС‚СЃСЏ СЃ РїР°СЂР°РјРµС‚СЂРѕРј: {param?.ToString() ?? "null"}");
+                // LoggingService.LogDebug($"NavigateCommand выполняется с параметром: {param?.ToString() ?? "null"}");
                 Navigate(param?.ToString() ?? string.Empty);
             },
             _ => {
-                LoggingService.LogDebug("NavigateCommand.CanExecute РїСЂРѕРІРµСЂСЏРµС‚СЃСЏ");
+                // LoggingService.LogDebug("NavigateCommand.CanExecute проверяется");
                 return true;
             },
             "NavigateCommand");
@@ -124,20 +124,20 @@ namespace SketchBlade.ViewModels
         
         public MainViewModel(Action<string> navigateAction)
         {
-            LoggingService.LogDebug("=== РРќРР¦РРђР›РР—РђР¦РРЇ MainViewModel ===");
+            // LoggingService.LogDebug("=== ИНИЦИАЛИЗАЦИЯ MainViewModel ===");
             _navigateAction = navigateAction ?? throw new ArgumentNullException(nameof(navigateAction));
-            LoggingService.LogDebug("navigateAction СѓСЃС‚Р°РЅРѕРІР»РµРЅ");
+            // LoggingService.LogDebug("navigateAction установлен");
             _inventoryViewModel = new InventoryViewModel(_gameState);
-            LoggingService.LogDebug("InventoryViewModel СЃРѕР·РґР°РЅ");
+            // LoggingService.LogDebug("InventoryViewModel создан");
             InitializeViewModel(navigateAction);
-            LoggingService.LogDebug("=== MainViewModel РРќРР¦РРђР›РР—РР РћР’РђРќ ===");
+            // LoggingService.LogDebug("=== MainViewModel ИНИЦИАЛИЗИРОВАН ===");
         }
         
         private void InitializeViewModel(Action<string> navigateAction)
         {
             try
             {
-                // РџСЂРѕРІРµСЂСЏРµРј, РїСЂР°РІРёР»СЊРЅРѕ Р»Рё РїРµСЂРµРґР°РЅС‹ РїР°СЂР°РјРµС‚СЂС‹
+                // Проверяем, правильно ли переданы параметры
                 if (navigateAction == null)
                 {
                     LoggingService.LogError("navigateAction is null!", null);
@@ -148,7 +148,7 @@ namespace SketchBlade.ViewModels
                 if (_gameState == null)
                 {
                     _gameState = new GameData();
-                    LoggingService.LogDebug("РРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°РЅС‹ Р±Р°Р·РѕРІС‹Рµ Р»РѕРєР°С†РёРё РґР»СЏ UI: {_gameState.Locations.Count} Р»РѕРєР°С†РёР№");
+                    // LoggingService.LogDebug("Инициализированы базовые локации для UI: {_gameState.Locations.Count} локаций");
                 }
                 
                 // Create commands
@@ -163,13 +163,13 @@ namespace SketchBlade.ViewModels
                 // Register the ViewModel in Application Resources
                 if (Application.Current != null)
                 {
-                    LoggingService.LogDebug("Р РµРіРёСЃС‚СЂРёСЂСѓРµРј InventoryViewModel РІ Application.Resources");
+                    // LoggingService.LogDebug("Регистрируем InventoryViewModel в Application.Resources");
                     Application.Current.Resources["InventoryViewModel"] = InventoryViewModel;
                     
                     // Also register the GameData
                     if (!Application.Current.Resources.Contains("GameData"))
                     {
-                        LoggingService.LogDebug("Р РµРіРёСЃС‚СЂРёСЂСѓРµРј GameData РІ Application.Resources");
+                        // LoggingService.LogDebug("Регистрируем GameData в Application.Resources");
                         Application.Current.Resources["GameData"] = _gameState;
                     }
                 }
@@ -185,7 +185,7 @@ namespace SketchBlade.ViewModels
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"РћС€РёР±РєР° РёРЅРёС†РёР°Р»РёР·Р°С†РёРё MainViewModel: {ex.Message}", ex);
+                LoggingService.LogError($"Ошибка инициализации MainViewModel: {ex.Message}", ex);
             }
         }
         
@@ -225,7 +225,7 @@ namespace SketchBlade.ViewModels
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"РћС€РёР±РєР° РёРЅРёС†РёР°Р»РёР·Р°С†РёРё РєРѕРјР°РЅРґ: {ex.Message}", ex);
+                LoggingService.LogError($"Ошибка инициализации команд: {ex.Message}", ex);
             }
         }
         
@@ -240,46 +240,46 @@ namespace SketchBlade.ViewModels
                     return;
                 }
 
-                LoggingService.LogInfo("=== РќРђР§РђР›Рћ РЎРћР—Р”РђРќРРЇ РќРћР’РћР™ РР“Р Р« ===");
+                // LoggingService.LogInfo("=== НАЧАЛО СОЗДАНИЯ НОВОЙ ИГРЫ ===");
 
-                // РРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј РёРіСЂСѓ
+                // Инициализируем игру
                 _gameState.Initialize();
                 
-                // РћРџРўРРњРР—РђР¦РРЇ: РЈР±РёСЂР°РµРј РёР·Р±С‹С‚РѕС‡РЅС‹Рµ РІС‹Р·РѕРІС‹ СЂРµРёРЅРёС†РёР°Р»РёР·Р°С†РёРё
-                // РЎРёСЃС‚РµРјР° РєСЂР°С„С‚Р° Р±СѓРґРµС‚ РёРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°РЅР° Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё РїСЂРё РїРµСЂРІРѕРј РѕР±СЂР°С‰РµРЅРёРё
-                LoggingService.LogInfo("РРіСЂР° РёРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°РЅР°, РїРµСЂРµС…РѕРґРёРј Рє СЌРєСЂР°РЅСѓ РёРЅРІРµРЅС‚Р°СЂСЏ");
+                // ОПТИМИЗАЦИЯ: Убираем избыточные вызовы реинициализации
+                // Система крафта будет инициализирована автоматически при первом обращении
+                // LoggingService.LogInfo("Игра инициализирована, переходим к экрану инвентаря");
                 
-                // РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј С‚РµРєСѓС‰РёР№ СЌРєСЂР°РЅ
-                LoggingService.LogDebug("РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј CurrentScreen = InventoryView");
+                // Устанавливаем текущий экран
+                // LoggingService.LogDebug("Устанавливаем CurrentScreen = InventoryView");
                 CurrentScreen = "InventoryView";
-                LoggingService.LogDebug($"CurrentScreen СѓСЃС‚Р°РЅРѕРІР»РµРЅ: {CurrentScreen}");
+                // LoggingService.LogDebug($"CurrentScreen установлен: {CurrentScreen}");
                 
-                // РќР°РІРёРіР°С†РёСЏ
-                LoggingService.LogDebug("Р’С‹Р·С‹РІР°РµРј _navigateAction СЃ InventoryView");
+                // Навигация
+                // LoggingService.LogDebug("Вызываем _navigateAction с InventoryView");
                 _navigateAction?.Invoke("InventoryView");
-                LoggingService.LogDebug("_navigateAction Р·Р°РІРµСЂС€РµРЅ");
+                // LoggingService.LogDebug("_navigateAction завершен");
                 
-                // РџСЂРѕРІРµСЂСЏРµРј, С‡С‚Рѕ РЅР°РІРёРіР°С†РёСЏ РїСЂРѕС€Р»Р° СѓСЃРїРµС€РЅРѕ
-                LoggingService.LogDebug($"CurrentScreen РїРѕСЃР»Рµ РЅР°РІРёРіР°С†РёРё: {CurrentScreen}");
+                // Проверяем, что навигация прошла успешно
+                // LoggingService.LogDebug($"CurrentScreen после навигации: {CurrentScreen}");
                 
-                // Р•СЃР»Рё РЅР°РІРёРіР°С†РёСЏ РЅРµ СЃСЂР°Р±РѕС‚Р°Р»Р°, РїРѕРїСЂРѕР±СѓРµРј РµС‰Рµ СЂР°Р· С‡РµСЂРµР· Dispatcher
+                // Если навигация не сработала, попробуем еще раз через Dispatcher
                 if (CurrentScreen != "InventoryView")
                 {
-                    LoggingService.LogDebug("РќР°РІРёРіР°С†РёСЏ РЅРµ СЃСЂР°Р±РѕС‚Р°Р»Р°, РїСЂРѕР±СѓРµРј С‡РµСЂРµР· Dispatcher");
+                    // LoggingService.LogDebug("Навигация не сработала, пробуем через Dispatcher");
                     Application.Current.Dispatcher.BeginInvoke(new Action(() => {
-                        LoggingService.LogDebug("РџРѕРІС‚РѕСЂРЅР°СЏ РїРѕРїС‹С‚РєР° РЅР°РІРёРіР°С†РёРё С‡РµСЂРµР· Dispatcher");
+                        // LoggingService.LogDebug("Повторная попытка навигации через Dispatcher");
                         CurrentScreen = "InventoryView";
                         _navigateAction?.Invoke("InventoryView");
-                        LoggingService.LogDebug($"CurrentScreen РїРѕСЃР»Рµ РїРѕРІС‚РѕСЂРЅРѕР№ РЅР°РІРёРіР°С†РёРё: {CurrentScreen}");
+                        // LoggingService.LogDebug($"CurrentScreen после повторной навигации: {CurrentScreen}");
                     }));
                 }
                 
-                LoggingService.LogInfo("New game started successfully");
+                // LoggingService.LogInfo("New game started successfully");
             }
             catch (Exception ex)
             {
                 LoggingService.LogError($"Error starting new game: {ex.Message}", ex);
-                MessageBox.Show($"РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё РЅРѕРІРѕР№ РёРіСЂС‹: {ex.Message}", "РћС€РёР±РєР°", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Ошибка при создании новой игры: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         
@@ -294,20 +294,20 @@ namespace SketchBlade.ViewModels
                     return;
                 }
 
-                LoggingService.LogDebug("LoadGame РІС‹Р·РІР°РЅ - РїРµСЂРµРєР»СЋС‡РµРЅРёРµ РЅР° СЌРєСЂР°РЅ Inventory");
+                // LoggingService.LogDebug("LoadGame вызван - переключение на экран Inventory");
                 _gameState.LoadGame();
                 
-                // РЎРЅР°С‡Р°Р»Р° СѓСЃС‚Р°РЅРѕРІРёРј Р·РЅР°С‡РµРЅРёРµ CurrentScreen, Р·Р°С‚РµРј РІС‹РїРѕР»РЅРёРј РЅР°РІРёРіР°С†РёСЋ
-                LoggingService.LogDebug($"РўРµРєСѓС‰РёР№ СЌРєСЂР°РЅ РґРѕ РёР·РјРµРЅРµРЅРёСЏ: {CurrentScreen}");
+                // Сначала установим значение CurrentScreen, затем выполним навигацию
+                // LoggingService.LogDebug($"Текущий экран до изменения: {CurrentScreen}");
                 CurrentScreen = "InventoryView";
-                LoggingService.LogDebug($"РўРµРєСѓС‰РёР№ СЌРєСЂР°РЅ РїРѕСЃР»Рµ РёР·РјРµРЅРµРЅРёСЏ: {CurrentScreen}");
+                // LoggingService.LogDebug($"Текущий экран после изменения: {CurrentScreen}");
                 
-                // РСЃРїРѕР»СЊР·СѓРµРј _navigateAction РІРјРµСЃС‚Рѕ РїСЂРѕСЃС‚Рѕ РёР·РјРµРЅРµРЅРёСЏ CurrentScreen
+                // Используем _navigateAction вместо просто изменения CurrentScreen
                 _navigateAction("InventoryView");
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё РёРіСЂС‹: {ex.Message}", ex);
+                LoggingService.LogError($"Ошибка загрузки игры: {ex.Message}", ex);
             }
         }
         
@@ -322,41 +322,35 @@ namespace SketchBlade.ViewModels
                     return;
                 }
 
-                LoggingService.LogDebug($"MainViewModel.Navigate РІС‹Р·РІР°РЅ СЃ СЌРєСЂР°РЅРѕРј: {screenName}");
-                
                 // Update current screen
                 if (!string.IsNullOrEmpty(screenName))
                 {
                     CurrentScreen = screenName;
-                    LoggingService.LogDebug($"MainViewModel.CurrentScreen РѕР±РЅРѕРІР»РµРЅ РґРѕ {CurrentScreen}");
                 }
                 
                 // Call navigation action
                 if (_navigateAction != null)
                 {
-                    LoggingService.LogDebug($"Р’С‹Р·С‹РІР°РµРј _navigateAction СЃ {screenName}");
                     _navigateAction(screenName);
-                    LoggingService.LogDebug("_navigateAction Р·Р°РІРµСЂС€РµРЅ");
                 }
                 else
                 {
-                    LoggingService.LogError("РћС€РёР±РєР°: _navigateAction РЎСЂР°РІРЅСЏР»СЃСЏ null");
+                    LoggingService.LogError("Ошибка: _navigateAction Сравнялся null");
                     // Fallback: Try to navigate using MainWindow directly
                     var mainWindow = Application.Current.MainWindow as MainWindow;
                     if (mainWindow != null)
                     {
-                        LoggingService.LogDebug("РСЃРїРѕР»СЊР·СѓРµРј MainWindow РґР»СЏ РЅР°РІРёРіР°С†РёРё");
                         mainWindow.NavigateToScreen(screenName);
                     }
                     else
                     {
-                        LoggingService.LogError("РћС€РёР±РєР°: РќРµРІРѕР·РјРѕР¶РЅРѕ РЅР°РІРёРіР°С†РёСЋ - _navigateAction РЎСЂР°РІРЅСЏР»СЃСЏ null Рё MainWindow РЅРµРґРѕСЃС‚СѓРїРµРЅ");
+                        LoggingService.LogError("Ошибка: Невозможно навигацию - _navigateAction Сравнялся null и MainWindow недоступен");
                     }
                 }
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"РћС€РёР±РєР° РЅР°РІРёРіР°С†РёРё: {ex.Message}", ex);
+                LoggingService.LogError($"Ошибка навигации: {ex.Message}", ex);
             }
         }
         
@@ -422,13 +416,13 @@ namespace SketchBlade.ViewModels
                 return;
             }
 
-            // Р—Р°РіСЂСѓР¶Р°РµРј РёРіСЂСѓ
+            // Загружаем игру
             _gameState.LoadGame();
             
-            // РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј С‚РµРєСѓС‰РёР№ СЌРєСЂР°РЅ
+            // Устанавливаем текущий экран
             CurrentScreen = "InventoryView";
             
-            // РќР°РІРёРіР°С†РёСЏ
+            // Навигация
             _navigateAction?.Invoke("InventoryView");
         }
         
@@ -461,7 +455,7 @@ namespace SketchBlade.ViewModels
                     return;
                 }
 
-                LoggingService.LogDebug("ExitGame РІС‹Р·РІР°РЅ");
+                // LoggingService.LogDebug("ExitGame вызван");
                 // Save game before exit
                 _gameState.SaveGame();
                 
@@ -471,7 +465,7 @@ namespace SketchBlade.ViewModels
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"РћС€РёР±РєР° РІС‹С…РѕРґР° РёР· РёРіСЂС‹: {ex.Message}", ex);
+                LoggingService.LogError($"Ошибка выхода из игры: {ex.Message}", ex);
             }
         }
 
@@ -494,7 +488,7 @@ namespace SketchBlade.ViewModels
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"РћС€РёР±РєР° РІ NavigateToScreen: {ex.Message}", ex);
+                LoggingService.LogError($"Ошибка в NavigateToScreen: {ex.Message}", ex);
             }
         }
 
@@ -520,7 +514,7 @@ namespace SketchBlade.ViewModels
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"РћС€РёР±РєР° РІ GameState_PropertyChanged: {ex.Message}", ex);
+                LoggingService.LogError($"Ошибка в GameState_PropertyChanged: {ex.Message}", ex);
             }
         }
 
@@ -535,12 +529,12 @@ namespace SketchBlade.ViewModels
                     return;
                 }
 
-                LoggingService.LogDebug("SaveGame РІС‹Р·РІР°РЅ");
+                // LoggingService.LogDebug("SaveGame вызван");
                 _gameState.SaveGame();
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"РћС€РёР±РєР° СЃРѕС…СЂР°РЅРµРЅРёСЏ РёРіСЂС‹: {ex.Message}", ex);
+                LoggingService.LogError($"Ошибка сохранения игры: {ex.Message}", ex);
             }
         }
 
@@ -560,7 +554,7 @@ namespace SketchBlade.ViewModels
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"РћС€РёР±РєР° РІ NavigateToView: {ex.Message}", ex);
+                LoggingService.LogError($"Ошибка в NavigateToView: {ex.Message}", ex);
             }
         }
         
@@ -575,22 +569,22 @@ namespace SketchBlade.ViewModels
                     return;
                 }
 
-                LoggingService.LogDebug("RefreshUI: РџСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕРµ РѕР±РЅРѕРІР»РµРЅРёРµ UI");
+                // LoggingService.LogDebug("RefreshUI: Принудительное обновление UI");
                 
-                // РћР±РЅРѕРІР»СЏРµРј InventoryViewModel РµСЃР»Рё РѕРЅ СЃСѓС‰РµСЃС‚РІСѓРµС‚
+                // Обновляем InventoryViewModel если он существует
                 if (InventoryViewModel != null)
                 {
                     InventoryViewModel.RefreshAllSlots();
                     InventoryViewModel.ForceUIUpdate();
                     
-                    // РћР±РЅРѕРІР»СЏРµРј РєСЂР°С„С‚ РµСЃР»Рё РѕРЅ РёРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°РЅ
+                    // Обновляем крафт если он инициализирован
                     if (InventoryViewModel.SimplifiedCraftingViewModel != null)
                     {
                         InventoryViewModel.SimplifiedCraftingViewModel.RefreshAvailableRecipes();
                     }
                 }
                 
-                // РћР±РЅРѕРІР»СЏРµРј РІСЃРµ СЃРІРѕР№СЃС‚РІР° MainViewModel
+                // Обновляем все свойства MainViewModel
                 OnPropertyChanged(nameof(CurrentScreen));
                 OnPropertyChanged(nameof(IsMainMenuVisible));
                 OnPropertyChanged(nameof(IsInventoryVisible));
@@ -599,13 +593,13 @@ namespace SketchBlade.ViewModels
                 OnPropertyChanged(nameof(IsShopVisible));
                 OnPropertyChanged(nameof(HasSaveGame));
                 
-                // РџСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕ РѕР±РЅРѕРІР»СЏРµРј MainWindow РµСЃР»Рё РґРѕСЃС‚СѓРїРЅРѕ
+                // Принудительно обновляем MainWindow если доступно
                 if (Application.Current.MainWindow is MainWindow mainWindow)
                 {
                     mainWindow.RefreshCurrentScreen();
                 }
                 
-                LoggingService.LogDebug("RefreshUI: РћР±РЅРѕРІР»РµРЅРёРµ UI Р·Р°РІРµСЂС€РµРЅРѕ");
+                // LoggingService.LogDebug("RefreshUI: Обновление UI завершено");
             }
             catch (Exception ex)
             {

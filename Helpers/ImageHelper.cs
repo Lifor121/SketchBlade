@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Windows.Media.Imaging;
 using System.Windows.Media;
@@ -54,7 +54,7 @@ namespace SketchBlade.Helpers
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"РћС€РёР±РєР° РІ РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂРµ ImageHelper: {ex.Message}", ex);
+                LoggingService.LogError($"Ошибка в конструкторе ImageHelper: {ex.Message}", ex);
             }
         }
         
@@ -65,7 +65,7 @@ namespace SketchBlade.Helpers
                 if (_isCacheInitialized)
                     return;
                     
-                LoggingService.LogDebug("Инициализация кэша изображений");
+                // LoggingService.LogDebug("������������� ���� �����������");
                 
                 string basePath = AppDomain.CurrentDomain.BaseDirectory;
                 string defaultImagePath = Path.Combine(basePath, AssetPaths.DEFAULT_IMAGE);
@@ -73,16 +73,12 @@ namespace SketchBlade.Helpers
                 if (File.Exists(defaultImagePath))
                 {
                     _defaultImage = CreateCachedBitmapImage(defaultImagePath);
-                    _imageCache[AssetPaths.DEFAULT_IMAGE] = _defaultImage; // Кэшируем def.png по его пути
-                    LoggingService.LogDebug($"Загружено дефолтное изображение из {defaultImagePath}");
+                    _imageCache[AssetPaths.DEFAULT_IMAGE] = _defaultImage; // �������� def.png �� ��� ����
+                    // LoggingService.LogDebug($"��������� ��������� ����������� �� {defaultImagePath}");
                 }
                 else
                 {
-                    Console.WriteLine($"WARNING: Default image not found at {defaultImagePath}");
-                    Console.WriteLine("You should manually add the def.png file to Assets/Images/ directory.");
-                    
                     _defaultImage = new BitmapImage();
-                    Console.WriteLine($"Created an empty BitmapImage as temporary default");
                 }
                 
                 string locationsPath = Path.Combine(basePath, "Assets/Images/Locations");
@@ -98,11 +94,10 @@ namespace SketchBlade.Helpers
                             try
                             {
                                 _imageCache[relativePath] = CreateCachedBitmapImage(file);
-                                Console.WriteLine($"Cached image: {relativePath}");
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine($"Failed to cache image {relativePath}: {ex.Message}");
+                                // Failed to cache image - continue silently
                             }
                         }
                     }
@@ -111,28 +106,11 @@ namespace SketchBlade.Helpers
                 string charactersPath = Path.Combine(basePath, "Assets/Images/Characters");
                 EnsureDirectoryExists(charactersPath);
                 
-                Console.WriteLine("Checking character sprites:");
-                
-                string playerPath = Path.Combine(basePath, AssetPaths.Characters.PLAYER);
-                string npcPath = Path.Combine(basePath, AssetPaths.Characters.NPC);
-                string heroPath = Path.Combine(basePath, AssetPaths.Characters.HERO);
-                
-                Console.WriteLine($"Player sprite: {(File.Exists(playerPath) ? "Found" : "Missing")}");
-                Console.WriteLine($"NPC sprite: {(File.Exists(npcPath) ? "Found" : "Missing")}");
-                Console.WriteLine($"Hero sprite: {(File.Exists(heroPath) ? "Found" : "Missing")}");
-                
-                if (!File.Exists(playerPath) || !File.Exists(npcPath) || !File.Exists(heroPath))
-                {
-                    Console.WriteLine("Some character sprites are missing. Please add them manually.");
-                }
-                
                 _isCacheInitialized = true;
-                Console.WriteLine("Image cache initialization completed");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error initializing image cache: {ex.Message}");
-                Console.WriteLine(ex.StackTrace);
+                // Error initializing image cache - continue silently
             }
         }
         
@@ -158,11 +136,6 @@ namespace SketchBlade.Helpers
                     if (image.CanFreeze)
                     {
                         image.Freeze();
-                        Console.WriteLine($"Image frozen successfully: {filePath}");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"WARNING: Image cannot be frozen: {filePath}");
                     }
                 }
                 
@@ -170,7 +143,6 @@ namespace SketchBlade.Helpers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in CreateCachedBitmapImage for {filePath}: {ex.Message}");
                 
                 BitmapImage fallbackImage = new BitmapImage();
                 fallbackImage.BeginInit();
@@ -193,7 +165,6 @@ namespace SketchBlade.Helpers
             try
             {
                 string basePath = AppDomain.CurrentDomain.BaseDirectory;
-                Console.WriteLine($"Base path: {basePath}");
                 
                 EnsureDirectoryExists(Path.Combine(basePath, "Assets"));
                 EnsureDirectoryExists(Path.Combine(basePath, "Assets/Images"));
@@ -212,7 +183,6 @@ namespace SketchBlade.Helpers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error initializing image directories: {ex.Message}");
                 throw;
             }
         }
@@ -231,19 +201,11 @@ namespace SketchBlade.Helpers
                     {
                         Directory.CreateDirectory(directory);
                     }
-                    
-                    Console.WriteLine($"WARNING: Default image file not found at {defaultImagePath}");
-                    Console.WriteLine("You should manually add the def.png file to Assets/Images/ directory.");
-                    Console.WriteLine("The application will attempt to continue but some images might be missing.");
-                }
-                else
-                {
-                    Console.WriteLine($"Default image exists at {defaultImagePath}");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error ensuring default image exists: {ex.Message}");
+                // Error ensuring default image exists - continue silently
             }
         }
         
@@ -251,24 +213,24 @@ namespace SketchBlade.Helpers
         {
             try
             {
-                // РЎРѕР·РґР°РµРј РїСЂРѕСЃС‚РѕРµ РёР·РѕР±СЂР°Р¶РµРЅРёРµ 32x32
+                // Создаем простое изображение 32x32
                 int width = 32;
                 int height = 32;
                 
-                // РЎРѕР·РґР°РµРј WriteableBitmap
+                // Создаем WriteableBitmap
                 WriteableBitmap writeableBitmap = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgra32, null);
                 
-                // Р—Р°РїРѕР»РЅСЏРµРј РµРіРѕ РїРёРєСЃРµР»СЏРјРё (СЃРµСЂС‹Р№ С„РѕРЅ СЃ С‡РµСЂРЅРѕР№ СЂР°РјРєРѕР№)
+                // Заполняем его пикселями (серый фон с черной рамкой)
                 byte[] pixels = new byte[width * height * 4];
                 for (int y = 0; y < height; y++)
                 {
                     for (int x = 0; x < width; x++)
                     {
                         int index = (y * width + x) * 4;
-                        // BGRA С„РѕСЂРјР°С‚
+                        // BGRA формат
                         if (x == 0 || y == 0 || x == width - 1 || y == height - 1)
                         {
-                            // Р§РµСЂРЅР°СЏ СЂР°РјРєР°
+                            // Черная рамка
                             pixels[index] = 0;     // B
                             pixels[index + 1] = 0; // G
                             pixels[index + 2] = 0; // R
@@ -276,7 +238,7 @@ namespace SketchBlade.Helpers
                         }
                         else
                         {
-                            // РЎРІРµС‚Р»Рѕ-СЃРµСЂС‹Р№ С„РѕРЅ
+                            // Светло-серый фон
                             pixels[index] = 200;     // B
                             pixels[index + 1] = 200; // G
                             pixels[index + 2] = 200; // R
@@ -285,10 +247,10 @@ namespace SketchBlade.Helpers
                     }
                 }
                 
-                // Р—Р°РїРёСЃС‹РІР°РµРј РїРёРєСЃРµР»Рё РІ WriteableBitmap
+                // Записываем пиксели в WriteableBitmap
                 writeableBitmap.WritePixels(new Int32Rect(0, 0, width, height), pixels, width * 4, 0);
                 
-                // РЎРѕС…СЂР°РЅСЏРµРј РІ С„Р°Р№Р»
+                // Сохраняем в файл
                 using (FileStream stream = new FileStream(path, FileMode.Create))
                 {
                     PngBitmapEncoder encoder = new PngBitmapEncoder();
@@ -298,8 +260,6 @@ namespace SketchBlade.Helpers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in CreateAndSaveSimpleImage: {ex.Message}");
-                
                 // Fallback method if primary method fails
                 FallbackCreateSimpleImage(path);
             }
@@ -321,11 +281,10 @@ namespace SketchBlade.Helpers
                     encoder.Save(stream);
                 }
                 
-                Console.WriteLine($"Created fallback image at {path}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Even fallback image creation failed: {ex.Message}");
+                // Even fallback image creation failed - continue silently
             }
         }
         
@@ -338,7 +297,7 @@ namespace SketchBlade.Helpers
 
             if (string.IsNullOrEmpty(path))
             {
-                LoggingService.LogError("LoadImage вызван с пустым путем");
+                LoggingService.LogError("LoadImage ������ � ������ �����");
                 return GetDefaultImage();
             }
             
@@ -348,11 +307,11 @@ namespace SketchBlade.Helpers
                 
                 string normalizedPath = path.Replace('\\', '/');
                 
-                if (!normalizedPath.Contains("Assets/"))
-                {
-                    Console.WriteLine($"WARNING: Path {normalizedPath} does not contain Assets/ folder");
-                    return GetDefaultImage(); 
-                }
+                            if (!normalizedPath.Contains("Assets/"))
+            {
+                // Path doesn't contain Assets folder - return default
+                return GetDefaultImage();
+            }
                 
                 string fullPath = Path.Combine(basePath, normalizedPath);
                 
@@ -360,29 +319,29 @@ namespace SketchBlade.Helpers
                 {
                     if (_imageCache.TryGetValue(normalizedPath, out BitmapImage cachedImage))
                     {
-                        Console.WriteLine($"Cache hit: {path}");
+                        // Cache hit
                         return cachedImage;
                     }
                     
-                    Console.WriteLine($"Loading image from: {fullPath}");
+                    // Loading image from file
                     
                     BitmapImage image = CreateCachedBitmapImage(fullPath);
                     
                     _imageCache[normalizedPath] = image;
                     
-                    Console.WriteLine($"Successfully loaded image: {path}");
+                    // Successfully loaded image
                     return image;
                 }
                 else
                 {
-                    Console.WriteLine($"File not found: {fullPath}");
+                    // File not found - try alternatives
                     
                     string lowercasePath = normalizedPath.ToLower();
                     string fullLowercasePath = Path.Combine(basePath, lowercasePath);
                     
                     if (File.Exists(fullLowercasePath) && fullLowercasePath != fullPath)
                     {
-                        Console.WriteLine($"Found lowercase version: {fullLowercasePath}");
+                        // Found lowercase version
                         BitmapImage image = CreateCachedBitmapImage(fullLowercasePath);
                         _imageCache[lowercasePath] = image;
                         return image;
@@ -391,25 +350,24 @@ namespace SketchBlade.Helpers
                     string directoryPath = Path.GetDirectoryName(fullPath);
                     if (Directory.Exists(directoryPath))
                     {
-                        Console.WriteLine($"Directory exists: {directoryPath}. Files in directory:");
+                        // Directory exists but file not found
                         foreach (var file in Directory.GetFiles(directoryPath))
                         {
-                            Console.WriteLine($" - {Path.GetFileName(file)}");
+                            // Check available files silently
                         }
                     }
                     else
                     {
-                        Console.WriteLine($"Directory does not exist: {directoryPath}");
+                        // Directory does not exist
                     }
                     
-                    Console.WriteLine($"Using default image for: {path}");
+                    // Using default image
                     return GetDefaultImage();
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading image {path}: {ex.Message}");
-                Console.WriteLine(ex.StackTrace);
+                // Error loading image - return default
                 return GetDefaultImage();
             }
         }
@@ -438,7 +396,7 @@ namespace SketchBlade.Helpers
                 }
                 else
                 {
-                    Console.WriteLine($"Default image not found at {defaultPath}");
+                    // Default image not found - create empty
                     
                     BitmapImage emptyImage = CreateEmptyImage();
                     _imageCache["default"] = emptyImage;
@@ -447,7 +405,7 @@ namespace SketchBlade.Helpers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading default image: {ex.Message}");
+                // Error loading default image
                 return CreateEmptyImage();
             }
         }
@@ -494,11 +452,11 @@ namespace SketchBlade.Helpers
                     if (emptyImage.CanFreeze)
                     {
                         emptyImage.Freeze();
-                        Console.WriteLine("Empty image created and frozen successfully");
+                        // Empty image created and frozen successfully
                     }
                     else
                     {
-                        Console.WriteLine("WARNING: Empty image cannot be frozen");
+                        // Empty image cannot be frozen
                     }
                 }
                 
@@ -506,7 +464,7 @@ namespace SketchBlade.Helpers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error creating empty image: {ex.Message}");
+                // Error creating empty image - try fallback
                 
                 try
                 {
@@ -587,20 +545,18 @@ namespace SketchBlade.Helpers
         {
             string basePath = AppDomain.CurrentDomain.BaseDirectory;
             
-            Console.WriteLine("VerifyAllImageFiles: Checking critical image files...");
+            // Checking critical image files
             
             string defaultImagePath = Path.Combine(basePath, DefaultImagePath);
             bool defaultImageExists = File.Exists(defaultImagePath);
             
             if (!defaultImageExists)
             {
-                Console.WriteLine($"WARNING: Default image missing at {defaultImagePath}");
-                Console.WriteLine("You should manually add the def.png file to Assets/Images/ directory.");
-                Console.WriteLine("The application will attempt to continue but some images might be missing.");
+                // Default image missing - application will continue with fallbacks
             }
             else
             {
-                Console.WriteLine($"VerifyAllImageFiles: Default image found at {defaultImagePath}");
+                // Default image found
             }
             
             var imagePaths = new List<string>
@@ -667,7 +623,7 @@ namespace SketchBlade.Helpers
             {
                 if (!Directory.Exists(dir))
                 {
-                    Console.WriteLine($"VerifyAllImageFiles: Creating missing directory {dir}");
+                    // Creating missing directory
                     Directory.CreateDirectory(dir);
                 }
             }
@@ -677,7 +633,7 @@ namespace SketchBlade.Helpers
             foreach (var path in imagePaths)
             {
                 bool exists = File.Exists(path);
-                Console.WriteLine($"VerifyAllImageFiles: {Path.GetFileName(path)} - {(exists ? "OK" : "MISSING")}");
+                // Check file existence silently
                 
                 if (!exists)
                 {
@@ -687,16 +643,16 @@ namespace SketchBlade.Helpers
                     
                     if (_imageCache.ContainsKey(relativePath))
                     {
-                        Console.WriteLine($"VerifyAllImageFiles: Removing cached entry for {relativePath}");
+                        // Removing cached entry for missing file
                         _imageCache.Remove(relativePath);
                     }
                 }
             }
             
-            Console.WriteLine($"VerifyAllImageFiles: Check complete. Found {missingCount} missing files.");
+            // Check complete - found missing files
             if (missingCount > 0)
             {
-                Console.WriteLine("Please add necessary image files manually to their respective directories.");
+                // Missing files detected - application will use fallbacks
             }
         }
     }

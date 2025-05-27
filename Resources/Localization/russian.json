@@ -96,7 +96,8 @@
     "Weapon": "Оружие",
     "Shield": "Щит",
     "Consumable": "Расходуемый предмет",
-    "Material": "Материал"
+    "Material": "Материал",
+    "Unknown": "Неизвестно"
   },
   "ItemMaterials": {
     "Wood": "Дерево",

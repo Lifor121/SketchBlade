@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using SketchBlade.Models;
+using SketchBlade.Services;
 
 namespace SketchBlade.Models
 {
@@ -76,34 +77,93 @@ namespace SketchBlade.Models
         {
             var rewardItems = new List<Item>();
             
+            LoggingService.LogInfo($"GenerateBattleRewards: Начинаем генерацию наград, isHeroDefeated: {isHeroDefeated}");
+            
             if (gameData.CurrentLocation == null) 
+            {
+                LoggingService.LogWarning("GenerateBattleRewards: CurrentLocation is null");
                 return rewardItems;
+            }
 
             var location = gameData.CurrentLocation;
+            LoggingService.LogInfo($"GenerateBattleRewards: Локация: {location.Name}");
             
             int baseItemCount = isHeroDefeated ? 3 : 2;
             int bonusItemCount = _random.Next(0, 3);
             int totalItems = baseItemCount + bonusItemCount;
+            
+            LoggingService.LogInfo($"GenerateBattleRewards: Планируем создать {totalItems} предметов (base: {baseItemCount}, bonus: {bonusItemCount})");
 
-            for (int i = 0; i < totalItems; i++)
+            if (location.LootTable == null || location.LootTable.Count == 0)
             {
-                if (location.LootTable != null && location.LootTable.Count > 0)
+                LoggingService.LogWarning($"GenerateBattleRewards: LootTable пуста для локации {location.Name}");
+                // Создаем fallback награды
+                rewardItems = CreateFallbackRewards(totalItems, location.LocationType);
+            }
+            else
+            {
+                LoggingService.LogInfo($"GenerateBattleRewards: LootTable содержит {location.LootTable.Count} материалов: [{string.Join(", ", location.LootTable)}]");
+                
+                for (int i = 0; i < totalItems; i++)
                 {
                     string materialName = location.LootTable[_random.Next(location.LootTable.Count)];
                     int quantity = GetMaterialQuantity(materialName, isHeroDefeated);
+                    
+                    LoggingService.LogInfo($"GenerateBattleRewards: Попытка создать {materialName} x{quantity}");
                     
                     var item = CreateItemByName(materialName, quantity);
                     if (item != null)
                     {
                         rewardItems.Add(item);
+                        LoggingService.LogInfo($"GenerateBattleRewards: Создан предмет: {item.Name} x{item.StackSize}");
+                    }
+                    else
+                    {
+                        LoggingService.LogWarning($"GenerateBattleRewards: Не удалось создать предмет {materialName}");
                     }
                 }
             }
 
+            LoggingService.LogInfo($"GenerateBattleRewards: Итого создано {rewardItems.Count} предметов");
+            
             gameData.BattleRewardItems = rewardItems;
             gameData.BattleRewardGold = CalculateGoldReward(isHeroDefeated);
             
+            LoggingService.LogInfo($"GenerateBattleRewards: Установлено золота: {gameData.BattleRewardGold}");
+            
             return rewardItems;
+        }
+
+        private List<Item> CreateFallbackRewards(int count, LocationType locationType)
+        {
+            var items = new List<Item>();
+            LoggingService.LogInfo($"CreateFallbackRewards: Создаем {count} fallback предметов для {locationType}");
+            
+            for (int i = 0; i < count; i++)
+            {
+                Item? item = locationType switch
+                {
+                    LocationType.Village => i % 2 == 0 ? ItemFactory.CreateWood() : ItemFactory.CreateHerb(),
+                    LocationType.Forest => (i % 3) switch
+                    {
+                        0 => ItemFactory.CreateWood(),
+                        1 => ItemFactory.CreateHerb(),
+                        _ => ItemFactory.CreateIronOre()
+                    },
+                    LocationType.Cave => i % 2 == 0 ? ItemFactory.CreateIronOre() : ItemFactory.CreateIronIngot(),
+                    LocationType.Ruins => i % 2 == 0 ? ItemFactory.CreateGoldOre() : ItemFactory.CreateGoldIngot(),
+                    LocationType.Castle => i % 2 == 0 ? ItemFactory.CreateGoldIngot() : ItemFactory.CreateLuminiteFragment(),
+                    _ => ItemFactory.CreateWood()
+                };
+                
+                if (item != null)
+                {
+                    items.Add(item);
+                    LoggingService.LogInfo($"CreateFallbackRewards: Создан fallback предмет: {item.Name}");
+                }
+            }
+            
+            return items;
         }
 
         private Item? CreateItemByName(string name, int quantity)

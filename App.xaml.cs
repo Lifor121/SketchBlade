@@ -1,4 +1,4 @@
-п»їusing System.Configuration;
+using System.Configuration;
 using System.Data;
 using System.Windows;
 using System;
@@ -11,7 +11,7 @@ using SketchBlade.Utilities;
 namespace SketchBlade;
 
 /// <summary>
-/// Р›РѕРіРёРєР° РІР·Р°РёРјРѕРґРµР№СЃС‚РІРёСЏ РґР»СЏ App.xaml
+/// Логика взаимодействия для App.xaml
 /// </summary>
 public partial class App : Application
 {
@@ -19,10 +19,10 @@ public partial class App : Application
     {
         try
         {
-            // РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј СѓСЂРѕРІРµРЅСЊ Р»РѕРіРёСЂРѕРІР°РЅРёСЏ РЅР° Debug РґР»СЏ РјР°РєСЃРёРјР°Р»СЊРЅРѕР№ РґРµС‚Р°Р»РёР·Р°С†РёРё
+            // Устанавливаем уровень логирования на Debug для максимальной детализации
             LoggingService.SetLogLevel(LoggingService.LogLevel.Debug);
             
-            // РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј РѕР±СЂР°Р±РѕС‚С‡РёРєРё РёСЃРєР»СЋС‡РµРЅРёР№ РєР°Рє РјРѕР¶РЅРѕ СЂР°РЅСЊС€Рµ
+            // Устанавливаем обработчики исключений как можно раньше
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             Current.DispatcherUnhandledException += Current_DispatcherUnhandledException;
             
@@ -30,7 +30,7 @@ public partial class App : Application
             
             EnsureAssetsAvailable();
             
-            // РџСЂРµРґР·Р°РіСЂСѓР¶Р°РµРј РєСЂРёС‚РёС‡РµСЃРєРёРµ СЂРµСЃСѓСЂСЃС‹
+            // Предзагружаем критические ресурсы
             _ = ResourceService.Instance.PreloadCriticalResourcesAsync();
             
             PreloadAndFreezeImages();
@@ -59,7 +59,7 @@ public partial class App : Application
         }
         catch
         {
-            // РРіРЅРѕСЂРёСЂСѓРµРј РѕС€РёР±РєРё Р»РѕРіРёСЂРѕРІР°РЅРёСЏ
+            // Игнорируем ошибки логирования
         }
     }
     
@@ -78,7 +78,7 @@ public partial class App : Application
         }
         catch
         {
-            // РРіРЅРѕСЂРёСЂСѓРµРј РѕС€РёР±РєРё РѕР±СЂР°Р±РѕС‚РєРё РёСЃРєР»СЋС‡РµРЅРёР№
+            // Игнорируем ошибки обработки исключений
         }
     }
     
@@ -112,7 +112,7 @@ public partial class App : Application
                 }
             }
             
-            // РЎРѕР·РґР°РµРј РїСѓСЃС‚РѕРµ РёР·РѕР±СЂР°Р¶РµРЅРёРµ РґР»СЏ fallback
+            // Создаем пустое изображение для fallback
             try 
             {
                 var emptyImage = ResourceService.Instance.GetImage(AssetPaths.DEFAULT_IMAGE);
@@ -138,7 +138,7 @@ public partial class App : Application
         {
             string execDir = AppDomain.CurrentDomain.BaseDirectory;
             
-            // РџСЂРѕРІРµСЂСЏРµРј РЅР°Р»РёС‡РёРµ РѕСЃРЅРѕРІРЅС‹С… РїР°РїРѕРє
+            // Проверяем наличие основных папок
             string[] requiredDirectories = {
                 Path.Combine(execDir, "Assets"),
                 Path.Combine(execDir, "Assets", "Images"),
@@ -156,11 +156,11 @@ public partial class App : Application
                 if (!Directory.Exists(dir))
                 {
                     Directory.CreateDirectory(dir);
-                    LoggingService.LogDebug($"Created directory: {dir}");
+                    // LoggingService.LogDebug($"Created directory: {dir}");
                 }
             }
             
-            // РџСЂРѕРІРµСЂСЏРµРј РЅР°Р»РёС‡РёРµ РєСЂРёС‚РёС‡РµСЃРєРё РІР°Р¶РЅРѕРіРѕ С„Р°Р№Р»Р° def.png
+            // Проверяем наличие критически важного файла def.png
             string defPngPath = Path.Combine(execDir, "Assets", "Images", "def.png");
             if (!File.Exists(defPngPath))
             {
@@ -169,7 +169,7 @@ public partial class App : Application
             }
             else
             {
-                LoggingService.LogDebug($"Default image found at {defPngPath}");
+                // LoggingService.LogDebug($"Default image found at {defPngPath}");
             }
         }
         catch (Exception ex)
@@ -188,7 +188,7 @@ public partial class App : Application
                 Application.Current.Resources["GameData"] = GameData;
             }
             
-            LoggingService.LogDebug("Essential services registration complete");
+            // LoggingService.LogDebug("Essential services registration complete");
         }
         catch (Exception ex)
         {
@@ -200,27 +200,27 @@ public partial class App : Application
     {
         try
         {
-            // РРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј СЃРµСЂРІРёСЃС‹ РїРµСЂРµРґ СЃРѕР·РґР°РЅРёРµРј РіР»Р°РІРЅРѕРіРѕ РѕРєРЅР°
+            // Инициализируем сервисы перед созданием главного окна
             InitializeServices();
             
-            // РЎРѕР·РґР°РµРј РѕСЃРЅРѕРІРЅРѕРµ РѕРєРЅРѕ РїСЂРёР»РѕР¶РµРЅРёСЏ
+            // Создаем основное окно приложения
             var mainWindow = new MainWindow();
             
-            // РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј РµРіРѕ РєР°Рє РіР»Р°РІРЅРѕРµ РѕРєРЅРѕ
+            // Устанавливаем его как главное окно
             MainWindow = mainWindow;
             
-            // РџРѕРєР°Р·С‹РІР°РµРј РѕРєРЅРѕ
+            // Показываем окно
             mainWindow.Show();
         }
         catch (Exception ex)
         {
-            // РљСЂРёС‚РёС‡РµСЃРєР°СЏ РѕС€РёР±РєР° Р·Р°РїСѓСЃРєР°
+            // Критическая ошибка запуска
             string errorDetails = $"Critical error during application startup:\n\n" +
                                  $"Message: {ex.Message}\n" +
                                  $"Stack Trace: {ex.StackTrace}";
             MessageBox.Show(errorDetails, "Application Startup Error", MessageBoxButton.OK, MessageBoxImage.Error);
             
-            // Р—Р°РїРёСЃС‹РІР°РµРј РІ Р»РѕРі Рё Р·Р°РІРµСЂС€Р°РµРј РїСЂРёР»РѕР¶РµРЅРёРµ
+            // Записываем в лог и завершаем приложение
             LoggingService.LogError("Application startup failed", ex);
             Environment.Exit(1);
         }
@@ -230,22 +230,22 @@ public partial class App : Application
     {
         try
         {
-            // РРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј ConfigService РїРµСЂРІС‹Рј
+            // Инициализируем ConfigService первым
             var configService = ConfigService.Instance;
             
-            // РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј СѓСЂРѕРІРµРЅСЊ Р»РѕРіРёСЂРѕРІР°РЅРёСЏ РёР· РєРѕРЅС„РёРіСѓСЂР°С†РёРё
-            var loggingLevelStr = configService.GetValue(ConfigService.LOGGING_LEVEL, "Debug");
+            // Устанавливаем уровень логирования из конфигурации
+            var loggingLevelStr = configService.GetValue(ConfigService.LOGGING_LEVEL, "Warning");
             if (Enum.TryParse<LoggingService.LogLevel>(loggingLevelStr, out var loggingLevel))
             {
                 LoggingService.SetLogLevel(loggingLevel);
             }
             else
             {
-                // Р’СЂРµРјРµРЅРЅРѕ СѓСЃС‚Р°РЅР°РІР»РёРІР°РµРј Debug СѓСЂРѕРІРµРЅСЊ РґР»СЏ РѕС‚Р»Р°РґРєРё РЅР°РІРёРіР°С†РёРё
-                LoggingService.SetLogLevel(LoggingService.LogLevel.Debug);
+                // Устанавливаем Warning уровень по умолчанию для уменьшения количества логов
+                LoggingService.SetLogLevel(LoggingService.LogLevel.Warning);
             }
             
-            // РРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј РѕСЃС‚Р°Р»СЊРЅС‹Рµ СЃРµСЂРІРёСЃС‹
+            // Инициализируем остальные сервисы
             var resourceService = ResourceService.Instance;
             var localizationService = LocalizationService.Instance;
             var gameLogicService = GameLogicService.Instance;
@@ -257,7 +257,7 @@ public partial class App : Application
         catch (Exception ex)
         {
             LoggingService.LogError($"Error initializing services: {ex.Message}", ex);
-            MessageBox.Show($"РћС€РёР±РєР° РёРЅРёС†РёР°Р»РёР·Р°С†РёРё СЃРµСЂРІРёСЃРѕРІ: {ex.Message}", "РћС€РёР±РєР°", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show($"Ошибка инициализации сервисов: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
@@ -265,16 +265,16 @@ public partial class App : Application
     {
         try
         {
-            LoggingService.LogDebug("Application is shutting down");
+            // LoggingService.LogDebug("Application is shutting down");
             
-            // РћСЃС‚Р°РЅР°РІР»РёРІР°РµРј РІСЃРµ Р°РєС‚РёРІРЅС‹Рµ СЃРµСЂРІРёСЃС‹
+            // Останавливаем все активные сервисы
             CoreGameService.Instance?.Dispose();
             
-            LoggingService.LogDebug("Application shutdown completed");
+            // LoggingService.LogDebug("Application shutdown completed");
         }
         catch (Exception ex)
         {
-            // Р›РѕРіРёСЂСѓРµРј РѕС€РёР±РєСѓ РїСЂРё Р·Р°РІРµСЂС€РµРЅРёРё, РЅРѕ РЅРµ РїСЂРµСЂС‹РІР°РµРј РїСЂРѕС†РµСЃСЃ Р·Р°РєСЂС‹С‚РёСЏ
+            // Логируем ошибку при завершении, но не прерываем процесс закрытия
             LoggingService.LogError("Error during application shutdown", ex);
         }
     }
@@ -291,21 +291,23 @@ public partial class App : Application
 
             MessageBox.Show(errorMessage, "Unexpected Error", MessageBoxButton.OK, MessageBoxImage.Error);
             
-            // РџРѕРјРµС‡Р°РµРј РёСЃРєР»СЋС‡РµРЅРёРµ РєР°Рє РѕР±СЂР°Р±РѕС‚Р°РЅРЅРѕРµ, С‡С‚РѕР±С‹ РїСЂРёР»РѕР¶РµРЅРёРµ РЅРµ Р·Р°РєСЂС‹Р»РѕСЃСЊ
+            // Помечаем исключение как обработанное, чтобы приложение не закрылось
             e.Handled = true;
         }
         catch (Exception logEx)
         {
-            // Р•СЃР»Рё РґР°Р¶Рµ Р»РѕРіРёСЂРѕРІР°РЅРёРµ РЅРµ СЂР°Р±РѕС‚Р°РµС‚, РїСЂРѕСЃС‚Рѕ РїРѕРєР°Р·С‹РІР°РµРј РјРёРЅРёРјР°Р»СЊРЅРѕРµ СЃРѕРѕР±С‰РµРЅРёРµ
+            // Если даже логирование не работает, просто показываем минимальное сообщение
             MessageBox.Show($"Critical error: {e.Exception.Message}", "Fatal Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
     /// <summary>
-    /// Р‘РµР·РѕРїР°СЃРЅС‹Р№ РјРµС‚РѕРґ РґР»СЏ Р·Р°РїРёСЃРё СЃРѕРѕР±С‰РµРЅРёР№ РІ С„Р°Р№Р» Р»РѕРіРѕРІ РІ РєСЂРёС‚РёС‡РµСЃРєРёС… СЃРёС‚СѓР°С†РёСЏС…
+    /// Безопасный метод для записи сообщений в файл логов в критических ситуациях
     /// </summary>
     private void SafeLogToFile(string message)
     {
+        // Логирование отключено
+        /*
         try
         {
             var logEntry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [CRITICAL] {message}\r\n";
@@ -313,8 +315,9 @@ public partial class App : Application
         }
         catch
         {
-            // Р•СЃР»Рё РЅРµ РјРѕР¶РµРј РїРёСЃР°С‚СЊ РІ С„Р°Р№Р», РёРіРЅРѕСЂРёСЂСѓРµРј
+            // Если не можем писать в файл, игнорируем
         }
+        */
     }
 }
 

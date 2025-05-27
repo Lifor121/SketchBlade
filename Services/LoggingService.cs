@@ -10,7 +10,11 @@ namespace SketchBlade.Services
     {
         private static readonly string LogFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error_log.txt");
         private static readonly object LogLock = new object();
-        private static LogLevel _currentLogLevel = LogLevel.Debug;
+        private static LogLevel _currentLogLevel = LogLevel.Warning;
+        
+        // ОПТИМИЗАЦИЯ ПРОИЗВОДИТЕЛЬНОСТИ: Флаг для быстрого включения/выключения debug логирования
+        // Установите в true только для отладки критических проблем
+        public static bool EnableDebugLogging = false;
         
         private const long MAX_LOG_FILE_SIZE = 10 * 1024 * 1024;
         
@@ -29,11 +33,11 @@ namespace SketchBlade.Services
             try
             {
                 CleanupLogFileIfNeeded();
-                LogInfo("НОВЫЙ ЗАПУСК ПРИЛОЖЕНИЯ");
+                // LogInfo("НОВЫЙ ЗАПУСК ПРИЛОЖЕНИЯ");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to initialize logging: {ex.Message}");
+                // Failed to initialize logging - continue silently
             }
         }
 
@@ -44,6 +48,10 @@ namespace SketchBlade.Services
 
         public static void LogDebug(string message)
         {
+            // ОПТИМИЗАЦИЯ: Быстрый выход, если debug логирование отключено
+            if (!EnableDebugLogging)
+                return;
+                
             if (_currentLogLevel <= LogLevel.Debug)
             {
                 WriteLog("DEBUG", message);
@@ -151,7 +159,7 @@ namespace SketchBlade.Services
                 }
                 File.Move(LogFilePath, backupPath);
 
-                LogInfo("ЛОГ ОЧИЩЕН");                
+                // LogInfo("ЛОГ ОЧИЩЕН");                
             }
             catch (Exception ex)
             {

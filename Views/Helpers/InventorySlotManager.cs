@@ -48,7 +48,7 @@ namespace SketchBlade.Views.Helpers
                     var slotTypeName = slot.SlotType?.ToString();
                     if (!string.IsNullOrEmpty(slotTypeName) && slotTypeName.Contains(slotType))
                     {
-                        LoggingService.LogInfo($"[DragDrop] Найден слот {slotTypeName}[{slot.SlotIndex}] для типа {slotType}");
+                        // LoggingService.LogInfo($"[DragDrop] Найден слот {slotTypeName}[{slot.SlotIndex}] для типа {slotType}");
                         results.Add(slot);
                     }
                 }
@@ -65,7 +65,7 @@ namespace SketchBlade.Views.Helpers
         {
             try
             {
-                LoggingService.LogInfo($"[DragDrop] ConnectEventHandlers: Начинаем подключение событий");
+                // LoggingService.LogInfo($"[DragDrop] ConnectEventHandlers: Начинаем подключение событий");
                 
                 // Подключаем события для слотов крафта, которые генерируются динамически
                 ConnectCraftSlotEvents(parent);
@@ -75,11 +75,11 @@ namespace SketchBlade.Views.Helpers
                 ConnectEquipmentSlotEvents(parent);
                 ConnectQuickSlotEvents(parent);
                 
-                LoggingService.LogInfo($"[DragDrop] ConnectEventHandlers: Подключение событий завершено");
+                // LoggingService.LogInfo($"[DragDrop] ConnectEventHandlers: Подключение событий завершено");
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"ConnectEventHandlers: {ex.Message}", ex);
+                // LoggingService.LogError($"ConnectEventHandlers: {ex.Message}", ex);
             }
         }
         
@@ -109,7 +109,7 @@ namespace SketchBlade.Views.Helpers
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"ConnectCraftSlotEvents: {ex.Message}", ex);
+                // LoggingService.LogError($"ConnectCraftSlotEvents: {ex.Message}", ex);
             }
         }
         
@@ -118,13 +118,13 @@ namespace SketchBlade.Views.Helpers
             try
             {
                 var inventorySlots = FindSlotControls(parent, "Inventory");
-                LoggingService.LogInfo($"[DragDrop] ConnectInventorySlotEvents: Найдено {inventorySlots.Count} инвентарных слотов");
+                // LoggingService.LogInfo($"[DragDrop] ConnectInventorySlotEvents: Найдено {inventorySlots.Count} инвентарных слотов");
                 
                 foreach (var slot in inventorySlots)
                 {
                     if (slot != null)
                     {
-                        LoggingService.LogInfo($"[DragDrop] Подключаем события для слота {slot.SlotType}[{slot.SlotIndex}]");
+                        // LoggingService.LogInfo($"[DragDrop] Подключаем события для слота {slot.SlotType}[{slot.SlotIndex}]");
                         
                         // Mouse events
                         slot.SlotMouseDown += _eventHandler.HandleInventorySlotMouseDown;
@@ -148,7 +148,7 @@ namespace SketchBlade.Views.Helpers
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"ConnectInventorySlotEvents: {ex.Message}", ex);
+                // LoggingService.LogError($"ConnectInventorySlotEvents: {ex.Message}", ex);
             }
         }
         
@@ -175,7 +175,7 @@ namespace SketchBlade.Views.Helpers
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"ConnectEquipmentSlotEvents: {ex.Message}", ex);
+                // LoggingService.LogError($"ConnectEquipmentSlotEvents: {ex.Message}", ex);
             }
         }
         
@@ -202,7 +202,7 @@ namespace SketchBlade.Views.Helpers
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"ConnectQuickSlotEvents: {ex.Message}", ex);
+                // LoggingService.LogError($"ConnectQuickSlotEvents: {ex.Message}", ex);
             }
         }
         
@@ -221,7 +221,7 @@ namespace SketchBlade.Views.Helpers
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"DisconnectEventHandlers: {ex.Message}", ex);
+                // LoggingService.LogError($"DisconnectEventHandlers: {ex.Message}", ex);
             }
         }
         
@@ -307,21 +307,21 @@ namespace SketchBlade.Views.Helpers
             try
             {
                 // Проверяем совместимость слотов для стекирования
-                LoggingService.LogDebug($"Verifying item stacks: {sourceInfo.SlotType}[{sourceInfo.Index}] -> {targetInfo.SlotType}[{targetInfo.Index}]");
+                // LoggingService.LogDebug($"Verifying item stacks: {sourceInfo.SlotType}[{sourceInfo.Index}] -> {targetInfo.SlotType}[{targetInfo.Index}]");
                 
                 // Здесь можно добавить дополнительную логику проверки совместимости слотов
                 if (sourceInfo.SlotType == targetInfo.SlotType && sourceInfo.Index == targetInfo.Index)
                 {
-                    LoggingService.LogDebug("Source and target slots are the same");
+                    // LoggingService.LogDebug("Source and target slots are the same");
                 }
                 else
                 {
-                    LoggingService.LogDebug($"Different slots: {sourceInfo.SlotType}[{sourceInfo.Index}] vs {targetInfo.SlotType}[{targetInfo.Index}]");
+                    // LoggingService.LogDebug($"Different slots: {sourceInfo.SlotType}[{sourceInfo.Index}] vs {targetInfo.SlotType}[{targetInfo.Index}]");
                 }
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"VerifyItemStacks: {ex.Message}", ex);
+                // LoggingService.LogError($"VerifyItemStacks: {ex.Message}", ex);
             }
         }
         

@@ -1,4 +1,4 @@
-п»їusing System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -9,7 +9,7 @@ using SketchBlade.Services;
 namespace SketchBlade.ViewModels
 {
     /// <summary>
-    /// Р Р€Р С—РЎР‚Р С•РЎвЂ°Р ВµР Р…Р Р…Р В°РЎРЏ Р Р†Р ВµРЎР‚РЎРѓР С‘РЎРЏ BattleViewModel (Р В±РЎвЂ№Р В»Р С• 2103 РЎРѓРЎвЂљРЎР‚Р С•Р С”Р С‘, РЎРѓРЎвЂљР В°Р В»Р С• ~300)
+    /// РЈРїСЂРѕС‰РµРЅРЅР°СЏ РІРµСЂСЃРёСЏ BattleViewModel (Р±С‹Р»Рѕ 2103 СЃС‚СЂРѕРєРё, СЃС‚Р°Р»Рѕ ~300)
     /// </summary>
     public class BattleViewModel : ViewModelBase, IDisposable
     {
@@ -28,7 +28,7 @@ namespace SketchBlade.ViewModels
 
         public BattleViewModel(GameData GameData, Action<string> navigateAction)
         {
-            LoggingService.LogDebug("=== BattleViewModel CONSTRUCTOR CALLED ===");
+            // LoggingService.LogDebug("=== BattleViewModel CONSTRUCTOR CALLED ===");
             
             _gameState = GameData;
             _navigateAction = navigateAction;
@@ -44,7 +44,7 @@ namespace SketchBlade.ViewModels
             InitializeCommands();
             InitializeBattle();
             
-            LoggingService.LogDebug("=== BattleViewModel CONSTRUCTOR COMPLETED ===");
+            // LoggingService.LogDebug("=== BattleViewModel CONSTRUCTOR COMPLETED ===");
         }
 
         private void InitializeCommands()
@@ -59,10 +59,10 @@ namespace SketchBlade.ViewModels
 
         private void InitializeBattle()
         {
-            LoggingService.LogDebug("=== InitializeBattle STARTED ===");
-            LoggingService.LogDebug($"Player null: {_gameState.Player == null}");
-            LoggingService.LogDebug($"CurrentEnemies null: {_gameState.CurrentEnemies == null}");
-            LoggingService.LogDebug($"CurrentEnemies count: {_gameState.CurrentEnemies?.Count ?? 0}");
+            // LoggingService.LogDebug("=== InitializeBattle STARTED ===");
+            // LoggingService.LogDebug($"Player null: {_gameState.Player == null}");
+            // LoggingService.LogDebug($"CurrentEnemies null: {_gameState.CurrentEnemies == null}");
+            // LoggingService.LogDebug($"CurrentEnemies count: {_gameState.CurrentEnemies?.Count ?? 0}");
             
             if (_gameState.Player == null || _gameState.CurrentEnemies?.Count == 0)
             {
@@ -72,19 +72,19 @@ namespace SketchBlade.ViewModels
             }
 
             // Reset battle state to ensure clean start
-            LoggingService.LogDebug("Calling _battleState.Reset()");
+            // LoggingService.LogDebug("Calling _battleState.Reset()");
             _battleState.Reset();
-            LoggingService.LogDebug($"After Reset: IsBattleOver = {_battleState.IsBattleOver}");
+            // LoggingService.LogDebug($"After Reset: IsBattleOver = {_battleState.IsBattleOver}");
 
             _battleState.PlayerCharacter = _gameState.Player;
             _battleState.IsBossHeroBattle = _gameState.CurrentEnemies.Any(e => e.IsHero);
             
-            LoggingService.LogDebug($"IsBossHeroBattle: {_battleState.IsBossHeroBattle}");
+            // LoggingService.LogDebug($"IsBossHeroBattle: {_battleState.IsBossHeroBattle}");
 
             _battleState.Enemies.Clear();
             foreach (var enemy in _gameState.CurrentEnemies)
             {
-                LoggingService.LogDebug($"Processing enemy: {enemy.Name}, IsDefeated before reset: {enemy.IsDefeated}, Health: {enemy.CurrentHealth}/{enemy.MaxHealth}");
+                // LoggingService.LogDebug($"Processing enemy: {enemy.Name}, IsDefeated before reset: {enemy.IsDefeated}, Health: {enemy.CurrentHealth}/{enemy.MaxHealth}");
                 
                 // Reset enemy defeated status for new battle
                 enemy.SetDefeated(false);
@@ -92,44 +92,44 @@ namespace SketchBlade.ViewModels
                 if (enemy.IsHero && enemy.CurrentHealth <= 0)
                 {
                     enemy.CurrentHealth = enemy.MaxHealth;
-                    LoggingService.LogDebug($"Restored hero {enemy.Name} health to {enemy.MaxHealth}");
+                    // LoggingService.LogDebug($"Restored hero {enemy.Name} health to {enemy.MaxHealth}");
                 }
                 
-                LoggingService.LogDebug($"Enemy after reset: {enemy.Name}, IsDefeated: {enemy.IsDefeated}, Health: {enemy.CurrentHealth}/{enemy.MaxHealth}");
+                // LoggingService.LogDebug($"Enemy after reset: {enemy.Name}, IsDefeated: {enemy.IsDefeated}, Health: {enemy.CurrentHealth}/{enemy.MaxHealth}");
                 _battleState.Enemies.Add(enemy);
             }
             
-            LoggingService.LogDebug($"After adding enemies: IsBattleOver = {_battleState.IsBattleOver}");
+            // LoggingService.LogDebug($"After adding enemies: IsBattleOver = {_battleState.IsBattleOver}");
 
             _battleState.SelectedEnemy = _battleState.Enemies.FirstOrDefault(e => !e.IsDefeated);
-            LoggingService.LogDebug($"Selected enemy: {_battleState.SelectedEnemy?.Name ?? "null"}");
+            // LoggingService.LogDebug($"Selected enemy: {_battleState.SelectedEnemy?.Name ?? "null"}");
             
             LoadUsableItems();
             
             _battleState.IsPlayerTurn = true;
-            _battleState.BattleStatus = "Р‘РѕР№ РЅР°С‡Р°Р»СЃСЏ!";
-            _battleState.AddToBattleLog("Р‘РѕР№ РЅР°С‡Р°Р»СЃСЏ!");
+            _battleState.BattleStatus = "Бой начался!";
+            _battleState.AddToBattleLog("Бой начался!");
             
-            // РљР РРўРР§Р•РЎРљР Р’РђР–РќРћ: РїСЂРѕРІРµСЂСЏРµРј Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРѕРµ Р·Р°РІРµСЂС€РµРЅРёРµ
+            // КРИТИЧЕСКИ ВАЖНО: проверяем автоматическое завершение
             bool allEnemiesDefeated = _battleLogic.IsAllEnemiesDefeated(_battleState);
-            LoggingService.LogDebug($"All enemies defeated check: {allEnemiesDefeated}");
+            // LoggingService.LogDebug($"All enemies defeated check: {allEnemiesDefeated}");
             
             if (allEnemiesDefeated)
             {
-                LoggingService.LogError("РџР РћР‘Р›Р•РњРђ РќРђР™Р”Р•РќРђ: Р’СЃРµ РІСЂР°РіРё СѓР¶Рµ РїРѕР±РµР¶РґРµРЅС‹ РїСЂРё РёРЅРёС†РёР°Р»РёР·Р°С†РёРё!");
-                // РќР• Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё Р·Р°РІРµСЂС€Р°РµРј Р±РёС‚РІСѓ - СЌС‚Рѕ РѕС€РёР±РєР°!
-                LoggingService.LogError("РќРµ Р·Р°РІРµСЂС€Р°РµРј Р±РёС‚РІСѓ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё - СЌС‚Рѕ Р±Р°Рі!");
+                LoggingService.LogError("ПРОБЛЕМА НАЙДЕНА: Все враги уже побеждены при инициализации!");
+                // НЕ автоматически завершаем битву - это ошибка!
+                LoggingService.LogError("Не завершаем битву автоматически - это баг!");
             }
             
-            LoggingService.LogDebug($"Battle initialized - IsBattleOver: {_battleState.IsBattleOver}, IsPlayerTurn: {_battleState.IsPlayerTurn}");
-            LoggingService.LogDebug("=== InitializeBattle COMPLETED ===");
+            // LoggingService.LogDebug($"Battle initialized - IsBattleOver: {_battleState.IsBattleOver}, IsPlayerTurn: {_battleState.IsPlayerTurn}");
+            // LoggingService.LogDebug("=== InitializeBattle COMPLETED ===");
         }
 
         private void LoadUsableItems()
         {
             _battleState.UsableItems.Clear();
             
-            // Р”РѕР±Р°РІР»СЏРµРј Р·Р°С‰РёС‚Сѓ РѕС‚ null СЌР»РµРјРµРЅС‚РѕРІ РІ РєРѕР»Р»РµРєС†РёРё
+            // Добавляем защиту от null элементов в коллекции
             var consumableItems = _gameState.Inventory.Items
                 .Where(item => item != null && item.Type == ItemType.Consumable)
                 .ToList();
@@ -170,15 +170,15 @@ namespace SketchBlade.ViewModels
             _battleLogic.ApplyDamage(target, damage);
 
             string attackMessage = isCritical 
-                ? $"РљСЂРёС‚РёС‡РµСЃРєРёР№ СѓРґР°СЂ! РРіСЂРѕРє РЅР°РЅРµСЃ {damage} СѓСЂРѕРЅР° {target.Name}"
-                : $"РРіСЂРѕРє Р°С‚Р°РєРѕРІР°Р» {target.Name} Рё РЅР°РЅРµСЃ {damage} СѓСЂРѕРЅР°";
+                ? $"Критический удар! Игрок нанес {damage} урона {target.Name}"
+                : $"Игрок атаковал {target.Name} и нанес {damage} урона";
             
             _battleState.AddToBattleLog(attackMessage);
 
             if (_battleLogic.IsCharacterDefeated(target))
             {
                 target.SetDefeated(true);
-                _battleState.AddToBattleLog($"{target.Name} РїРѕРІРµСЂР¶РµРЅ!");
+                _battleState.AddToBattleLog($"{target.Name} повержен!");
                 
                 if (_battleLogic.IsAllEnemiesDefeated(_battleState))
                 {
@@ -210,11 +210,11 @@ namespace SketchBlade.ViewModels
             {
                 case "Healing Potion":
                     _battleLogic.UseHealingPotion(player, 30);
-                    _battleState.AddToBattleLog("РРіСЂРѕРє РёСЃРїРѕР»СЊР·СѓРµС‚ Р·РµР»СЊРµ Р»РµС‡РµРЅРёСЏ");
+                    _battleState.AddToBattleLog("Игрок использует зелье лечения");
                     break;
                 case "Rage Potion":
                     _battleLogic.ApplyRagePotion(player, 10, 3);
-                    _battleState.AddToBattleLog("РРіСЂРѕРє РёСЃРїРѕР»СЊР·СѓРµС‚ Р·РµР»СЊРµ СЏСЂРѕСЃС‚Рё");
+                    _battleState.AddToBattleLog("Игрок использует зелье ярости");
                     break;
                 case "Bomb":
                     int bombDamage = _battleLogic.CalculateBombDamage();
@@ -222,7 +222,7 @@ namespace SketchBlade.ViewModels
                     {
                         _battleLogic.ApplyDamage(enemy, bombDamage);
                     }
-                    _battleState.AddToBattleLog($"РРіСЂРѕРє Р±СЂРѕСЃР°РµС‚ Р±РѕРјР±Сѓ, РЅР°РЅРѕСЃРёС‚ {bombDamage} СѓСЂРѕРЅР° РІСЃРµРј РІСЂР°РіР°Рј");
+                    _battleState.AddToBattleLog($"Игрок бросает бомбу, наносит {bombDamage} урона всем врагам");
                     break;
             }
 
@@ -259,7 +259,7 @@ namespace SketchBlade.ViewModels
             {
                 damage = _battleLogic.CalculateSpecialAbilityDamage(activeEnemy, player);
                 string abilityName = _battleLogic.GetEnemySpecialAbilityName(activeEnemy);
-                attackMessage = $"{activeEnemy.Name} РёСЃРїРѕР»СЊР·СѓРµС‚ {abilityName} Рё РЅР°РЅРѕСЃРёС‚ {damage} СѓСЂРѕРЅР°";
+                attackMessage = $"{activeEnemy.Name} использует {abilityName} и наносит {damage} урона";
                 
                 _battleState.IsEnemyUsingAbility = true;
                 _battleState.EnemyAbilityName = abilityName;
@@ -268,7 +268,7 @@ namespace SketchBlade.ViewModels
             else
             {
                 damage = _battleLogic.CalculateDamage(activeEnemy, player);
-                attackMessage = $"{activeEnemy.Name} Р°С‚Р°РєСѓРµС‚ Рё РЅР°РЅРѕСЃРёС‚ {damage} СѓСЂРѕРЅР°";
+                attackMessage = $"{activeEnemy.Name} атакует и наносит {damage} урона";
             }
 
             _battleLogic.ApplyDamage(player, damage);
@@ -312,48 +312,100 @@ namespace SketchBlade.ViewModels
 
         private void ExecuteEndBattle()
         {
+            LoggingService.LogInfo("=== ExecuteEndBattle: Кнопка 'Завершить' нажата ===");
+            
             if (_battleState.IsBattleOver)
             {
+                LoggingService.LogInfo($"ExecuteEndBattle: Битва завершена, победа: {_battleState.BattleWon}");
+                
+                // Если битва выиграна, обрабатываем награды
+                if (_battleState.BattleWon && _gameState.BattleRewardItems != null && _gameState.BattleRewardItems.Count > 0)
+                {
+                    LoggingService.LogInfo($"ExecuteEndBattle: Обрабатываем {_gameState.BattleRewardItems.Count} наград");
+                    
+                    foreach (var rewardItem in _gameState.BattleRewardItems)
+                    {
+                        LoggingService.LogInfo($"ExecuteEndBattle: Добавляем в инвентарь: {rewardItem.Name}");
+                        _gameState.Inventory.AddItem(rewardItem, 1);
+                    }
+                    
+                    // Очищаем награды после добавления
+                    _gameState.BattleRewardItems.Clear();
+                    LoggingService.LogInfo("ExecuteEndBattle: Награды добавлены в инвентарь и очищены");
+                }
+                else
+                {
+                    LoggingService.LogInfo("ExecuteEndBattle: Нет наград для обработки");
+                }
+                
+                LoggingService.LogInfo("ExecuteEndBattle: Переходим на карту мира");
                 _navigateAction("WorldMapView");
+            }
+            else
+            {
+                LoggingService.LogWarning("ExecuteEndBattle: Битва еще не завершена");
             }
         }
 
         private void EndBattle(bool victory)
         {
+            LoggingService.LogInfo($"=== EndBattle: Завершение битвы, победа: {victory} ===");
+            
             _battleState.IsBattleOver = true;
             _battleState.BattleWon = victory;
 
             if (victory)
             {
-                _battleState.BattleResultMessage = "РџРѕР±РµРґР°!";
-                _battleState.AddToBattleLog("РРіСЂРѕРє РїРѕР±РµРґРёР» РІСЂР°РіР°!");
+                _battleState.BattleResultMessage = "Победа!";
+                _battleState.AddToBattleLog("Игрок победил врага!");
                 
-                // Р’РђР–РќРћ: РџРѕРјРµС‡Р°РµРј РіРµСЂРѕСЏ РєР°Рє РїРѕР±РµР¶РґРµРЅРЅРѕРіРѕ РїСЂРё РїРѕР±РµРґРµ
+                LoggingService.LogInfo($"EndBattle: IsBossHeroBattle = {_battleState.IsBossHeroBattle}");
+                
+                // ВАЖНО: Помечаем героя как побежденного при победе
                 if (_battleState.IsBossHeroBattle && _gameState.CurrentLocation != null)
                 {
                     _gameState.CurrentLocation.HeroDefeated = true;
                     _gameState.CurrentLocation.IsCompleted = true;
                     LoggingService.LogInfo($"Hero {_gameState.CurrentLocation.Hero?.Name} marked as defeated in {_gameState.CurrentLocation.Name}");
                     
-                    // Р Р°Р·Р±Р»РѕРєРёСЂСѓРµРј СЃР»РµРґСѓСЋС‰СѓСЋ Р»РѕРєР°С†РёСЋ РЅР°РїСЂСЏРјСѓСЋ
+                    // Разблокируем следующую локацию напрямую
                     UnlockNextLocation();
                 }
                 
+                LoggingService.LogInfo("EndBattle: Генерируем награды...");
                 var rewards = _battleLogic.GenerateBattleRewards(
                     _gameState, 
                     _battleState.IsBossHeroBattle);
                 
+                LoggingService.LogInfo($"EndBattle: Сгенерировано {rewards?.Count ?? 0} наград");
+                
+                if (rewards != null && rewards.Count > 0)
+                {
+                    foreach (var reward in rewards)
+                    {
+                        LoggingService.LogInfo($"EndBattle: Награда: {reward.Name}");
+                    }
+                }
+                else
+                {
+                    LoggingService.LogWarning("EndBattle: Награды не сгенерированы или список пуст");
+                }
+                
                 _gameState.BattleRewardItems = rewards;
+                LoggingService.LogInfo($"EndBattle: BattleRewardItems установлен, количество: {_gameState.BattleRewardItems?.Count ?? 0}");
             }
             else
             {
-                _battleState.BattleResultMessage = "РџРѕСЂР°Р¶РµРЅРёРµ...";
-                _battleState.AddToBattleLog("РРіСЂРѕРє РїРѕРІРµСЂР¶РµРЅ...");
+                _battleState.BattleResultMessage = "Поражение...";
+                _battleState.AddToBattleLog("Игрок повержен...");
+                LoggingService.LogInfo("EndBattle: Поражение, награды не генерируются");
             }
+            
+            LoggingService.LogInfo("=== EndBattle: Завершение метода ===");
         }
         
         /// <summary>
-        /// Р Р°Р·Р±Р»РѕРєРёСЂРѕРІРєР° СЃР»РµРґСѓСЋС‰РµР№ Р»РѕРєР°С†РёРё РїРѕСЃР»Рµ РїРѕР±РµРґС‹ РЅР°Рґ РіРµСЂРѕРµРј
+        /// Разблокировка следующей локации после победы над героем
         /// </summary>
         private void UnlockNextLocation()
         {
@@ -386,12 +438,12 @@ namespace SketchBlade.ViewModels
             OnPropertyChanged(nameof(CanAttack));
         }
 
-        // РЎРІРѕР№СЃС‚РІР° РґР»СЏ UI
+        // Свойства для UI
         public BattleState BattleState => _battleState;
         public BattleAnimations Animations => _animations;
         public GameData GameData => _gameState;
 
-        // РћР±СЂР°С‚РЅР°СЏ СЃРѕРІРјРµСЃС‚РёРјРѕСЃС‚СЊ
+        // Обратная совместимость
         public Character PlayerCharacter => _battleState.PlayerCharacter;
         public Character SelectedEnemy 
         { 
@@ -404,7 +456,7 @@ namespace SketchBlade.ViewModels
         public string BattleStatus => _battleState.BattleStatus;
         public string BattleResultMessage => _battleState.BattleResultMessage;
         
-        // РќРµРґРѕСЃС‚Р°СЋС‰РёРµ СЃРІРѕР№СЃС‚РІР° РґР»СЏ UI РїСЂРёРІСЏР·РєРё
+        // Недостающие свойства для UI привязки
         public System.Collections.ObjectModel.ObservableCollection<Character> Enemies => _battleState.Enemies;
         public System.Collections.ObjectModel.ObservableCollection<string> BattleLog => _battleState.BattleLog;
         public System.Collections.ObjectModel.ObservableCollection<Item> UsableItems => _battleState.UsableItems;
@@ -431,7 +483,7 @@ namespace SketchBlade.ViewModels
             }
         }
 
-        // РџСѓР±Р»РёС‡РЅС‹Р№ РјРµС‚РѕРґ РґР»СЏ РѕР±СЂР°С‚РЅРѕР№ СЃРѕРІРјРµСЃС‚РёРјРѕСЃС‚Рё СЃ View
+        // Публичный метод для обратной совместимости с View
         public void EndBattlePublic(bool victory)
         {
             EndBattle(victory);

@@ -452,7 +452,7 @@ namespace SketchBlade.Services
                     _imageCache.TryRemove(key, out _);
                 }
 
-                LoggingService.LogDebug($"Cache trimmed: {keysToRemove.Count} items removed");
+                // LoggingService.LogDebug($"Cache trimmed: {keysToRemove.Count} items removed");
             }
             catch (Exception ex)
             {

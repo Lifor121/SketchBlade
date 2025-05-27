@@ -68,11 +68,11 @@ namespace SketchBlade.Views
         {
             try
             {
-                LoggingService.LogDebug("InventoryView_Loaded: Начинаем обновление UI");
+                // LoggingService.LogDebug("InventoryView_Loaded: Начинаем обновление UI");
                 
                 if (DataContext is InventoryViewModel viewModel)
                 {
-                    LoggingService.LogDebug("InventoryView_Loaded: InventoryViewModel найден");
+                    // LoggingService.LogDebug("InventoryView_Loaded: InventoryViewModel найден");
                     
                     // ОПТИМИЗАЦИЯ: Убираем избыточную реинициализацию крафта
                     // Система крафта инициализируется автоматически при первом обращении
@@ -86,16 +86,16 @@ namespace SketchBlade.Views
                     // Подключаем события drag-and-drop после загрузки UI
                     ConnectSlotEvents();
                     
-                    LoggingService.LogDebug("InventoryView_Loaded: Обновление завершено");
+                    // LoggingService.LogDebug("InventoryView_Loaded: Обновление завершено");
                 }
                 else
                 {
-                    LoggingService.LogWarning("InventoryView_Loaded: InventoryViewModel не найден в DataContext");
+                    // LoggingService.LogWarning("InventoryView_Loaded: InventoryViewModel не найден в DataContext");
                 }
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"InventoryView_Loaded: {ex.Message}", ex);
+                // LoggingService.LogError($"InventoryView_Loaded: {ex.Message}", ex);
             }
         }
 
@@ -103,7 +103,7 @@ namespace SketchBlade.Views
         {
             try
             {
-                LoggingService.LogDebug("SetInventorySlotItems: Принудительно устанавливаем Item для всех слотов");
+                // LoggingService.LogDebug("SetInventorySlotItems: Принудительно устанавливаем Item для всех слотов");
                 
                 // Находим все CoreInventorySlot элементы в визуальном дереве
                 var inventorySlots = FindVisualChildren<CoreInventorySlot>(this)
@@ -111,14 +111,14 @@ namespace SketchBlade.Views
                     .OrderBy(slot => slot.SlotIndex)
                     .ToList();
                 
-                LoggingService.LogDebug($"SetInventorySlotItems: Найдено {inventorySlots.Count} инвентарных слотов");
+                // LoggingService.LogDebug($"SetInventorySlotItems: Найдено {inventorySlots.Count} инвентарных слотов");
                 
                 for (int i = 0; i < inventorySlots.Count && i < viewModel.InventorySlots.Count; i++)
                 {
                     var slot = inventorySlots[i];
                     var item = viewModel.InventorySlots[i].Item;
                     
-                    LoggingService.LogDebug($"SetInventorySlotItems: Устанавливаем слот {i}: {item?.Name ?? "null"}");
+                    // LoggingService.LogDebug($"SetInventorySlotItems: Устанавливаем слот {i}: {item?.Name ?? "null"}");
                     
                     // Принудительно устанавливаем Item
                     slot.Item = item;
@@ -126,7 +126,7 @@ namespace SketchBlade.Views
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"Ошибка в SetInventorySlotItems: {ex.Message}");
+                // LoggingService.LogError($"Ошибка в SetInventorySlotItems: {ex.Message}");
             }
         }
         
@@ -265,7 +265,7 @@ namespace SketchBlade.Views
 
         private void InventorySlot_MouseDown(object? sender, MouseButtonEventArgs e)
         {
-            LoggingService.LogInfo($"[DragDrop] *** СОБЫТИЕ InventorySlot_MouseDown ПОЛУЧЕНО *** sender: {sender?.GetType().Name}");
+            // LoggingService.LogInfo($"[DragDrop] *** СОБЫТИЕ InventorySlot_MouseDown ПОЛУЧЕНО *** sender: {sender?.GetType().Name}");
             _eventHandler?.HandleInventorySlotMouseDown(sender, e);
         }
 

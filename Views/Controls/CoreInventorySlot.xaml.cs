@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows;
@@ -70,7 +70,7 @@ namespace SketchBlade.Views.Controls
         private static readonly SolidColorBrush EpicItemBrush = new SolidColorBrush(Color.FromRgb(156, 39, 176));
         private static readonly SolidColorBrush LegendaryItemBrush = new SolidColorBrush(Color.FromRgb(255, 193, 7));
 
-        // РРЎРџР РђР'Р›Р•РќРћ: РЎС‚Р°С‚РёС‡РµСЃРєРёРµ РїРѕР»СЏ РґР»СЏ throttling Р»РѕРіРёСЂРѕРІР°РЅРёСЏ
+        // ИСПРАВЛЕНО: Статические поля для throttling логирования
         private static int _nullItemLogCounter = 0;
         private static DateTime _lastLogTime = DateTime.MinValue;
         private static string _lastLoggedOperation = "";
@@ -118,7 +118,7 @@ namespace SketchBlade.Views.Controls
                         SetValue(SlotTypeProperty, "Inventory");
                     }
                     
-                    // РџРµСЂРµРїРѕРґРїРёСЃС‹РІР°РµРјСЃСЏ РЅР° РЅР°СЃС‚СЂРѕР№РєРё РєРѕРіРґР° SlotType СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚СЃСЏ
+                    // Переподписываемся на настройки когда SlotType устанавливается
                     if (!string.IsNullOrEmpty(value))
                     {
                         SubscribeToSettingsChanges();
@@ -139,7 +139,7 @@ namespace SketchBlade.Views.Controls
             { 
                 SetValue(SlotIndexProperty, value);
                 
-                // РџРµСЂРµРїРѕРґРїРёСЃС‹РІР°РµРјСЃСЏ РЅР° РЅР°СЃС‚СЂРѕР№РєРё РєРѕРіРґР° SlotIndex СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚СЃСЏ
+                // Переподписываемся на настройки когда SlotIndex устанавливается
                 if (value >= 0 && !string.IsNullOrEmpty(SlotType))
                 {
                     SubscribeToSettingsChanges();
@@ -168,6 +168,9 @@ namespace SketchBlade.Views.Controls
             CoreSlotBorder.BorderBrush = SlotNormalBrush;
             CoreSlotBorder.BorderThickness = new Thickness(1);
             
+            // Initialize tooltip
+            _tooltip = new ItemTooltip();
+            
             // Subscribe to game settings changes for display preferences
             SubscribeToSettingsChanges();
             
@@ -175,36 +178,36 @@ namespace SketchBlade.Views.Controls
             Unloaded += CoreInventorySlot_Unloaded;
             DataContextChanged += CoreInventorySlot_DataContextChanged;
             
-            // Добавляем обработчик MouseDown программно для тестирования
+            // ��������� ����������  MouseDown   
             this.MouseDown += (s, e) => {
-                LoggingService.LogInfo($"[DragDrop] *** ПРЯМОЕ СОБЫТИЕ MouseDown *** для {SlotType}[{SlotIndex}], Item: {Item?.Name ?? "NULL"}");
+                // LoggingService.LogInfo($"[DragDrop] *** ������ ������� MouseDown *** ��� {SlotType}[{SlotIndex}], Item: {Item?.Name ?? "NULL"}");
             };
             
-            LoggingService.LogInfo($"[DragDrop] CoreInventorySlot создан для {SlotType}[{SlotIndex}]");
+            // LoggingService.LogInfo($"[DragDrop] CoreInventorySlot ������ ��� {SlotType}[{SlotIndex}]");
         }
 
         private void CoreInventorySlot_Loaded(object sender, RoutedEventArgs e)
         {
             try
             {
-                LoggingService.LogInfo($"[DragDrop] CoreInventorySlot загружен для {SlotType}[{SlotIndex}], Item: {Item?.Name ?? "NULL"}");
+                // LoggingService.LogInfo($"[DragDrop] CoreInventorySlot �������� ��� {SlotType}[{SlotIndex}], Item: {Item?.Name ?? "NULL"}");
                 
                 UpdateSlotVisuals();
                 UpdateSelectionAppearance();
                 
-                // Логируем только проблемные случаи
+                // �������� ������ ���������� ������
                 if (DataContext is InventoryViewModel)
                 {
-                    // Все в порядке
+                    // ��� � �������
                 }
                 else
                 {
-                    LoggingService.LogWarning($"[UI] Неожиданный DataContext для {SlotType}[{SlotIndex}]: {DataContext?.GetType().Name ?? "null"}");
+                    // LoggingService.LogWarning($"[UI] ����������� DataContext ��� {SlotType}[{SlotIndex}]: {DataContext?.GetType().Name ?? "null"}");
                 }
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"Ошибка при загрузке CoreInventorySlot {SlotType}[{SlotIndex}]: {ex.Message}", ex);
+                // LoggingService.LogError($"������ ��� �������� CoreInventorySlot {SlotType}[{SlotIndex}]: {ex.Message}", ex);
             }
         }
 
@@ -212,6 +215,8 @@ namespace SketchBlade.Views.Controls
         {
             try
             {
+                // НЕ отписываемся от событий предмета - мы не подписывались
+                
                 // Unsubscribe from game state changes
                 if (Application.Current.Resources.Contains("GameData"))
                 {
@@ -241,7 +246,7 @@ namespace SketchBlade.Views.Controls
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"CoreInventorySlot_Unloaded: {ex.Message}", ex);
+                // LoggingService.LogError($"CoreInventorySlot_Unloaded: {ex.Message}", ex);
             }
         }
 
@@ -249,7 +254,7 @@ namespace SketchBlade.Views.Controls
         {
             try
             {
-                LoggingService.LogDebug($"[UI] DataContext for {SlotType}[{SlotIndex}] changed from {e.OldValue?.GetType().Name ?? "null"} to {e.NewValue?.GetType().Name ?? "null"}");
+                // LoggingService.LogDebug($"[UI] DataContext for {SlotType}[{SlotIndex}] changed from {e.OldValue?.GetType().Name ?? "null"} to {e.NewValue?.GetType().Name ?? "null"}");
 
                 if (e.NewValue is InventoryViewModel viewModel && !string.IsNullOrEmpty(SlotType) && SlotIndex >= 0)
                 {
@@ -266,7 +271,7 @@ namespace SketchBlade.Views.Controls
                             Mode = BindingMode.OneWay 
                         };
                         BindingOperations.SetBinding(this, ItemProperty, itemBinding);
-                        LoggingService.LogInfo($"[UI] Corrected Item binding for {SlotType}[{SlotIndex}] to source: wrapper.Item. Current item on wrapper: {(wrapper.Item?.Name) ?? "null"}");
+                        // LoggingService.LogInfo($"[UI] Corrected Item binding for {SlotType}[{SlotIndex}] to source: wrapper.Item. Current item on wrapper: {(wrapper.Item?.Name) ?? "null"}");
                         
                         // After correcting the binding, explicitly set the Item DP to sync with the wrapper's current state.
                         // This ensures OnItemChanged fires if the value is different from what the DP previously held.
@@ -274,14 +279,14 @@ namespace SketchBlade.Views.Controls
                     }
                     else
                     {
-                        LoggingService.LogWarning($"[UI] In DataContextChanged for {SlotType}[{SlotIndex}], DataContext is InventoryViewModel, but NO wrapper found. Clearing Item binding and setting Item to null.");
+                        // LoggingService.LogWarning($"[UI] In DataContextChanged for {SlotType}[{SlotIndex}], DataContext is InventoryViewModel, but NO wrapper found. Clearing Item binding and setting Item to null.");
                         BindingOperations.ClearBinding(this, ItemProperty);
                         SetValue(ItemProperty, null); // Explicitly set to null
                     }
                 }
                 else if (e.NewValue is InventorySlotWrapper directWrapper)
                 {
-                    LoggingService.LogInfo($"[UI] DataContext for {SlotType}[{SlotIndex}] is directly an InventorySlotWrapper. Standard XAML Item={{Binding Item}} should apply. Current item on wrapper: {(directWrapper.Item?.Name) ?? "null"}");
+                    // LoggingService.LogInfo($"[UI] DataContext for {SlotType}[{SlotIndex}] is directly an InventorySlotWrapper. Standard XAML Item={{Binding Item}} should apply. Current item on wrapper: {(directWrapper.Item?.Name) ?? "null"}");
                     // If XAML binding Item="{Binding Item}" exists, it will use directWrapper as source.
                     // If DP's current value differs from wrapper.Item, binding should update it, and OnItemChanged will fire.
                     // To be absolutely sure, we can also sync it here, similar to the ViewModel case.
@@ -290,7 +295,7 @@ namespace SketchBlade.Views.Controls
                 }
                 else if (e.NewValue == null)
                 {
-                    LoggingService.LogInfo($"[UI] DataContext for {SlotType}[{SlotIndex}] is now null. Clearing Item binding and setting Item to null.");
+                    // LoggingService.LogInfo($"[UI] DataContext for {SlotType}[{SlotIndex}] is now null. Clearing Item binding and setting Item to null.");
                     BindingOperations.ClearBinding(this, ItemProperty);
                     SetValue(ItemProperty, null); // Explicitly set to null
                 }
@@ -306,7 +311,7 @@ namespace SketchBlade.Views.Controls
                             Mode = BindingMode.OneWay
                         };
                         BindingOperations.SetBinding(this, ItemProperty, newBinding);
-                        LoggingService.LogDebug($"[UI] Set up Result -> Item binding for {SlotType}[{SlotIndex}]");
+                        // LoggingService.LogDebug($"[UI] Set up Result -> Item binding for {SlotType}[{SlotIndex}]");
                     }
                 }
 
@@ -323,7 +328,7 @@ namespace SketchBlade.Views.Controls
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"Error in CoreInventorySlot_DataContextChanged for {SlotType}[{SlotIndex}]: {ex.Message}", ex);
+                // LoggingService.LogError($"Error in CoreInventorySlot_DataContextChanged for {SlotType}[{SlotIndex}]: {ex.Message}", ex);
             }
         }
 
@@ -334,21 +339,21 @@ namespace SketchBlade.Views.Controls
                 var GameData = Application.Current.Resources["GameData"] as GameData;
                 if (GameData != null && GameData.Settings != null)
                 {
-                    // Подписываемся на события PropertyChanged для Settings
+                    // ������������� �� ������� PropertyChanged ��� Settings
                     GameData.Settings.PropertyChanged += Settings_PropertyChanged;
                     
-                    // Также подписываемся на изменения в самом GameData
+                    // ����� ������������� �� ��������� � ����� GameData
                     GameData.PropertyChanged += GameState_PropertyChanged;
                     
                     _isSubscribedToSettings = true;
                     
-                    // Убираем избыточное логирование - только при ошибках
+                    // ������� ���������� ����������� - ������ ��� �������
                     // LoggingService.LogDebug($"CoreInventorySlot ({SlotType}[{SlotIndex}]) subscribed to settings changes");
                 }
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"Ошибка подписки на изменения настроек для слота {SlotType}[{SlotIndex}]: {ex.Message}");
+                // LoggingService.LogError($"������ �������� �� ��������� �������� ��� ����� {SlotType}[{SlotIndex}]: {ex.Message}");
             }
         }
         
@@ -356,11 +361,11 @@ namespace SketchBlade.Views.Controls
         {
             if (e.PropertyName == nameof(GameData.Settings))
             {
-                // Переподписываемся на новые настройки если они изменились
+                // ����������������� �� ����� ��������� ���� ��� ����������
                 var GameData = sender as GameData;
                 if (GameData?.Settings != null)
                 {
-                    // Обновляем подписку
+                    // ��������� ��������
                     GameData.Settings.PropertyChanged -= Settings_PropertyChanged;
                     GameData.Settings.PropertyChanged += Settings_PropertyChanged;
                 }
@@ -369,7 +374,7 @@ namespace SketchBlade.Views.Controls
         
         private void Settings_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            // Поскольку описания предметов теперь всегда включены, нет необходимости в обработке изменений настроек
+            // ��������� �������� ��������� ������ ������ ��������, ��� ������������� � ��������� ��������� ��������
         }
 
         private static void OnItemChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -380,22 +385,21 @@ namespace SketchBlade.Views.Controls
                 var oldItem = e.OldValue as Item;
                 
                 // Log all calls to OnItemChanged to see if it's firing correctly
-                LoggingService.LogInfo($"[UI] OnItemChanged CALLED for {slot.SlotType}[{slot.SlotIndex}]: '{oldItem?.Name ?? "null"}' (Hash:{oldItem?.GetHashCode()}) -> '{newItem?.Name ?? "null"}' (Hash:{newItem?.GetHashCode()}). Are they same object: {ReferenceEquals(oldItem, newItem)}");
+                // LoggingService.LogInfo($"[UI] OnItemChanged CALLED for {slot.SlotType}[{slot.SlotIndex}]: '{oldItem?.Name ?? "null"}' (Hash:{oldItem?.GetHashCode()}) -> '{newItem?.Name ?? "null"}' (Hash:{newItem?.GetHashCode()}). Are they same object: {ReferenceEquals(oldItem, newItem)}");
                 
-                // Original logging condition for significant changes (can be kept for less noise if preferred later)
-                // if ((newItem == null) != (oldItem == null) || 
-                //    (newItem != null && oldItem != null && (newItem.Name != oldItem.Name || newItem.StackSize != oldItem.StackSize) )) // Added StackSize check
-                // {
-                //    LoggingService.LogInfo($"[UI] OnItemChanged (Significant): {slot.SlotType}[{slot.SlotIndex}] {oldItem?.Name ?? "null"}({oldItem?.StackSize}) -> {newItem?.Name ?? "null"}({newItem?.StackSize})");
-                // }
+                // НЕ подписываемся на события предмета - используем прямое обновление UI как в крафте
                 
-                // Немедленно обновляем визуальное отображение
+                //  :    
+                slot._itemImage = null;
+                
+                //    
                 slot.UpdateSlotVisuals(); // This uses slot.Item (the new value of the DP)
                 
-                // Принудительно обновляем в следующем UI цикле
+                //    UI 
                 slot.Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    // LoggingService.LogDebug($"[UI] OnItemChanged Dispatcher.BeginInvoke for {slot.SlotType}[{slot.SlotIndex}]");
+                    //       
+                    slot._itemImage = null;
                     slot.UpdateSlotVisuals(); // Call again to be sure, uses current slot.Item
                     slot.InvalidateVisual();
                     slot.UpdateLayout();
@@ -406,6 +410,36 @@ namespace SketchBlade.Views.Controls
                         parentPanel.UpdateLayout();
                     }
                 }), DispatcherPriority.DataBind); // Using DataBind priority
+            }
+        }
+
+        /// <summary>
+        /// Принудительное обновление визуалов слота (вызывается из InventoryViewModel.ForceUpdateUIControls)
+        /// </summary>
+        public void ForceUpdateSlotVisuals()
+        {
+            try
+            {
+                // Принудительно обновляем визуалы независимо от событий
+                _itemImage = null;
+                UpdateSlotVisuals();
+                
+                // Принудительно обновляем layout
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    InvalidateVisual();
+                    UpdateLayout();
+                    
+                    if (Parent is Panel parentPanel)
+                    {
+                        parentPanel.InvalidateArrange();
+                        parentPanel.UpdateLayout();
+                    }
+                }), DispatcherPriority.Render);
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogError($"ForceUpdateSlotVisuals error for {SlotType}[{SlotIndex}]: {ex.Message}", ex);
             }
         }
 
@@ -421,76 +455,59 @@ namespace SketchBlade.Views.Controls
         {
             try
             {
-                LoggingService.LogInfo($"[UI] UpdateSlotVisuals НАЧАЛО для {SlotType}[{SlotIndex}]: Item = {Item?.Name ?? "null"}");
-                
                 if (Item != null)
                 {
-                    LoggingService.LogInfo($"[UI] Предмет найден: {Item.Name}, SpritePath: '{Item.SpritePath}', StackSize: {Item.StackSize}");
-                    
                     LoadAndSetItemImage();
 
                     if (Item.IsStackable && Item.StackSize > 1)
                     {
                         SafeSetText(CoreItemCount, Item.StackSize.ToString());
                         SafeSetVisibility(CoreItemCount, Visibility.Visible);
-                        LoggingService.LogInfo($"[UI] Показываем счетчик стека: {Item.StackSize} для {SlotType}[{SlotIndex}]");
                     }
                     else
                     {
-                        LoggingService.LogInfo($"[UI] Скрываем счетчик стека для {SlotType}[{SlotIndex}] (не стекаемый или размер = 1)");
                         SafeSetVisibility(CoreItemCount, Visibility.Collapsed);
                     }
 
                     UpdateRarityIndicator();
-                    LoggingService.LogInfo($"[UI] Обновили индикатор редкости для {SlotType}[{SlotIndex}]");
                 }
                 else
                 {
-                    LoggingService.LogInfo($"[UI] Предмет null, очищаем слот {SlotType}[{SlotIndex}]");
                     SafeSetImageSource(CoreItemImage, null);
                     SafeSetVisibility(CoreItemImage, Visibility.Collapsed);
                     SafeSetVisibility(CoreItemCount, Visibility.Collapsed);
                     SafeSetVisibility(RarityIndicator, Visibility.Collapsed);
                     _itemImage = null;
-                    LoggingService.LogInfo($"[UI] Очистили все визуальные элементы для {SlotType}[{SlotIndex}]");
                 }
                 
-                // Принудительно обновляем привязки данных и визуальное отображение
+                // ������������� ��������� �������� ������ � ���������� �����������
                 Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    LoggingService.LogInfo($"[UI] Dispatcher.BeginInvoke НАЧАЛО для {SlotType}[{SlotIndex}]");
-                    
-                    // Обновляем layout всех элементов
+                    // ��������� layout ���� ���������
                     if (CoreItemImage != null)
                     {
                         CoreItemImage.UpdateLayout();
                         CoreItemImage.InvalidateVisual();
-                        LoggingService.LogDebug($"[UI] Обновили CoreItemImage для {SlotType}[{SlotIndex}]");
                     }
                     if (CoreItemCount != null)
                     {
                         CoreItemCount.UpdateLayout();
                         CoreItemCount.InvalidateVisual();
-                        LoggingService.LogDebug($"[UI] Обновили CoreItemCount для {SlotType}[{SlotIndex}]");
                     }
                     if (RarityIndicator != null)
                     {
                         RarityIndicator.UpdateLayout();
                         RarityIndicator.InvalidateVisual();
-                        LoggingService.LogDebug($"[UI] Обновили RarityIndicator для {SlotType}[{SlotIndex}]");
                     }
                     
-                    // Обновляем весь контрол
+                    // ��������� ���� �������
                     this.UpdateLayout();
                     this.InvalidateVisual();
-                    LoggingService.LogInfo($"[UI] Dispatcher.BeginInvoke КОНЕЦ для {SlotType}[{SlotIndex}]");
                 }), DispatcherPriority.Render);
-                
-                LoggingService.LogInfo($"[UI] UpdateSlotVisuals КОНЕЦ для {SlotType}[{SlotIndex}]");
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"Error in UpdateSlotVisuals: {ex.Message}", ex);
+                // LoggingService.LogError($"Error in UpdateSlotVisuals: {ex.Message}", ex);
             }
         }
 
@@ -498,11 +515,8 @@ namespace SketchBlade.Views.Controls
         {
             try
             {
-                LoggingService.LogInfo($"[UI] LoadAndSetItemImage НАЧАЛО для {SlotType}[{SlotIndex}]");
-                
                 if (Item == null)
                 {
-                    LoggingService.LogInfo($"[UI] Item is null, clearing image for {SlotType}[{SlotIndex}]");
                     _itemImage = null;
                     SafeSetImageSource(CoreItemImage, null);
                     SafeSetVisibility(CoreItemImage, Visibility.Collapsed);
@@ -511,86 +525,86 @@ namespace SketchBlade.Views.Controls
                 }
 
                 string imagePath = Item.SpritePath;
-                LoggingService.LogInfo($"[UI] Item {Item.Name} has SpritePath: '{imagePath}' for {SlotType}[{SlotIndex}]");
 
-                // ИСПРАВЛЕНИЕ: Если путь пустой, устанавливаем дефолтный
+                // �����������: ���� ���� ������, ������������� ���������
                 if (string.IsNullOrEmpty(imagePath))
                 {
-                    LoggingService.LogWarning($"Item {Item.Name} has empty SpritePath, using default image");
+                    // LoggingService.LogWarning($"Item {Item.Name} has empty SpritePath, using default image");
                     imagePath = AssetPaths.DEFAULT_IMAGE;
                     
-                    // ВАЖНО: Сохраняем правильный путь в самом предмете для будущего использования
+                    // �����: ��������� ���������� ���� � ����� �������� ��� �������� �������������
                     Item.SpritePath = imagePath;
                 }
 
                 try
                 {
-                    // ИСПРАВЛЕНИЕ: Проверяем существование файла
+                    // �����������: ��������� ������������� �����
                     string fullPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, imagePath);
-                    LoggingService.LogInfo($"[UI] Checking image file: {fullPath} for {SlotType}[{SlotIndex}]");
                     
                     if (!System.IO.File.Exists(fullPath))
                     {
-                        LoggingService.LogWarning($"Image file not found: {fullPath}, using default image");
+                        // LoggingService.LogWarning($"Image file not found: {fullPath}, using default image");
                         imagePath = AssetPaths.DEFAULT_IMAGE;
                         
-                        // ВАЖНО: Сохраняем правильный путь в самом предмете для будущего использования
+                        // �����: ��������� ���������� ���� � ����� �������� ��� �������� �������������
                         Item.SpritePath = imagePath;
                     }
                     
-                    // Принудительная загрузка изображения через ImageHelper
-                    LoggingService.LogInfo($"[UI] Loading image via ImageHelper: {imagePath} for {SlotType}[{SlotIndex}]");
+                    // ����������� �����������: �������������� �������� �����������
+                    // LoggingService.LogInfo($"[IMAGE] ��������� ����������� ��� {Item.Name}: {imagePath}");
                     _itemImage = ImageHelper.LoadImage(imagePath);
                     
-                    // Проверяем, что изображение загружено
+                    // ���������, ��� ����������� ���������
                     if (_itemImage == null || _itemImage.PixelWidth == 0)
                     {
-                        LoggingService.LogWarning($"Failed to load image {imagePath}, using default image for {SlotType}[{SlotIndex}]");
+                        // LoggingService.LogWarning($"Failed to load image {imagePath}, using default image for {SlotType}[{SlotIndex}]");
                         _itemImage = ImageHelper.GetDefaultImage();
                     }
-                    else
-                    {
-                        LoggingService.LogInfo($"[UI] Successfully loaded image {imagePath} ({_itemImage.PixelWidth}x{_itemImage.PixelHeight}) for {SlotType}[{SlotIndex}]");
-                    }
                     
-                    // Устанавливаем изображение
-                    LoggingService.LogInfo($"[UI] Setting image source for {SlotType}[{SlotIndex}]");
+                    // �������������� ����������: ������������� ����������� � �������������� �����������
+                    // LoggingService.LogInfo($"[IMAGE] ������������� ����������� ��� {SlotType}[{SlotIndex}]: {Item.Name}");
                     SafeSetImageSource(CoreItemImage, _itemImage);
                     SafeSetVisibility(CoreItemImage, Visibility.Visible);
-                    LoggingService.LogInfo($"[UI] Image source set and visibility = Visible for {SlotType}[{SlotIndex}]");
                     
-                    // Показываем количество, если стак > 1
+                    // ������������� ��������� ����������� � UI ������
+                    Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        if (CoreItemImage != null)
+                        {
+                            CoreItemImage.Source = _itemImage;
+                            CoreItemImage.InvalidateVisual();
+                            CoreItemImage.UpdateLayout();
+                            // LoggingService.LogInfo($"[IMAGE] ������������� �������� ����������� ��� {SlotType}[{SlotIndex}]");
+                        }
+                    }), DispatcherPriority.Render);
+                    
+                    // ���������� ����������, ���� ���� > 1
                     if (Item.StackSize > 1)
                     {
-                        LoggingService.LogInfo($"[UI] Setting stack count {Item.StackSize} for {SlotType}[{SlotIndex}]");
                         SafeSetText(CoreItemCount, Item.StackSize.ToString());
                         SafeSetVisibility(CoreItemCount, Visibility.Visible);
                     }
                     else
                     {
-                        LoggingService.LogInfo($"[UI] Hiding stack count for {SlotType}[{SlotIndex}] (stack size = {Item.StackSize})");
                         SafeSetVisibility(CoreItemCount, Visibility.Collapsed);
                     }
 
-                    // Показываем индикатор редкости
-                    LoggingService.LogInfo($"[UI] Updating rarity indicator for {SlotType}[{SlotIndex}]");
+                    // ���������� ��������� ��������
                     UpdateRarityIndicator();
                 }
                 catch (Exception ex)
                 {
-                    LoggingService.LogError($"Error loading image for {Item.Name}: {ex.Message}", ex);
+                    // LoggingService.LogError($"Error loading image for {Item.Name}: {ex.Message}", ex);
                     
-                    // Используем дефолтное изображение при ошибке
+                    // ���������� ��������� ����������� ��� ������
                     _itemImage = ImageHelper.GetDefaultImage();
                     SafeSetImageSource(CoreItemImage, _itemImage);
                     SafeSetVisibility(CoreItemImage, Visibility.Visible);
                 }
-                
-                LoggingService.LogInfo($"[UI] LoadAndSetItemImage КОНЕЦ для {SlotType}[{SlotIndex}]");
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"Error in LoadAndSetItemImage: {ex.Message}", ex);
+                // LoggingService.LogError($"Error in LoadAndSetItemImage: {ex.Message}", ex);
             }
         }
 
@@ -598,25 +612,19 @@ namespace SketchBlade.Views.Controls
         {
             if (imageControl == null) 
             {
-                LoggingService.LogWarning($"[UI] SafeSetImageSource: imageControl is null for {SlotType}[{SlotIndex}]");
+                // LoggingService.LogWarning($"[UI] SafeSetImageSource: imageControl is null for {SlotType}[{SlotIndex}]");
                 return;
             }
 
-            LoggingService.LogInfo($"[UI] SafeSetImageSource: Setting image source for {SlotType}[{SlotIndex}] (source is {(source == null ? "null" : "not null")})");
-
             if (!Dispatcher.CheckAccess())
             {
-                LoggingService.LogDebug($"[UI] SafeSetImageSource: Using Dispatcher.Invoke for {SlotType}[{SlotIndex}]");
                 Dispatcher.Invoke(() => { 
                     imageControl.Source = source; 
-                    LoggingService.LogDebug($"[UI] SafeSetImageSource: Image source set via Dispatcher for {SlotType}[{SlotIndex}]");
                 });
             }
             else
             {
-                LoggingService.LogDebug($"[UI] SafeSetImageSource: Setting directly for {SlotType}[{SlotIndex}]");
                 imageControl.Source = source;
-                LoggingService.LogDebug($"[UI] SafeSetImageSource: Image source set directly for {SlotType}[{SlotIndex}]");
             }
         }
 
@@ -624,25 +632,19 @@ namespace SketchBlade.Views.Controls
         {
             if (element == null) 
             {
-                LoggingService.LogWarning($"[UI] SafeSetVisibility: element is null for {SlotType}[{SlotIndex}]");
+                // LoggingService.LogWarning($"[UI] SafeSetVisibility: element is null for {SlotType}[{SlotIndex}]");
                 return;
             }
 
-            LoggingService.LogInfo($"[UI] SafeSetVisibility: Setting visibility to {visibility} for {SlotType}[{SlotIndex}]");
-
             if (!Dispatcher.CheckAccess())
             {
-                LoggingService.LogDebug($"[UI] SafeSetVisibility: Using Dispatcher.Invoke for {SlotType}[{SlotIndex}]");
                 Dispatcher.Invoke(() => { 
                     element.Visibility = visibility; 
-                    LoggingService.LogDebug($"[UI] SafeSetVisibility: Visibility set via Dispatcher for {SlotType}[{SlotIndex}]");
                 });
             }
             else
             {
-                LoggingService.LogDebug($"[UI] SafeSetVisibility: Setting directly for {SlotType}[{SlotIndex}]");
                 element.Visibility = visibility;
-                LoggingService.LogDebug($"[UI] SafeSetVisibility: Visibility set directly for {SlotType}[{SlotIndex}]");
             }
         }
 
@@ -650,25 +652,19 @@ namespace SketchBlade.Views.Controls
         {
             if (textBlock == null) 
             {
-                LoggingService.LogWarning($"[UI] SafeSetText: textBlock is null for {SlotType}[{SlotIndex}]");
+                // LoggingService.LogWarning($"[UI] SafeSetText: textBlock is null for {SlotType}[{SlotIndex}]");
                 return;
             }
 
-            LoggingService.LogInfo($"[UI] SafeSetText: Setting text to '{text}' for {SlotType}[{SlotIndex}]");
-
             if (!Dispatcher.CheckAccess())
             {
-                LoggingService.LogDebug($"[UI] SafeSetText: Using Dispatcher.Invoke for {SlotType}[{SlotIndex}]");
                 Dispatcher.Invoke(() => { 
                     textBlock.Text = text; 
-                    LoggingService.LogDebug($"[UI] SafeSetText: Text set via Dispatcher for {SlotType}[{SlotIndex}]");
                 });
             }
             else
             {
-                LoggingService.LogDebug($"[UI] SafeSetText: Setting directly for {SlotType}[{SlotIndex}]");
                 textBlock.Text = text;
-                LoggingService.LogDebug($"[UI] SafeSetText: Text set directly for {SlotType}[{SlotIndex}]");
             }
         }
 
@@ -739,30 +735,54 @@ namespace SketchBlade.Views.Controls
 
         private void SlotBorder_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            LoggingService.LogInfo($"[DragDrop] *** СОБЫТИЕ MOUSEDOWN ПОЛУЧЕНО *** для {SlotType}[{SlotIndex}], Item: {Item?.Name ?? "NULL"}");
             try
             {
                 e.Handled = true;
 
                 if (SlotType == "CraftResult" && Item != null)
                 {
+                    // LoggingService.LogInfo($"[CraftResult] ���� �� �������� ������: {Item.Name}");
+                    
                     var viewModel = FindViewModel();
                     if (viewModel != null)
                     {
-                        viewModel.TakeCraftResult();
-                        // Log success since TakeCraftResult doesn't return bool
-                        LoggingService.LogDebug($"TakeCraftResult called for slot {SlotIndex}");
+                        // ���������, ���� �� ���������� � ������� � DataContext
+                        if (DataContext is SimplifiedCraftingRecipeViewModel recipeVM)
+                        {
+                                                    // LoggingService.LogInfo($"[CraftResult] ������ ������ � DataContext: {recipeVM.Name}");
+                        // LoggingService.LogInfo($"[CraftResult] ����� ��������: {recipeVM.CanCraft}");
+                            
+                            // ���������� ����� ����� CraftRecipe � ���������� ��������
+                            viewModel.CraftRecipe(recipeVM.Recipe);
+                        }
+                        else
+                        {
+                            // LoggingService.LogWarning($"[CraftResult] DataContext �� �������� SimplifiedCraftingRecipeViewModel: {DataContext?.GetType().Name ?? "null"}");
+                            // Fallback � ������� ������
+                            viewModel.TakeCraftResult();
+                        }
+                        
+                        // LoggingService.LogDebug($"TakeCraftResult called for slot {SlotIndex}");
                     }
                     else
                     {
-                        MessageBox.Show("Could not find ViewModel for crafting");
+                        // LoggingService.LogError("Could not find ViewModel for crafting");
 
                         if (Application.Current.Resources.Contains("InventoryViewModel"))
                         {
                             var directViewModel = Application.Current.Resources["InventoryViewModel"] as InventoryViewModel;
                             if (directViewModel != null)
                             {
-                                directViewModel.TakeCraftResult();
+                                // ��������� DataContext � ����� ����
+                                if (DataContext is SimplifiedCraftingRecipeViewModel recipeVM)
+                                {
+                                    // LoggingService.LogInfo($"[CraftResult] ���������� directViewModel � ��������: {recipeVM.Name}");
+                                    directViewModel.CraftRecipe(recipeVM.Recipe);
+                                }
+                                else
+                                {
+                                    directViewModel.TakeCraftResult();
+                                }
                             }
                         }
                     }
@@ -773,10 +793,8 @@ namespace SketchBlade.Views.Controls
 
                 if (e.ChangedButton == MouseButton.Left && Item != null)
                 {
-                    LoggingService.LogInfo($"[DragDrop] MouseDown на {SlotType}[{SlotIndex}] с предметом {Item.Name}");
                     // _dragStartPoint = e.GetPosition(this); // Removed: Drag start point for local detection less relevant
                     // CoreSlotBorder.CaptureMouse(); // Removed: Let DoDragDrop handle capture
-                    // LoggingService.LogInfo($"[DragDrop] Mouse captured для {SlotType}[{SlotIndex}]"); // Removed
                     e.Handled = true; // Keep e.Handled = true if we are potentially starting a drag sequence via the event
                 }
                 else if (e.ChangedButton == MouseButton.Right && Item != null && Item.IsStackable && Item.StackSize > 1)
@@ -805,21 +823,21 @@ namespace SketchBlade.Views.Controls
         {
             try
             {
-                // Проверяем, что предмет все еще существует перед началом drag-and-drop
+                // ���������, ��� ������� ��� ��� ���������� ����� ������� drag-and-drop
                 // This check is less critical now as drag initiation is moved, but keep for safety.
                 if (e.LeftButton == MouseButtonState.Pressed && Item == null && CoreSlotBorder.IsMouseCaptured)
                 {
-                    // Если предмет исчез, сбрасываем состояние drag-and-drop
+                    // ���� ������� �����, ���������� ��������� drag-and-drop
                     _isDragging = false;
                     CoreSlotBorder.ReleaseMouseCapture();
-                    LoggingService.LogDebug($"[DragDrop] MouseMove on {SlotType}[{SlotIndex}]: Item became null while captured, releasing capture.");
+                    // LoggingService.LogDebug($"[DragDrop] MouseMove on {SlotType}[{SlotIndex}]: Item became null while captured, releasing capture.");
                     return;
                 }
                 
-                // Логируем только если есть потенциал для drag-and-drop
+                // �������� ������ ���� ���� ��������� ��� drag-and-drop
                 if (e.LeftButton == MouseButtonState.Pressed && Item != null && CoreSlotBorder.IsMouseCaptured)
                 {
-                    // LoggingService.LogInfo($"[DragDrop] MouseMove на {SlotType}[{SlotIndex}], isDragging: {_isDragging}, MouseCaptured: {CoreSlotBorder.IsMouseCaptured}");
+                    // LoggingService.LogInfo($"[DragDrop] MouseMove �� {SlotType}[{SlotIndex}], isDragging: {_isDragging}, MouseCaptured: {CoreSlotBorder.IsMouseCaptured}");
                 }
                 
                 // The drag initiation logic (checking for drag distance and calling DoDragDrop)
@@ -860,7 +878,7 @@ namespace SketchBlade.Views.Controls
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"Ошибка в SlotBorder_MouseMove: {ex.Message}", ex);
+                // LoggingService.LogError($"������ � SlotBorder_MouseMove: {ex.Message}", ex);
                 _isDragging = false; // Reset state on error
                 if (CoreSlotBorder.IsMouseCaptured)
                 {
@@ -890,10 +908,10 @@ namespace SketchBlade.Views.Controls
 
         private void SlotBorder_Drop(object sender, DragEventArgs e)
         {
-            LoggingService.LogInfo($"[DragDrop] *** СОБЫТИЕ DROP ПОЛУЧЕНО *** для {SlotType}[{SlotIndex}]");
+            // LoggingService.LogInfo($"[DragDrop] *** ������� DROP �������� *** ��� {SlotType}[{SlotIndex}]");
             try
             {
-                LoggingService.LogInfo($"[DragDrop] Drop в {SlotType}[{SlotIndex}]");
+                // LoggingService.LogInfo($"[DragDrop] Drop � {SlotType}[{SlotIndex}]");
 
                 ShowDropTargetHighlight(false);
                 ShowInvalidDropHighlight(false);
@@ -901,16 +919,13 @@ namespace SketchBlade.Views.Controls
 
                 _isDragging = false;
 
-                // Вызываем событие SlotDrop для обработки через InventoryDragDropHandler
-                // ВСЯ логика обработки теперь происходит в InventoryDragDropHandler
-                LoggingService.LogInfo($"[DragDrop] Вызываем SlotDrop событие для {SlotType}[{SlotIndex}]");
+                // �������� ������� SlotDrop ��� ��������� ����� InventoryDragDropHandler
+                // ��� ������ ��������� ������ ���������� � InventoryDragDropHandler
                 SlotDrop?.Invoke(this, e);
-                
-                LoggingService.LogInfo($"[DragDrop] Drop завершен для {SlotType}[{SlotIndex}]");
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"[DragDrop] Ошибка в SlotBorder_Drop: {ex.Message}", ex);
+                // LoggingService.LogError($"[DragDrop] ������ � SlotBorder_Drop: {ex.Message}", ex);
 
                 ShowDropTargetHighlight(false);
                 ShowInvalidDropHighlight(false);
@@ -930,7 +945,7 @@ namespace SketchBlade.Views.Controls
                 Item? sourceItem = FindViewModelItem(sourceSlotInfo);
                 if (sourceItem == null)
                 {
-                    LoggingService.LogWarning($"[DragDrop] Исходный предмет не найден для {sourceSlotInfo.SlotType}[{sourceSlotInfo.SlotIndex}]");
+                    // LoggingService.LogWarning($"[DragDrop] �������� ������� �� ������ ��� {sourceSlotInfo.SlotType}[{sourceSlotInfo.SlotIndex}]");
                     return false;
                 }
 
@@ -948,7 +963,7 @@ namespace SketchBlade.Views.Controls
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"[DragDrop] Ошибка в CanAcceptItemType: {ex.Message}", ex);
+                // LoggingService.LogError($"[DragDrop] ������ � CanAcceptItemType: {ex.Message}", ex);
                 return false;
             }
         }
@@ -957,7 +972,7 @@ namespace SketchBlade.Views.Controls
         {
             try
             {
-                // Если предмет уже есть в slotInfo, используем его
+                // ���� ������� ��� ���� � slotInfo, ���������� ���
                 if (slotInfo.Item != null)
                 {
                     return slotInfo.Item;
@@ -1159,11 +1174,11 @@ namespace SketchBlade.Views.Controls
             {
                 if (data == null)
                 {
-                    LoggingService.LogWarning("[DragDrop] RaiseItemMoveRequest: data is null");
+                    // LoggingService.LogWarning("[DragDrop] RaiseItemMoveRequest: data is null");
                     return;
                 }
 
-                LoggingService.LogInfo($"[DragDrop] Перемещение предмета: {data.SourceType}[{data.SourceIndex}] -> {data.TargetType}[{data.TargetIndex}]");
+                // LoggingService.LogInfo($"[DragDrop] ����������� ��������: {data.SourceType}[{data.SourceIndex}] -> {data.TargetType}[{data.TargetIndex}]");
 
                 InventoryViewModel? viewModel = FindViewModel();
 
@@ -1267,7 +1282,7 @@ namespace SketchBlade.Views.Controls
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"[DragDrop] Ошибка в DragEnter: {ex.Message}", ex);
+                // LoggingService.LogError($"[DragDrop] ������ � DragEnter: {ex.Message}", ex);
                 e.Effects = DragDropEffects.None;
                 ShowDropTargetHighlight(false);
                 ShowInvalidDropHighlight(false);
@@ -1280,7 +1295,7 @@ namespace SketchBlade.Views.Controls
         {
             try
             {
-                // РЈР±СЂР°РЅРѕ РёР·Р±С‹С‚РѕС‡РЅРѕРµ Р»РѕРіРёСЂРѕРІР°РЅРёРµ РґР»СЏ СѓР»СѓС‡С€РµРЅРёСЏ РїСЂРѕРёР·РІРѕРґРёС‚РµР»СЊРЅРѕСЃС‚Рё
+                // Убрано избыточное логирование для улучшения производительности
                 // File.AppendAllText("error_log.txt", 
                 //     $"[{DateTime.Now:dd.MM.yyyy H:mm:ss}] [DEBUG] InventorySlot_DragOver: sender={sender?.GetType().Name}\r\n");
 
@@ -1327,7 +1342,7 @@ namespace SketchBlade.Views.Controls
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"[DragDrop] SlotBorder_DragOver exception: {ex.Message}", ex);
+                // LoggingService.LogError($"[DragDrop] SlotBorder_DragOver exception: {ex.Message}", ex);
 
                 e.Effects = DragDropEffects.None;
                 ShowDropTargetHighlight(false);
@@ -1455,8 +1470,8 @@ namespace SketchBlade.Views.Controls
                 string itemTypeDisplay = GetItemTypeDisplayName(sourceItem.Type);
 
                 MessageBox.Show(
-                    $"РџСЂРµРґРјРµС‚ \"{sourceItem.Name}\" ({itemTypeDisplay}) РЅРµР»СЊР·СЏ РїРѕРјРµСЃС‚РёС‚СЊ РІ СЃР»РѕС‚ С‚РёРїР° \"{slotTypeDisplay}\".",
-                    "РќРµРїРѕРґС…РѕРґСЏС‰РёР№ С‚РёРї РїСЂРµРґРјРµС‚Р°",
+                    $"Предмет \"{sourceItem.Name}\" ({itemTypeDisplay}) нельзя поместить в слот типа \"{slotTypeDisplay}\".",
+                    "Неподходящий тип предмета",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
             }
@@ -1470,15 +1485,15 @@ namespace SketchBlade.Views.Controls
         {
             switch (slotType)
             {
-                case "Inventory": return "РРЅРІРµРЅС‚Р°СЂСЊ";
-                case "Quick": return "Р‘С‹СЃС‚СЂС‹Р№ РґРѕСЃС‚СїРї";
-                case "Helmet": return "РЁР»РµРј";
-                case "Chestplate": return "РќР°РіСЂСѓРґРЅРёРє";
-                case "Leggings": return "РџРѕРЅРѕР¶Рё";
-                case "Weapon": return "РћСЂСѓР¶РёРµ";
-                case "Shield": return "Р©РёС‚";
-                case "Trash": return "РљРѕСЂР·РёРЅР°";
-                default: return slotType ?? "РќРµРёР·РІРµСЃС‚РЅС‹Р№";
+                case "Inventory": return "Инвентарь";
+                case "Quick": return "Быстрый достѿп";
+                case "Helmet": return "Шлем";
+                case "Chestplate": return "Нагрудник";
+                case "Leggings": return "Поножи";
+                case "Weapon": return "Оружие";
+                case "Shield": return "Щит";
+                case "Trash": return "Корзина";
+                default: return slotType ?? "Неизвестный";
             }
         }
 
@@ -1486,14 +1501,14 @@ namespace SketchBlade.Views.Controls
         {
             switch (type)
             {
-                case ItemType.Helmet: return "РЁР»РµРј";
-                case ItemType.Chestplate: return "РќР°РіСЂСѓРґРЅРёРє";
-                case ItemType.Leggings: return "РџРѕРЅРѕР¶Рё";
-                case ItemType.Weapon: return "РћСЂСѓР¶РёРµ";
-                case ItemType.Shield: return "Р©РёС‚";
-                case ItemType.Consumable: return "Р Р°СЃС…РѕРґСѓРµРјРѕРµ";
-                case ItemType.Material: return "РњР°С‚РµСЂРёР°Р»";
-                case ItemType.Unknown: return "РќРµРёР·РІРµСЃС‚РЅРѕ";
+                case ItemType.Helmet: return "Шлем";
+                case ItemType.Chestplate: return "Нагрудник";
+                case ItemType.Leggings: return "Поножи";
+                case ItemType.Weapon: return "Оружие";
+                case ItemType.Shield: return "Щит";
+                case ItemType.Consumable: return "Расходуемое";
+                case ItemType.Material: return "Материал";
+                case ItemType.Unknown: return "Неизвестно";
                 default: return type.ToString();
             }
         }
@@ -1505,8 +1520,8 @@ namespace SketchBlade.Views.Controls
 
         protected virtual void OnSlotDrop()
         {
-            // Этот метод может быть переопределен в наследниках
-            // Основная логика обработки drop находится в SlotBorder_Drop
+            // ���� ����� ����� ���� ������������� � �����������
+            // �������� ������ ��������� drop ��������� � SlotBorder_Drop
         }
 
         protected virtual void OnSlotMouseEnter()
@@ -1523,37 +1538,37 @@ namespace SketchBlade.Views.Controls
         {
             try
             {
-                LoggingService.LogInfo($"[StackSplit] Разделение стека: {sourceSlotInfo.SlotType}[{sourceSlotInfo.SlotIndex}] -> {SlotType}[{SlotIndex}], количество: {splitAmount}");
+                // LoggingService.LogInfo($"[StackSplit] ���������� �����: {sourceSlotInfo.SlotType}[{sourceSlotInfo.SlotIndex}] -> {SlotType}[{SlotIndex}], ����������: {splitAmount}");
 
                 if (sourceSlotInfo.SlotType == SlotType && sourceSlotInfo.SlotIndex == SlotIndex)
                 {
-                    LoggingService.LogWarning("[StackSplit] Попытка разделить стек на тот же слот");
+                    // LoggingService.LogWarning("[StackSplit] ������� ��������� ���� �� ��� �� ����");
                     return;
                 }
 
                 InventoryViewModel? viewModel = FindViewModel();
                 if (viewModel == null)
                 {
-                    LoggingService.LogError("[StackSplit] ViewModel не найден");
+                    // LoggingService.LogError("[StackSplit] ViewModel �� ������");
                     return;
                 }
 
                 Item? sourceItem = viewModel.GetItemFromSlot(sourceSlotInfo.SlotType, sourceSlotInfo.SlotIndex);
                 if (sourceItem == null)
                 {
-                    LoggingService.LogWarning("[StackSplit] Исходный предмет не найден");
+                    // LoggingService.LogWarning("[StackSplit] �������� ������� �� ������");
                     return;
                 }
 
                 if (!sourceItem.IsStackable)
                 {
-                    LoggingService.LogWarning($"[StackSplit] Предмет {sourceItem.Name} не стекаемый");
+                    // LoggingService.LogWarning($"[StackSplit] ������� {sourceItem.Name} �� ���������");
                     return;
                 }
 
                 if (sourceItem.StackSize <= 1)
                 {
-                    LoggingService.LogWarning($"[StackSplit] Размер стека {sourceItem.Name} слишком мал: {sourceItem.StackSize}");
+                    // LoggingService.LogWarning($"[StackSplit] ������ ����� {sourceItem.Name} ������� ���: {sourceItem.StackSize}");
                     return;
                 }
 
@@ -1577,7 +1592,7 @@ namespace SketchBlade.Views.Controls
 
                     sourceItem.StackSize -= splitAmount;
 
-                    LoggingService.LogInfo($"[StackSplit] Создан новый стек {newStackItem.Name}: {splitAmount} шт. Остался исходный стек: {sourceItem.StackSize} шт.");
+                    // LoggingService.LogInfo($"[StackSplit] ������ ����� ���� {newStackItem.Name}: {splitAmount} ��. ������� �������� ����: {sourceItem.StackSize} ��.");
 
                     UpdateSlotVisuals();
 
@@ -1598,7 +1613,7 @@ namespace SketchBlade.Views.Controls
 
                         sourceItem.StackSize -= actualAdd;
 
-                        LoggingService.LogInfo($"[StackSplit] Объединены стеки {targetItem.Name}: добавлено {actualAdd} шт. Новый размер: {targetItem.StackSize}. Остался исходный стек: {sourceItem.StackSize} шт.");
+                        // LoggingService.LogInfo($"[StackSplit] ���������� ����� {targetItem.Name}: ��������� {actualAdd} ��. ����� ������: {targetItem.StackSize}. ������� �������� ����: {sourceItem.StackSize} ��.");
 
                         UpdateSlotVisuals();
 
@@ -1608,8 +1623,8 @@ namespace SketchBlade.Views.Controls
                     else
                     {
                         MessageBox.Show(
-                            "Р¦РµР»РµРІРѕР№ СЃС‚РµРє Р·Р°РїРѕР»РЅРµРЅ, РЅРµР»СЊР·СЏ РґРѕР±Р°РІРёС‚СЊ Р±РѕР»СЊС€Рµ РїСЂРµРґРјРµС‚РѕРІ.",
-                            "РЎС‚РµРє Р·Р°РїРѕР»РЅРµРЅ",
+                            "Целевой стек заполнен, нельзя добавить больше предметов.",
+                            "Стек заполнен",
                             MessageBoxButton.OK,
                             MessageBoxImage.Information);
                     }
@@ -1617,8 +1632,8 @@ namespace SketchBlade.Views.Controls
                 else
                 {
                     MessageBox.Show(
-                        "РќРµРІРѕР·РјРѕР¶РЅРѕ СЂР°Р·РґРµР»РёС‚СЊ СЃС‚РµРє РЅР° СЌС‚РѕС‚ СЃР»РѕС‚, С‚Р°Рє РєР°Рє РѕРЅ СЃРѕРґРµСЂР¶РёС‚ РґСЂСѓРіРѕР№ РїСЂРµРґРјРµС‚.",
-                        "РќРµРІРѕР·РјРѕР¶РЅРѕ СЂР°Р·РґРµР»РёС‚СЊ СЃС‚РµРє",
+                        "Невозможно разделить стек на этот слот, так как он содержит другой предмет.",
+                        "Невозможно разделить стек",
                         MessageBoxButton.OK,
                         MessageBoxImage.Information);
                 }
@@ -1734,6 +1749,12 @@ namespace SketchBlade.Views.Controls
             if (_tooltip != null)
             {
                 _tooltip.Hide();
+                
+                // Remove tooltip from parent container if it exists
+                if (_tooltip.Parent is Panel parentPanel)
+                {
+                    parentPanel.Children.Remove(_tooltip);
+                }
             }
         }
 
@@ -1804,14 +1825,14 @@ namespace SketchBlade.Views.Controls
                 stackPanel.Margin = new Thickness(5);
 
                 TextBlock titleText = new TextBlock();
-                titleText.Text = "Р Р°Р·РґРµР»РёС‚СЊ СЃС‚РµРє";
+                titleText.Text = "Разделить стек";
                 titleText.Foreground = new SolidColorBrush(Colors.White);
                 titleText.FontWeight = FontWeights.Bold;
                 titleText.Margin = new Thickness(0, 0, 0, 10);
                 titleText.HorizontalAlignment = HorizontalAlignment.Center;
 
                 TextBlock itemInfoText = new TextBlock();
-                itemInfoText.Text = $"{Item.Name} (РІСЃРµРіРѕ: {Item.StackSize})";
+                itemInfoText.Text = $"{Item.Name} (всего: {Item.StackSize})";
                 itemInfoText.Foreground = new SolidColorBrush(Colors.LightGray);
                 itemInfoText.Margin = new Thickness(0, 0, 0, 10);
                 itemInfoText.HorizontalAlignment = HorizontalAlignment.Center;
@@ -1832,7 +1853,7 @@ namespace SketchBlade.Views.Controls
                 valuePanel.Margin = new Thickness(0, 0, 0, 10);
 
                 TextBlock valueLabel = new TextBlock();
-                valueLabel.Text = "РљРѕР»РёС‡РµСЃС‚РІРѕ: ";
+                valueLabel.Text = "Количество: ";
                 valueLabel.Foreground = new SolidColorBrush(Colors.White);
 
                 _splitStackValueText = new TextBlock();
@@ -1848,13 +1869,13 @@ namespace SketchBlade.Views.Controls
                 buttonPanel.Margin = new Thickness(0, 5, 0, 0);
 
                 _splitStackConfirmButton = new Button();
-                _splitStackConfirmButton.Content = "Р Р°Р·РґРµР»РёС‚СЊ";
+                _splitStackConfirmButton.Content = "Разделить";
                 _splitStackConfirmButton.Padding = new Thickness(10, 5, 10, 5);
                 _splitStackConfirmButton.Margin = new Thickness(0, 0, 5, 0);
                 _splitStackConfirmButton.Click += SplitStackConfirm_Click;
 
                 _splitStackCancelButton = new Button();
-                _splitStackCancelButton.Content = "РћС‚РјРµРЅР°";
+                _splitStackCancelButton.Content = "Отмена";
                 _splitStackCancelButton.Padding = new Thickness(10, 5, 10, 5);
                 _splitStackCancelButton.Margin = new Thickness(5, 0, 0, 0);
                 _splitStackCancelButton.Click += SplitStackCancel_Click;
@@ -1975,8 +1996,8 @@ namespace SketchBlade.Views.Controls
                 if (emptySlotIndex == -1)
                 {
                     MessageBox.Show(
-                        "Р’ РёРЅРІРµРЅС‚Р°СЂРµ РЅРµС‚ СЃРІРѕР±РѕРґРЅС‹С… СЃР»РѕС‚РѕРІ РґР»СЏ СЂР°Р·РјРµС‰РµРЅРёСЏ СЂР°Р·РґРµР»РµРЅРЅРѕРіРѕ СЃС‚РµРєР°.",
-                        "РќРµС‚ СЃРІРѕР±РѕРґРЅС‹С… СЃР»РѕС‚РѕРІ",
+                        "В инвентаре нет свободных слотов для размещения разделенного стека.",
+                        "Нет свободных слотов",
                         MessageBoxButton.OK,
                         MessageBoxImage.Warning);
                     return;
@@ -2066,7 +2087,7 @@ namespace SketchBlade.Views.Controls
             Item = item ?? throw new ArgumentNullException(nameof(item));
             TargetSlotType = targetSlotType ?? string.Empty;
             TargetSlotIndex = targetSlotIndex;
-            IsValid = true; // По умолчанию разрешаем
+            IsValid = true; // �� ��������� ���������
         }
     }
 
@@ -2086,18 +2107,18 @@ namespace SketchBlade.Views.Controls
             SourceSlotIndex = sourceSlotIndex;
             TargetSlotType = targetSlotType ?? string.Empty;
             TargetSlotName = targetSlotType ?? string.Empty;
-            IsValid = true; // По умолчанию разрешаем
+            IsValid = true; // �� ��������� ���������
         }
     }
 
-    // РљР»Р°СЃСЃ РґР»СЏ РїРµСЂРµРґР°С‡Рё РґР°РЅРЅС‹С… РїСЂРё РїРµСЂРµРјРµС‰РµРЅРёРё РїСЂРµРґРјРµС‚Р° РІ РєРѕСЂР·РёРСў
+    // Класс для передачи данных при перемещении предмета в корзине
     public class ItemTrashEventArgs : EventArgs
     {
         public string SourceType { get; set; } = string.Empty;
         public int SourceIndex { get; set; }
     }
 
-    // РљР»Р°СЃСЃ РґР»СЏ РїРµСЂРµРґР°С‡Рё РґР°РЅРЅС‹С… РїСЂРё СЌРєРёРїРёСЂРѕРІРєРµ РїСЂРµРґРјРµС‚Р°
+    // Класс для передачи данных при экипировке предмета
     public class EquipItemData : EventArgs
     {
         public string SourceType { get; set; } = string.Empty;

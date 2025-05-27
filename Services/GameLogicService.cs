@@ -68,7 +68,7 @@ namespace SketchBlade.Services
         {
             try
             {
-                LoggingService.LogDebug("Creating new game");
+                // LoggingService.LogDebug("Creating new game");
 
                 var gameData = new GameData
                 {

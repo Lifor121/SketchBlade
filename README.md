@@ -346,7 +346,7 @@ private void SaveGame()
 #### Отладочное логирование:
 ```csharp
 // Вместо Console.WriteLine или File.AppendAllText
-LoggingService.LogDebug($"Загружен предмет: {item.Name} с путем {item.SpritePath}");
+// LoggingService.LogDebug($"Загружен предмет: {item.Name} с путем {item.SpritePath}");
 
 // Для важных событий
 LoggingService.LogInfo($"Игрок перешел в локацию: {location.Name}");

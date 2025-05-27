@@ -87,7 +87,7 @@ namespace SketchBlade.Services
             }
 
             SetupLootTables(gameData.Locations);
-            LoggingService.LogDebug($"Created {locations.Length} locations");
+            // LoggingService.LogDebug($"Created {locations.Length} locations");
         }
 
         private Location CreateLocation(string name, string description, LocationType type, bool isUnlocked, bool isCompleted)
@@ -304,6 +304,8 @@ namespace SketchBlade.Services
 
         public void ClearErrorLog()
         {
+            // Логирование отключено
+            /*
             try
             {
                 var logPath = "bin/Debug/net9.0-windows/error_log.txt";
@@ -317,6 +319,7 @@ namespace SketchBlade.Services
             {
                 LoggingService.LogError("Ошибка при очистке лог файла", ex);
             }
+            */
         }
     }
 } 

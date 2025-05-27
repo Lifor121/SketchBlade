@@ -97,7 +97,7 @@ namespace SketchBlade.Services
         private UIService()
         {
             LoadDefaultSizes();
-            LoggingService.LogDebug("UIService initialized");
+            // LoggingService.LogDebug("UIService initialized");
         }
 
         #region Adaptive UI
@@ -111,7 +111,7 @@ namespace SketchBlade.Services
                     return baseSize * _scaleFactor;
                 }
 
-                LoggingService.LogDebug($"Size key not found: {sizeKey}");
+                // LoggingService.LogDebug($"Size key not found: {sizeKey}");
                 return 12.0; // Default fallback
             }
             catch (Exception ex)
@@ -133,7 +133,7 @@ namespace SketchBlade.Services
 
                 _baseSizes[sizeKey] = value;
                 OnPropertyChanged(sizeKey);
-                LoggingService.LogDebug($"Base size set: {sizeKey} = {value}");
+                // LoggingService.LogDebug($"Base size set: {sizeKey} = {value}");
             }
             catch (Exception ex)
             {
@@ -167,7 +167,7 @@ namespace SketchBlade.Services
                         OnPropertyChanged(key);
                     }
 
-                    LoggingService.LogDebug($"Scale factor changed to {factor}");
+                    // LoggingService.LogDebug($"Scale factor changed to {factor}");
                 }
             }
             catch (Exception ex)
@@ -190,7 +190,7 @@ namespace SketchBlade.Services
                     return;
                 }
 
-                LoggingService.LogDebug($"Starting fade transition to {newScreen.GetType().Name}");
+                // LoggingService.LogDebug($"Starting fade transition to {newScreen.GetType().Name}");
 
                 // Create fade out animation
                 var fadeOut = new DoubleAnimation
@@ -235,7 +235,7 @@ namespace SketchBlade.Services
                     await Task.Delay(16);
                 }
 
-                LoggingService.LogDebug("Fade transition completed");
+                                        // LoggingService.LogDebug("Fade transition completed");
             }
             catch (Exception ex)
             {
@@ -260,7 +260,7 @@ namespace SketchBlade.Services
                     return;
                 }
 
-                LoggingService.LogDebug($"Starting slide transition to {newScreen.GetType().Name}");
+                // LoggingService.LogDebug($"Starting slide transition to {newScreen.GetType().Name}");
 
                 var width = contentFrame.ActualWidth;
                 var height = contentFrame.ActualHeight;
@@ -331,7 +331,7 @@ namespace SketchBlade.Services
                 // Clean up transforms
                 newScreen.RenderTransform = null;
 
-                LoggingService.LogDebug("Slide transition completed");
+                // LoggingService.LogDebug("Slide transition completed");
             }
             catch (Exception ex)
             {
@@ -352,7 +352,7 @@ namespace SketchBlade.Services
                     return;
                 }
 
-                LoggingService.LogDebug($"Starting slide location transition to {newImage.GetType().Name}");
+                // LoggingService.LogDebug($"Starting slide location transition to {newImage.GetType().Name}");
 
                 var width = container.ActualWidth;
                 var height = container.ActualHeight;
@@ -369,7 +369,7 @@ namespace SketchBlade.Services
                         container.Children.Clear();
                         container.Children.Add(newImage);
                     }
-                    LoggingService.LogDebug("Used fallback image replacement due to zero dimensions");
+                    // LoggingService.LogDebug("Used fallback image replacement due to zero dimensions");
                     return;
                 }
 
@@ -430,7 +430,7 @@ namespace SketchBlade.Services
                 // Reset transform
                 newImage.RenderTransform = null;
 
-                LoggingService.LogDebug("Slide location transition completed");
+                // LoggingService.LogDebug("Slide location transition completed");
             }
             catch (Exception ex)
             {
@@ -442,7 +442,7 @@ namespace SketchBlade.Services
         {
             try
             {
-                LoggingService.LogDebug($"Applying theme: {themeName}");
+                // LoggingService.LogDebug($"Applying theme: {themeName}");
 
                 Application.Current?.Dispatcher.Invoke(() =>
                 {
@@ -463,7 +463,7 @@ namespace SketchBlade.Services
                     RefreshUI();
                 });
 
-                LoggingService.LogDebug("Theme applied successfully");
+                // LoggingService.LogDebug("Theme applied successfully");
             }
             catch (Exception ex)
             {
@@ -489,7 +489,7 @@ namespace SketchBlade.Services
                         mainWindow.InvalidateVisual();
                     }
 
-                    LoggingService.LogDebug("UI refreshed");
+                    // LoggingService.LogDebug("UI refreshed");
                 });
             }
             catch (Exception ex)
@@ -511,7 +511,7 @@ namespace SketchBlade.Services
                     _baseSizes[kvp.Key] = kvp.Value;
                 }
 
-                LoggingService.LogDebug("Default sizes loaded");
+                // LoggingService.LogDebug("Default sizes loaded");
             }
             catch (Exception ex)
             {
@@ -617,7 +617,7 @@ namespace SketchBlade.Services
         {
             try
             {
-                LoggingService.LogDebug($"Applying language: {language}");
+                // LoggingService.LogDebug($"Applying language: {language}");
                 
                 // Set language in localization service
                 LocalizationService.Instance.CurrentLanguage = language;
@@ -628,7 +628,7 @@ namespace SketchBlade.Services
                     RefreshUI();
                 });
 
-                LoggingService.LogDebug("Language applied successfully");
+                // LoggingService.LogDebug("Language applied successfully");
             }
             catch (Exception ex)
             {

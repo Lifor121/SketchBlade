@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -26,7 +26,7 @@ namespace SketchBlade.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
         
-        // Добавляем публичный метод для внешнего вызова
+        // ��������� ��������� ����� ��� �������� ������
         public void NotifyPropertyChanged(string propertyName)
         {
             OnPropertyChanged(propertyName);
@@ -41,7 +41,7 @@ namespace SketchBlade.ViewModels
         { 
             get 
             {
-                // Ленивая инициализация - если крафт не создан, но инвентарь заполнен, создаем его
+                // ������� ������������� - ���� ����� �� ������, �� ��������� ��������, ������� ���
                 if (_simplifiedCraftingViewModel == null)
                 {
                     InitializeCraftingIfReady();
@@ -97,7 +97,7 @@ namespace SketchBlade.ViewModels
         {
             _gameState = GameData ?? throw new ArgumentNullException(nameof(GameData));
             
-            // НЕ СОЗДАЕМ SimplifiedCraftingViewModel здесь - он будет создан после инициализации игры!
+            // �� ������� SimplifiedCraftingViewModel ����� - �� ����� ������ ����� ������������� ����!
             // _simplifiedCraftingViewModel = new SimplifiedCraftingViewModel(_gameState);
             
             // Initialize commands
@@ -131,12 +131,12 @@ namespace SketchBlade.ViewModels
             InitializeSlots();
             RefreshAllSlots();
             
-            // Инициализируем SimplifiedCraftingViewModel ТОЛЬКО если инвентарь уже заполнен
+            // �������������� SimplifiedCraftingViewModel ������ ���� ��������� ��� ��������
             InitializeCraftingIfReady();
         }
         
         /// <summary>
-        /// Инициализирует систему крафта, если инвентарь готов
+        /// �������������� ������� ������, ���� ��������� �����
         /// </summary>
         public void InitializeCraftingIfReady()
         {
@@ -145,61 +145,61 @@ namespace SketchBlade.ViewModels
                 var nonNullItems = _gameState.Inventory.Items.Count(item => item != null);
                 if (nonNullItems > 0)
                 {
-                    LoggingService.LogInfo($"Инициализируем SimplifiedCraftingViewModel - в инвентаре уже {nonNullItems} предметов");
+                    // LoggingService.LogInfo($"�������������� SimplifiedCraftingViewModel - � ��������� ��� {nonNullItems} ���������");
                     _simplifiedCraftingViewModel = new SimplifiedCraftingViewModel(_gameState);
                     OnPropertyChanged(nameof(SimplifiedCraftingViewModel));
                 }
                 else
                 {
-                    LoggingService.LogDebug("SimplifiedCraftingViewModel не инициализирован - инвентарь пуст");
+                    // LoggingService.LogDebug("SimplifiedCraftingViewModel �� ��������������� - ��������� ����");
                 }
             }
         }
         
         /// <summary>
-        /// Принудительно пересоздает систему крафта (для использования после заполнения инвентаря)
+        /// ������������� ����������� ������� ������  (    )
         /// </summary>
         public void ReinitializeCrafting()
         {
             try
             {
-                LoggingService.LogInfo("=== ПРИНУДИТЕЛЬНАЯ РЕИНИЦИАЛИЗАЦИЯ СИСТЕМЫ КРАФТА ===");
+                // LoggingService.LogInfo("===     ===");
                 
                 var nonNullItems = _gameState.Inventory.Items.Count(item => item != null);
-                LoggingService.LogInfo($"В инвентаре: {nonNullItems} предметов");
+                // LoggingService.LogInfo($" : {nonNullItems} ");
                 
                 if (nonNullItems > 0)
                 {
                     foreach (var item in _gameState.Inventory.Items.Where(item => item != null))
                     {
-                        LoggingService.LogInfo($"  - {item.Name} x{item.StackSize}");
+                        // LoggingService.LogInfo($"  - {item.Name} x{item.StackSize}");
                     }
                     
-                    // Проверяем, нужно ли создавать новый экземпляр
+                    // ,     
                     if (_simplifiedCraftingViewModel == null)
                     {
-                        LoggingService.LogInfo("Создание нового экземпляра SimplifiedCraftingViewModel");
+                        // LoggingService.LogInfo("   SimplifiedCraftingViewModel");
                         _simplifiedCraftingViewModel = new SimplifiedCraftingViewModel(_gameState);
                         OnPropertyChanged(nameof(SimplifiedCraftingViewModel));
                     }
                     else
                     {
-                        LoggingService.LogInfo("Обновление существующего экземпляра SimplifiedCraftingViewModel");
+                        // LoggingService.LogInfo("   SimplifiedCraftingViewModel");
                         _simplifiedCraftingViewModel.RefreshAvailableRecipes();
                     }
                     
-                    LoggingService.LogInfo("SimplifiedCraftingViewModel пересоздан с полным инвентарем");
+                    // LoggingService.LogInfo("SimplifiedCraftingViewModel   ");
                 }
                 else
                 {
-                    LoggingService.LogInfo("Инвентарь пуст - SimplifiedCraftingViewModel не создан");
+                    // LoggingService.LogInfo("  - SimplifiedCraftingViewModel  ");
                 }
                 
-                LoggingService.LogInfo("=== ПРИНУДИТЕЛЬНОЕ ОБНОВЛЕНИЕ UI ПОСЛЕ ИНИЦИАЛИЗАЦИИ ===");
+                // LoggingService.LogInfo("===   UI   ===");
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"Ошибка при реинициализации крафта: {ex.Message}", ex);
+                LoggingService.LogError($"   : {ex.Message}", ex);
             }
         }
         
@@ -235,82 +235,134 @@ namespace SketchBlade.ViewModels
         {
             try
             {
-                // Убираем избыточное логирование - логируем только при значительных изменениях
-            // LoggingService.LogDebug($"RefreshAllSlots: Обновление {_gameState.Inventory.Items.Count} предметов инвентаря");
+                // LoggingService.LogInfo($"[REFRESH] RefreshAllSlots:     ");
                 
-                // Обновляем слоты инвентаря
+                //     
+                // LoggingService.LogInfo($"[REFRESH]  {InventorySlots.Count}  ");
                 for (int i = 0; i < InventorySlots.Count; i++)
                 {
+                    var oldItem = InventorySlots[i].Item;
+                    
                     if (i < _gameState.Inventory.Items.Count)
                     {
                         var inventoryItem = _gameState.Inventory.Items[i];
                         
-                        // Простое обновление без принудительного null
-                        if (InventorySlots[i].Item != inventoryItem)
+                        //  ,      (   UI)
+                        var currentUIItem = InventorySlots[i].Item;
+                        if (currentUIItem != inventoryItem)
                         {
-                            InventorySlots[i].Item = inventoryItem;
-                            LoggingService.LogDebug($"  Слот[{i}]: {inventoryItem?.Name ?? "пусто"}");
+                            // LoggingService.LogInfo($"[REFRESH] : [{i}] UI  '{currentUIItem?.Name ?? "null"}',   '{inventoryItem?.Name ?? "null"}' - ");
                         }
+                        else
+                        {
+                            // LoggingService.LogInfo($"[REFRESH] [{i}] : '{inventoryItem?.Name ?? "null"}' -   UI");
+                        }
+                        
+                        //   Item    OnItemChanged
+                        InventorySlots[i].Item = inventoryItem;
+                        InventorySlots[i].NotifyItemChanged();
+                        
+                        // LoggingService.LogInfo($"[REFRESH]   [{i}]: '{oldItem?.Name ?? "null"}' -> '{inventoryItem?.Name ?? "null"}'");
                     }
                     else
                     {
-                        if (InventorySlots[i].Item != null)
-                        {
-                            InventorySlots[i].Item = null;
-                        }
+                        InventorySlots[i].Item = null;
+                        InventorySlots[i].NotifyItemChanged();
+                        // LoggingService.LogInfo($"[REFRESH]   [{i}]: '{oldItem?.Name ?? "null"}' -> 'null' ()");
                     }
                 }
                 
-                // Обновляем слоты экипировки
+                //   
+                // LoggingService.LogInfo($"[REFRESH]  {QuickSlots.Count}  ");
+                for (int i = 0; i < QuickSlots.Count; i++)
+                {
+                    var oldItem = QuickSlots[i].Item;
+                    
+                    if (i < _gameState.Inventory.QuickItems.Count)
+                    {
+                        QuickSlots[i].Item = _gameState.Inventory.QuickItems[i];
+                        // LoggingService.LogInfo($"[REFRESH]   Quick[{i}]: '{oldItem?.Name ?? "null"}' -> '{_gameState.Inventory.QuickItems[i]?.Name ?? "null"}'");
+                    }
+                    else
+                    {
+                        QuickSlots[i].Item = null;
+                        // LoggingService.LogInfo($"[REFRESH]   Quick[{i}]: '{oldItem?.Name ?? "null"}' -> 'null'");
+                    }
+                    QuickSlots[i].NotifyItemChanged();
+                }
+                
+                //     
                 var player = _gameState.Player;
                 if (player != null)
                 {
-                    if (WeaponSlot.Item != player.EquippedWeapon)
-                        WeaponSlot.Item = player.EquippedWeapon;
+                    // LoggingService.LogInfo($"[REFRESH]   ");
                     
-                    if (HelmetSlot.Item != player.EquippedHelmet)
-                        HelmetSlot.Item = player.EquippedHelmet;
+                    var oldWeapon = WeaponSlot.Item;
+                    WeaponSlot.Item = player.EquippedWeapon;
+                    WeaponSlot.NotifyItemChanged();
+                    // LoggingService.LogInfo($"[REFRESH]   Weapon: '{oldWeapon?.Name ?? "null"}' -> '{player.EquippedWeapon?.Name ?? "null"}'");
                     
-                    if (ChestSlot.Item != player.EquippedArmor)
-                        ChestSlot.Item = player.EquippedArmor;
+                    var oldHelmet = HelmetSlot.Item;
+                    HelmetSlot.Item = player.EquippedHelmet;
+                    HelmetSlot.NotifyItemChanged();
+                    // LoggingService.LogInfo($"[REFRESH]   Helmet: '{oldHelmet?.Name ?? "null"}' -> '{player.EquippedHelmet?.Name ?? "null"}'");
                     
-                    if (LegsSlot.Item != player.EquippedLeggings)
-                        LegsSlot.Item = player.EquippedLeggings;
+                    var oldChest = ChestSlot.Item;
+                    ChestSlot.Item = player.EquippedArmor;
+                    ChestSlot.NotifyItemChanged();
+                    // LoggingService.LogInfo($"[REFRESH]   Chest: '{oldChest?.Name ?? "null"}' -> '{player.EquippedArmor?.Name ?? "null"}'");
                     
-                    if (ShieldSlot.Item != player.EquippedShield)
-                        ShieldSlot.Item = player.EquippedShield;
+                    var oldLegs = LegsSlot.Item;
+                    LegsSlot.Item = player.EquippedLeggings;
+                    LegsSlot.NotifyItemChanged();
+                    // LoggingService.LogInfo($"[REFRESH]   Legs: '{oldLegs?.Name ?? "null"}' -> '{player.EquippedLeggings?.Name ?? "null"}'");
+                    
+                    var oldShield = ShieldSlot.Item;
+                    ShieldSlot.Item = player.EquippedShield;
+                    ShieldSlot.NotifyItemChanged();
+                    // LoggingService.LogInfo($"[REFRESH]   Shield: '{oldShield?.Name ?? "null"}' -> '{player.EquippedShield?.Name ?? "null"}'");
                 }
                 
-                // LoggingService.LogDebug("RefreshAllSlots: Обновление завершено");
+                // ��������� ���� ������
+                TrashSlot.NotifyItemChanged();
+                // LoggingService.LogInfo($"[REFRESH] Trash slot ��������");
+                
+                // LoggingService.LogInfo($"[REFRESH] RefreshAllSlots: �������������� ���������� ���������");
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"RefreshAllSlots: {ex.Message}", ex);
+                LoggingService.LogError($"[REFRESH] RefreshAllSlots: {ex.Message}", ex);
             }
         }
         
         /// <summary>
-        /// Принудительное обновление UI - упрощенная и более надежная версия
+        /// �������������� ���������� UI - ����������� ������ ��� ������������ �����������
         /// </summary>
         public void ForceUIUpdate()
         {
             try
             {
-                LoggingService.LogDebug("[UI] Обновление UI начато");
+                // LoggingService.LogDebug("ForceUIUpdate: �������� ����������� ���������� UI");
                 
-                // Обновляем все слоты инвентаря
-                foreach (var slot in InventorySlots)
+                // ��������� ��� ����� ��������� � �������������� ������������
+                for (int i = 0; i < InventorySlots.Count; i++)
                 {
+                    var slot = InventorySlots[i];
                     slot.NotifyItemChanged();
+                    
+                    // ������������� ��������� ����� OnPropertyChanged ��� ���������
+                    OnPropertyChanged($"InventorySlots[{i}]");
                 }
                 
-                // Обновляем быстрые слоты
-                foreach (var slot in QuickSlots)
+                // ��������� ������� �����
+                for (int i = 0; i < QuickSlots.Count; i++)
                 {
+                    var slot = QuickSlots[i];
                     slot.NotifyItemChanged();
+                    OnPropertyChanged($"QuickSlots[{i}]");
                 }
                 
-                // Обновляем слоты экипировки
+                // ��������� ����� ����������
                 HelmetSlot.NotifyItemChanged();
                 ChestSlot.NotifyItemChanged();
                 LegsSlot.NotifyItemChanged();
@@ -318,25 +370,37 @@ namespace SketchBlade.ViewModels
                 ShieldSlot.NotifyItemChanged();
                 TrashSlot.NotifyItemChanged();
                 
-                // Обновляем систему крафта если она существует
+                // ��������� ��������� �������
+                OnPropertyChanged(nameof(InventorySlots));
+                OnPropertyChanged(nameof(QuickSlots));
+                
+                // ��������� ��������� ����� ����������
+                OnPropertyChanged(nameof(HelmetSlot));
+                OnPropertyChanged(nameof(ChestSlot));
+                OnPropertyChanged(nameof(LegsSlot));
+                OnPropertyChanged(nameof(WeaponSlot));
+                OnPropertyChanged(nameof(ShieldSlot));
+                OnPropertyChanged(nameof(TrashSlot));
+                
+                // ��������� ������� ������ ���� ��� ����������
                 if (_simplifiedCraftingViewModel != null)
                 {
                     _simplifiedCraftingViewModel.RefreshAvailableRecipes();
                     OnPropertyChanged(nameof(SimplifiedCraftingViewModel));
                 }
                 
-                // Обновляем игровые данные
+                // ��������� ������� ������
                 OnPropertyChanged(nameof(GameData));
                 OnPropertyChanged(nameof(PlayerHealth));
                 OnPropertyChanged(nameof(PlayerDamage));
                 OnPropertyChanged(nameof(PlayerDefense));
                 OnPropertyChanged(nameof(PlayerSprite));
                 
-                LoggingService.LogDebug("[UI] Обновление UI завершено");
+                // LoggingService.LogDebug("ForceUIUpdate: ����������� ���������� UI ���������");
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"[UI] Ошибка при обновлении UI: {ex.Message}", ex);
+                LoggingService.LogError($"[UI] ������ ��� ���������� UI: {ex.Message}", ex);
             }
         }
         
@@ -352,9 +416,9 @@ namespace SketchBlade.ViewModels
                         break;
                         
                     case "Quick":
-                        if (slotIndex >= 0 && slotIndex < QuickSlots.Count)
-                            return QuickSlots[slotIndex].Item;
-                            break;
+                        if (slotIndex >= 0 && slotIndex < _gameState.Inventory.QuickItems.Count)
+                            return _gameState.Inventory.QuickItems[slotIndex];
+                        break;
                         
                     case "Weapon":
                         return _gameState.Player?.EquippedWeapon;
@@ -382,6 +446,105 @@ namespace SketchBlade.ViewModels
             
             return null;
         }
+
+        /// <summary>
+        /// ������� ��� �������� �������� ���������� ���� � ���������� ������
+        /// </summary>
+        private static IEnumerable<T> FindVisualChildren<T>(System.Windows.DependencyObject depObj) where T : System.Windows.DependencyObject
+        {
+            if (depObj != null)
+            {
+                for (int i = 0; i < System.Windows.Media.VisualTreeHelper.GetChildrenCount(depObj); i++)
+                {
+                    var child = System.Windows.Media.VisualTreeHelper.GetChild(depObj, i);
+                    if (child != null && child is T)
+                    {
+                        yield return (T)child;
+                    }
+
+                    foreach (T childOfChild in FindVisualChildren<T>(child))
+                    {
+                        yield return childOfChild;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// ������������� ��������� ��� UI �������� CoreInventorySlot (��� � drag-and-drop)
+        /// </summary>
+        private void ForceUpdateUIControls()
+        {
+            try
+            {
+                // LoggingService.LogInfo("[CRAFT] ForceUpdateUIControls: �������� �������������� ���������� UI ���������");
+                
+                // ���������� Dispatcher ��� ���������� �� UI ������
+                if (System.Windows.Application.Current?.Dispatcher != null)
+                {
+                    System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        try
+                        {
+                            // ������� ������� ����
+                            var mainWindow = System.Windows.Application.Current.MainWindow;
+                            if (mainWindow != null)
+                            {
+                                // ������� ��� CoreInventorySlot ��������
+                                var inventorySlots = FindVisualChildren<Views.Controls.CoreInventorySlot>(mainWindow);
+                                
+                                // LoggingService.LogInfo($"[CRAFT] ForceUpdateUIControls: ������� {inventorySlots.Count()} ������ ��� ����������");
+                                
+                                foreach (var slot in inventorySlots)
+                                {
+                                    try
+                                    {
+                                        // ��������� CraftResult ����� - ��� ����������� �������� ������
+                                        if (slot.SlotType == "CraftResult")
+                                        {
+                                            // LoggingService.LogInfo($"[CRAFT] ForceUpdateUIControls: ���������� CraftResult[{slot.SlotIndex}] - ����������� �������� ������");
+                                            continue;
+                                        }
+                                        
+                                        // �������� ���������� ������ �� ViewModel
+                                        var actualItem = GetItemFromSlot(slot.SlotType, slot.SlotIndex);
+                                        
+                                        // ИСПРАВЛЕНИЕ: Всегда принудительно обновляем UI через прямой вызов
+                                        // Сначала обновляем данные в слоте
+                                        if (slot.Item != actualItem)
+                                        {
+                                            // LoggingService.LogInfo($"[CRAFT] ForceUpdateUIControls: Обновляем {slot.SlotType}[{slot.SlotIndex}]: {slot.Item?.Name ?? "null"} -> {actualItem?.Name ?? "null"}");
+                                            slot.Item = actualItem;
+                                        }
+                                        
+                                        // ВСЕГДА принудительно обновляем визуалы через новый метод
+                                        slot.ForceUpdateSlotVisuals();
+                                    }
+                                    catch (Exception slotEx)
+                                    {
+                                        LoggingService.LogError($"[CRAFT] ForceUpdateUIControls:    {slot.SlotType}[{slot.SlotIndex}]: {slotEx.Message}");
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                LoggingService.LogWarning("[CRAFT] ForceUpdateUIControls: MainWindow  ");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            LoggingService.LogError($"[CRAFT] ForceUpdateUIControls:   UI : {ex.Message}");
+                        }
+                    }), System.Windows.Threading.DispatcherPriority.Normal);
+                }
+                
+                // LoggingService.LogInfo("[CRAFT] ForceUpdateUIControls: ");
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogError($"[CRAFT] ForceUpdateUIControls: {ex.Message}", ex);
+            }
+        }
         
         public void MoveToInventorySlot(MoveItemData? moveData)
         {
@@ -393,40 +556,40 @@ namespace SketchBlade.ViewModels
                 var sourceItem = GetItemFromSlot(moveData.SourceType, moveData.SourceIndex);
                 if (sourceItem == null) 
                 {
-                    LoggingService.LogWarning($"[DragDrop] MoveToInventorySlot: Исходный предмет не найден в {moveData.SourceType}[{moveData.SourceIndex}]");
+                    LoggingService.LogWarning($"[DragDrop] MoveToInventorySlot: �������� ������� �� ������ � {moveData.SourceType}[{moveData.SourceIndex}]");
                     return;
                 }
                 
-                // Проверяем валидность целевого слота
+                // ��������� ���������� �������� �����
                 if (moveData.TargetIndex < 0 || moveData.TargetIndex >= _gameState.Inventory.Items.Count)
                 {
-                    LoggingService.LogError($"[DragDrop] MoveToInventorySlot: Неверный индекс целевого слота {moveData.TargetIndex}");
+                    LoggingService.LogError($"[DragDrop] MoveToInventorySlot: �������� ������ �������� ����� {moveData.TargetIndex}");
                     return;
                 }
 
-                // Получаем предмет в целевом слоте (может быть null)
+                // �������� ������� � ������� ����� (����� ���� null)
                 var targetItem = _gameState.Inventory.Items[moveData.TargetIndex];
                 
-                LoggingService.LogInfo($"[DragDrop] Перемещение: {sourceItem.Name} из {moveData.SourceType}[{moveData.SourceIndex}] в Inventory[{moveData.TargetIndex}]");
+                // LoggingService.LogInfo($"[DragDrop] �����������: {sourceItem.Name} �� {moveData.SourceType}[{moveData.SourceIndex}] � Inventory[{moveData.TargetIndex}]");
                 
-                // Выполняем атомарное перемещение с проверкой состояния
+                // ��������� ��������� ����������� � ��������� ���������
                 bool moveSuccessful = PerformAtomicMove(moveData.SourceType, moveData.SourceIndex, 
                                                        "Inventory", moveData.TargetIndex, 
                                                        sourceItem, targetItem);
                 
                 if (moveSuccessful)
                 {
-                    // Уведомляем об изменении инвентаря только один раз
+                    // ���������� �� ��������� ��������� ������ ���� ���
                     _gameState.Inventory.OnInventoryChanged();
                     
-                    // Оптимизированное обновление только измененных слотов
+                    // ���������������� ���������� ������ ���������� ������
                     UpdateSpecificSlots(moveData.SourceType, moveData.SourceIndex, "Inventory", moveData.TargetIndex);
                     
-                    LoggingService.LogInfo("[DragDrop] Перемещение завершено успешно");
+                    // LoggingService.LogInfo("[DragDrop] ����������� ��������� �������");
                 }
                 else
                 {
-                    LoggingService.LogWarning("[DragDrop] Перемещение не удалось - состояние изменилось во время операции");
+                    LoggingService.LogWarning("[DragDrop] ����������� �� ������� - ��������� ���������� �� ����� ��������");
                 }
             }
             catch (Exception ex)
@@ -436,22 +599,22 @@ namespace SketchBlade.ViewModels
         }
         
         /// <summary>
-        /// Выполняет атомарное перемещение предметов между слотами с проверкой состояния
+        /// ��������� ��������� ����������� ��������� ����� ������� � ��������� ���������
         /// </summary>
         public bool PerformAtomicMove(string sourceType, int sourceIndex, string targetType, int targetIndex, 
                                      Item sourceItem, Item? targetItem)
         {
             try
             {
-                // Повторно проверяем, что исходный предмет все еще на месте
+                // �������� ���������, ��� �������� ������� ��� ��� �� �����
                 var currentSourceItem = GetItemFromSlot(sourceType, sourceIndex);
                 if (currentSourceItem != sourceItem)
                 {
-                    LoggingService.LogWarning($"[DragDrop] Атомарное перемещение отменено: исходный предмет изменился");
+                    LoggingService.LogWarning($"[DragDrop] ��������� ����������� ��������: �������� ������� ���������");
                     return false;
                 }
                 
-                // Выполняем перемещение в правильном порядке
+                // ��������� ����������� � ���������� �������
                 if (targetType == "Inventory")
                 {
                     _gameState.Inventory.Items[targetIndex] = sourceItem;
@@ -461,9 +624,9 @@ namespace SketchBlade.ViewModels
                     SetItemInSlot(targetType, targetIndex, sourceItem);
                 }
                 
-                // Очищаем исходный слот
+                // ������� �������� ����
                 SetItemInSlot(sourceType, sourceIndex, targetItem);
-                LoggingService.LogDebug($"[PerformAtomicMove] After SetItemInSlot for source ({sourceType}[{sourceIndex}]): _gameState.Inventory.Items[{sourceIndex}] is now { (sourceType == "Inventory" && sourceIndex >= 0 && sourceIndex < _gameState.Inventory.Items.Count ? _gameState.Inventory.Items[sourceIndex]?.Name : "N/A_OR_NON_INVENTORY_SOURCE") ?? "null"}");
+                // LoggingService.LogDebug($"[PerformAtomicMove] After SetItemInSlot for source ({sourceType}[{sourceIndex}]): _gameState.Inventory.Items[{sourceIndex}] is now { (sourceType == "Inventory" && sourceIndex >= 0 && sourceIndex < _gameState.Inventory.Items.Count ? _gameState.Inventory.Items[sourceIndex]?.Name : "N/A_OR_NON_INVENTORY_SOURCE") ?? "null"}");
 
                 // Always force UI update immediately after a successful move
                 ForceImmediateUIUpdate(sourceType, sourceIndex, targetType, targetIndex);
@@ -495,7 +658,7 @@ namespace SketchBlade.ViewModels
         }
         
         /// <summary>
-        /// Оптимизированное обновление только конкретных слотов
+        /// ���������������� ���������� ������ ���������� ������
         /// </summary>
         private void UpdateSpecificSlots(string sourceType, int sourceIndex, string targetType, int targetIndex)
         {
@@ -559,7 +722,7 @@ namespace SketchBlade.ViewModels
         }
         
         /// <summary>
-        /// Обновляет один конкретный слот
+        /// ��������� ���� ���������� ����
         /// </summary>
         private void UpdateSingleSlot(string slotType, int slotIndex)
         {
@@ -670,7 +833,7 @@ namespace SketchBlade.ViewModels
                 case "Leggings":
                 case "Weapon":
                 case "Shield":
-                    // Р"лСЏ СЌРєРёРїРёСЂРѕРІРєРё РёСЃРїРѕР»СЊР·СѓРµРј СЃРїРµС†РёР°Р»СЊРЅС‹Р№ РјРµС‚РѕРґ
+                    // �"�я экипировки используем специальный метод
                     var equipData = new EquipItemData
                     {
                         InventoryIndex = sourceIndex,
@@ -679,14 +842,14 @@ namespace SketchBlade.ViewModels
                     EquipItem(equipData);
                     break;
                 default:
-                    // РџРѕ СѓРјРѕР»С‡Р°РЅРёСЋ РїС‹С‚РєР°РµРјСЃСЏ РїРµСЂРµРјРµСЃС‚РёС‚СЊ РІ РёРЅРІРµРЅС‚Р°СЂСЊ
+                    // По умолчанию пыткаемся переместить в инвентарь
                     LoggingService.LogWarning($"MoveItemBetweenSlots: Unknown target type {targetType}, using default behavior");
                     MoveToInventorySlot(moveData);
                     break;
             }
             
-            // Убираем избыточные UI обновления - они уже выполняются в соответствующих методах
-            LoggingService.LogInfo($"[DragDrop] MoveItemBetweenSlots завершено");
+            // ������� ���������� UI ���������� - ��� ��� ����������� � ��������������� �������
+            // LoggingService.LogInfo($"[DragDrop] MoveItemBetweenSlots ���������");
         }
         
         private void SyncSlotWithData(string slotType, int slotIndex)
@@ -703,7 +866,7 @@ namespace SketchBlade.ViewModels
                             var slot = InventorySlots[slotIndex];
                             if (slot.Item != actualItem)
                             {
-                                LoggingService.LogInfo($"[UI] Синхронизация {slotType}[{slotIndex}]: {slot.Item?.Name ?? "null"} -> {actualItem?.Name ?? "null"}");
+                                // LoggingService.LogInfo($"[UI] ������������� {slotType}[{slotIndex}]: {slot.Item?.Name ?? "null"} -> {actualItem?.Name ?? "null"}");
                                 slot.Item = actualItem;
                                 slot.NotifyItemChanged();
                             }
@@ -715,7 +878,7 @@ namespace SketchBlade.ViewModels
                             var slot = QuickSlots[slotIndex];
                             if (slot.Item != actualItem)
                             {
-                                LoggingService.LogInfo($"[UI] Синхронизация {slotType}[{slotIndex}]: {slot.Item?.Name ?? "null"} -> {actualItem?.Name ?? "null"}");
+                                // LoggingService.LogInfo($"[UI] ������������� {slotType}[{slotIndex}]: {slot.Item?.Name ?? "null"} -> {actualItem?.Name ?? "null"}");
                                 slot.Item = actualItem;
                                 slot.NotifyItemChanged();
                             }
@@ -724,7 +887,7 @@ namespace SketchBlade.ViewModels
                     case "Helmet":
                         if (HelmetSlot.Item != actualItem)
                         {
-                            LoggingService.LogInfo($"[UI] Синхронизация {slotType}: {HelmetSlot.Item?.Name ?? "null"} -> {actualItem?.Name ?? "null"}");
+                            // LoggingService.LogInfo($"[UI] ������������� {slotType}: {HelmetSlot.Item?.Name ?? "null"} -> {actualItem?.Name ?? "null"}");
                             HelmetSlot.Item = actualItem;
                             HelmetSlot.NotifyItemChanged();
                         }
@@ -732,7 +895,7 @@ namespace SketchBlade.ViewModels
                     case "Chestplate":
                         if (ChestSlot.Item != actualItem)
                         {
-                            LoggingService.LogInfo($"[UI] Синхронизация {slotType}: {ChestSlot.Item?.Name ?? "null"} -> {actualItem?.Name ?? "null"}");
+                            // LoggingService.LogInfo($"[UI] ������������� {slotType}: {ChestSlot.Item?.Name ?? "null"} -> {actualItem?.Name ?? "null"}");
                             ChestSlot.Item = actualItem;
                             ChestSlot.NotifyItemChanged();
                         }
@@ -740,7 +903,7 @@ namespace SketchBlade.ViewModels
                     case "Leggings":
                         if (LegsSlot.Item != actualItem)
                         {
-                            LoggingService.LogInfo($"[UI] Синхронизация {slotType}: {LegsSlot.Item?.Name ?? "null"} -> {actualItem?.Name ?? "null"}");
+                            // LoggingService.LogInfo($"[UI] ������������� {slotType}: {LegsSlot.Item?.Name ?? "null"} -> {actualItem?.Name ?? "null"}");
                             LegsSlot.Item = actualItem;
                             LegsSlot.NotifyItemChanged();
                         }
@@ -748,7 +911,7 @@ namespace SketchBlade.ViewModels
                     case "Weapon":
                         if (WeaponSlot.Item != actualItem)
                         {
-                            LoggingService.LogInfo($"[UI] Синхронизация {slotType}: {WeaponSlot.Item?.Name ?? "null"} -> {actualItem?.Name ?? "null"}");
+                            // LoggingService.LogInfo($"[UI] ������������� {slotType}: {WeaponSlot.Item?.Name ?? "null"} -> {actualItem?.Name ?? "null"}");
                             WeaponSlot.Item = actualItem;
                             WeaponSlot.NotifyItemChanged();
                         }
@@ -756,7 +919,7 @@ namespace SketchBlade.ViewModels
                     case "Shield":
                         if (ShieldSlot.Item != actualItem)
                         {
-                            LoggingService.LogInfo($"[UI] Синхронизация {slotType}: {ShieldSlot.Item?.Name ?? "null"} -> {actualItem?.Name ?? "null"}");
+                            // LoggingService.LogInfo($"[UI] ������������� {slotType}: {ShieldSlot.Item?.Name ?? "null"} -> {actualItem?.Name ?? "null"}");
                             ShieldSlot.Item = actualItem;
                             ShieldSlot.NotifyItemChanged();
                         }
@@ -764,7 +927,7 @@ namespace SketchBlade.ViewModels
                     case "Trash":
                         if (TrashSlot.Item != actualItem)
                         {
-                            LoggingService.LogInfo($"[UI] Синхронизация {slotType}: {TrashSlot.Item?.Name ?? "null"} -> {actualItem?.Name ?? "null"}");
+                            // LoggingService.LogInfo($"[UI] ������������� {slotType}: {TrashSlot.Item?.Name ?? "null"} -> {actualItem?.Name ?? "null"}");
                             TrashSlot.Item = actualItem;
                             TrashSlot.NotifyItemChanged();
                         }
@@ -824,11 +987,11 @@ namespace SketchBlade.ViewModels
                     }
                 }
                 
-                // Оптимизированное обновление только измененных слотов
+                // ���������������� ���������� ������ ���������� ������
                 UpdateSingleSlot("Inventory", equipData.InventoryIndex);
                 UpdateSingleSlot(equipData.EquipmentSlot, 0);
                 
-                // Обновляем крафтинг если нужно
+                // ��������� �������� ���� �����
                 _simplifiedCraftingViewModel?.RefreshAvailableRecipes();
             }
             catch (Exception ex)
@@ -842,10 +1005,10 @@ namespace SketchBlade.ViewModels
         {
             if (!string.IsNullOrEmpty(screenName))
             {
-                // Р"спользуем правильную навигацию через GameData.CurrentScreenViewModel
+                // �"��������� ���������� ��������� ����� GameData.CurrentScreenViewModel
                 if (_gameState.CurrentScreenViewModel is MainViewModel mainViewModel)
                 {
-                    // Рспользуем Navigate метод из MainViewModel для правильной навигации
+                    // ���������� Navigate ����� �� MainViewModel ��� ���������� ���������
                     var navigateMethod = mainViewModel.GetType().GetMethod("Navigate", 
                         System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                     if (navigateMethod != null)
@@ -855,10 +1018,10 @@ namespace SketchBlade.ViewModels
                 }
                 else
                 {
-                    // Fallback: прямая установка экрана и попытка навигации через MainWindow
+                    // Fallback: ������ ��������� ������ � ������� ��������� ����� MainWindow
                     _gameState.CurrentScreen = screenName;
                     
-                    // Попытка навигации через MainWindow напрямую
+                    // ������� ��������� ����� MainWindow ��������
                     if (System.Windows.Application.Current.MainWindow is MainWindow mainWindow)
                     {
                         mainWindow.NavigateToScreen(screenName);
@@ -916,40 +1079,47 @@ namespace SketchBlade.ViewModels
             
             try
             {
-                LoggingService.LogInfo($"[DragDrop] Перемещение в быстрый слот: {moveData.SourceType}[{moveData.SourceIndex}] -> {moveData.TargetType}[{moveData.TargetIndex}]");
+                // LoggingService.LogInfo($"[DragDrop] ����������� � ������� ����: {moveData.SourceType}[{moveData.SourceIndex}] -> {moveData.TargetType}[{moveData.TargetIndex}]");
 
-                // Проверяем, что целевой слот действует как Quick
+                // ���������, ��� ������� ���� ��������� ��� Quick
                 if (moveData.TargetType != "Quick")
                 {
-                    LoggingService.LogError($"MoveToQuickSlot: Целевой слот не является Quick слотом");
+                    LoggingService.LogError($"MoveToQuickSlot: ������� ���� �� �������� Quick ������");
                     return;
                 }
 
-                // Получаем исходный предмет
+                // �������� �������� �������
                 var sourceItem = GetItemFromSlot(moveData.SourceType, moveData.SourceIndex);
                 if (sourceItem == null)
                 {
-                    LoggingService.LogWarning($"MoveToQuickSlot: Исходный предмет не найден");
+                    LoggingService.LogWarning($"MoveToQuickSlot: �������� ������� �� ������");
                     return;
                 }
 
-                // Получаем целевой предмет
+                // �������� ������� �������
                 var targetItem = GetItemFromSlot(moveData.TargetType, moveData.TargetIndex);
                 
-                // Выполняем атомарное перемещение с проверкой состояния
+                // ��������� ��������� ����������� � ��������� ���������
                 bool moveSuccessful = PerformAtomicMove(moveData.SourceType, moveData.SourceIndex, 
                                                        moveData.TargetType, moveData.TargetIndex, 
                                                        sourceItem, targetItem);
                 
                 if (moveSuccessful)
                 {
-                    // Оптимизированное обновление только измененных слотов
+                    // ИСПРАВЛЕНИЕ: Уведомляем об изменении инвентаря
+                    _gameState.Inventory.OnInventoryChanged();
+                    
+                    //     
                     UpdateSpecificSlots(moveData.SourceType, moveData.SourceIndex, moveData.TargetType, moveData.TargetIndex);
-                    LoggingService.LogInfo("[DragDrop] Перемещение в быстрый слот завершено");
+                    
+                    // ИСПРАВЛЕНИЕ: Принудительно обновляем UI как в крафте
+                    ForceUpdateUIControls();
+                    
+                    // LoggingService.LogInfo("[DragDrop]    ");
                 }
                 else
                 {
-                    LoggingService.LogWarning("[DragDrop] Перемещение в быстрый слот не удалось");
+                    LoggingService.LogWarning("[DragDrop]     ");
                 }
             }
             catch (Exception ex)
@@ -964,33 +1134,33 @@ namespace SketchBlade.ViewModels
             
             try
             {
-                LoggingService.LogInfo($"[DragDrop] Перемещение в слот крафта: {moveData.SourceType}[{moveData.SourceIndex}] -> {moveData.TargetType}[{moveData.TargetIndex}]");
+                // LoggingService.LogInfo($"[DragDrop] ����������� � ���� ������: {moveData.SourceType}[{moveData.SourceIndex}] -> {moveData.TargetType}[{moveData.TargetIndex}]");
 
-                // Получаем исходный предмет
+                // �������� �������� �������
                 var sourceItem = GetItemFromSlot(moveData.SourceType, moveData.SourceIndex);
                 if (sourceItem == null)
                 {
-                    LoggingService.LogWarning($"MoveToCraftSlot: Исходный предмет не найден");
+                    LoggingService.LogWarning($"MoveToCraftSlot: �������� ������� �� ������");
                     return;
                 }
 
-                // Получаем целевой предмет
+                // �������� ������� �������
                 var targetItem = GetItemFromSlot(moveData.TargetType, moveData.TargetIndex);
                 
-                // Выполняем атомарное перемещение с проверкой состояния
+                // ��������� ��������� ����������� � ��������� ���������
                 bool moveSuccessful = PerformAtomicMove(moveData.SourceType, moveData.SourceIndex, 
                                                        moveData.TargetType, moveData.TargetIndex, 
                                                        sourceItem, targetItem);
                 
                 if (moveSuccessful)
                 {
-                    // Оптимизированное обновление только измененных слотов
+                    // ���������������� ���������� ������ ���������� ������
                     UpdateSpecificSlots(moveData.SourceType, moveData.SourceIndex, moveData.TargetType, moveData.TargetIndex);
-                    LoggingService.LogInfo("[DragDrop] Перемещение в слот крафта завершено");
+                    // LoggingService.LogInfo("[DragDrop] ����������� � ���� ������ ���������");
                 }
                 else
                 {
-                    LoggingService.LogWarning("[DragDrop] Перемещение в слот крафта не удалось");
+                    LoggingService.LogWarning("[DragDrop] ����������� � ���� ������ �� �������");
                 }
             }
             catch (Exception ex)
@@ -1005,22 +1175,22 @@ namespace SketchBlade.ViewModels
             
             try
             {
-                LoggingService.LogInfo($"[DragDrop] Перемещение в корзину: {moveData.SourceType}[{moveData.SourceIndex}]");
+                // LoggingService.LogInfo($"[DragDrop] ����������� � �������: {moveData.SourceType}[{moveData.SourceIndex}]");
                 
-                // Получаем исходный предмет для логирования
+                // �������� �������� ������� ��� �����������
                 var sourceItem = GetItemFromSlot(moveData.SourceType, moveData.SourceIndex);
                 if (sourceItem != null)
                 {
-                    LoggingService.LogInfo($"[DragDrop] Удаляем предмет: {sourceItem.Name}");
+                    // LoggingService.LogInfo($"[DragDrop] ������� �������: {sourceItem.Name}");
                 }
                 
-                // Удаляем предмет из исходного слота
+                // ������� ������� �� ��������� �����
                 SetItemInSlot(moveData.SourceType, moveData.SourceIndex, null);
                 
-                // Оптимизированное обновление только исходного слота
+                // ���������������� ���������� ������ ��������� �����
                 UpdateSingleSlot(moveData.SourceType, moveData.SourceIndex);
                 
-                LoggingService.LogInfo("[DragDrop] Перемещение в корзину завершено");
+                // LoggingService.LogInfo("[DragDrop] ����������� � ������� ���������");
             }
             catch (Exception ex)
             {
@@ -1041,7 +1211,7 @@ namespace SketchBlade.ViewModels
                         if (_gameState.Player != null)
                         {
                             // Simple consumable logic based on item name or effect power
-                            if (item.Name.ToLower().Contains("healing") || item.Name.ToLower().Contains("Р·РµР»СЊРµ"))
+                            if (item.Name.ToLower().Contains("healing") || item.Name.ToLower().Contains("зелье"))
                             {
                                 int healAmount = Math.Max(10, item.EffectPower);
                                 _gameState.Player.Heal(healAmount);
@@ -1058,7 +1228,7 @@ namespace SketchBlade.ViewModels
                             QuickSlots[slotIndex].Item = null;
                         }
                         
-                        // Оптимизированное обновление только измененного слота
+                        // ���������������� ���������� ������ ����������� �����
                         UpdateSingleSlot("Quick", slotIndex);
                     }
                 }
@@ -1072,7 +1242,7 @@ namespace SketchBlade.ViewModels
         private void SplitStack(Models.SplitStackEventArgs? args)
         {
             // Simple implementation - just log for now
-            LoggingService.LogDebug("SplitStack called");
+            // LoggingService.LogDebug("SplitStack called");
         }
         
         // Additional methods needed by the UI
@@ -1080,27 +1250,106 @@ namespace SketchBlade.ViewModels
         {
             try
             {
-                LoggingService.LogDebug("TakeCraftResult: Рспользуем результат крафта - крафт уже происходит при клике на рецепт");
+                // LoggingService.LogDebug("TakeCraftResult: �������� ������ ���������� ������");
 
-                // Рспользуем результат крафта - выбираем дублирующую логику крафта
-                // Ркрафт уже происходит при клике на рецепт в CraftingPanel
-                // Рдесь нужно только обновить UI
+                // ���������, ���� �� ��������� ������ ��� ������
+                if (_simplifiedCraftingViewModel?.SelectedRecipe == null)
+                {
+                    LoggingService.LogWarning("TakeCraftResult: ��� ���������� ������� ��� ������");
+                    // LoggingService.LogInfo("TakeCraftResult: ��� ������ ����� ������� ������� ������");
+                    return;
+                }
+
+                // ��������� ����� ���������� ��������
+                // LoggingService.LogInfo($"TakeCraftResult: ��������� ����� {_simplifiedCraftingViewModel.SelectedRecipe.Name}");
+                _simplifiedCraftingViewModel.CraftSelectedItem();
                 
-                // Оптимизированное обновление - только обновляем крафтинг
-                _simplifiedCraftingViewModel?.RefreshAvailableRecipes();
-                
-                LoggingService.LogDebug("TakeCraftResult: UI обновлен");
+                // LoggingService.LogDebug("TakeCraftResult: ����� ��������, ��������� UI");
             }
             catch (Exception ex)
             {
                 LoggingService.LogError($"TakeCraftResult: {ex.Message}", ex);
             }
         }
+
+        /// <summary>
+        /// ��������� ����� ����������� �������
+        /// </summary>
+        public void CraftRecipe(SimplifiedCraftingRecipe recipe)
+        {
+            try
+            {
+                // LoggingService.LogInfo($"[CRAFT] ========== ������ ������ ==========");
+                // LoggingService.LogInfo($"[CRAFT] CraftRecipe: �������� ����� ������� {recipe.Name}");
+
+                if (_simplifiedCraftingViewModel == null)
+                {
+                    LoggingService.LogError("[CRAFT] SimplifiedCraftingViewModel �� ���������������");
+                    return;
+                }
+
+                // ������������� ��������� ������
+                _simplifiedCraftingViewModel.SelectedRecipe = recipe;
+                // LoggingService.LogInfo($"[CRAFT] ���������� ��������� ������: {recipe.Name}");
+
+                // ���������, ����� �� ������� �������
+                if (!_simplifiedCraftingViewModel.CanCraft)
+                {
+                    LoggingService.LogWarning($"[CRAFT] ������������ ���������� ��� ������ {recipe.Name}");
+                    return;
+                }
+
+                // ��������� �����
+                // LoggingService.LogInfo($"[CRAFT] �������� CraftSelectedItem()...");
+                _simplifiedCraftingViewModel.CraftSelectedItem();
+                // LoggingService.LogInfo($"[CRAFT] CraftSelectedItem() ��������");
+                
+                                // �������: ���������� ��� �� �����, ��� � drag-and-drop
+                // LoggingService.LogInfo($"[CRAFT] �������: ���������� ����� drag-and-drop ��� ���������� UI");
+                
+                System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+                {
+                    try
+                    {
+                        // LoggingService.LogInfo($"[CRAFT] �������� ���������� UI ��� � drag-and-drop...");
+                        
+                        // 1. ��������� �������� ViewModel ��������� (��� � drag-and-drop)
+                        RefreshAllSlots();
+                        
+                        // 2. ��������: ������������� ��������� UI �������� (��� � drag-and-drop)
+                        ForceUpdateUIControls();
+                        
+                        // 3. ��������� �������
+                        _simplifiedCraftingViewModel?.RefreshAvailableRecipes();
+                        // LoggingService.LogInfo($"[CRAFT] ������� ���������");
+                        
+                        // LoggingService.LogInfo($"[CRAFT] ���������� UI ���������!");
+                    }
+                    catch (Exception uiEx)
+                    {
+                        LoggingService.LogError($"[CRAFT] ������ ��� ���������� UI: {uiEx.Message}");
+                        LoggingService.LogError($"[CRAFT] UI StackTrace: {uiEx.StackTrace}");
+                        
+                        // Fallback: ����������� ����������
+                        // LoggingService.LogInfo($"[CRAFT] Fallback: ���������� ����������� ����������");
+                        RefreshAllSlots();
+                        ForceUIUpdate();
+                    }
+                }, System.Windows.Threading.DispatcherPriority.Render);
+                
+                // LoggingService.LogInfo($"[CRAFT] ========== ����� ������ ==========");
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogError($"[CRAFT] ������ ��� ������ {recipe?.Name}: {ex.Message}", ex);
+                LoggingService.LogError($"[CRAFT] StackTrace: {ex.StackTrace}");
+            }
+        }
         
         public void SetItemToSlot(string slotType, int slotIndex, Item? item)
         {
             SetItemInSlot(slotType, slotIndex, item);
-            // Оптимизированное обновление только измененного слота
+            // ���������������� ���������� ������ ����������� �����
             UpdateSingleSlot(slotType, slotIndex);
         }
         
@@ -1112,15 +1361,15 @@ namespace SketchBlade.ViewModels
         public Inventory PlayerInventory => _gameState.Inventory;
         
         /// <summary>
-        /// Диагностика состояния слотов для отладки проблем с UI
+        /// ����������� ��������� ������ ��� ������� ������� � UI
         /// </summary>
         public void DiagnoseSlotState()
         {
             try
             {
-                LoggingService.LogInfo("[ДИАГНОСТИКА] Проверка состояния слотов");
+                // LoggingService.LogInfo("[�����������] �������� ��������� ������");
                 
-                // Проверяем синхронизацию инвентаря
+                // ��������� ������������� ���������
                 for (int i = 0; i < Math.Min(InventorySlots.Count, _gameState.Inventory.Items.Count); i++)
                 {
                     var slotItem = InventorySlots[i].Item;
@@ -1128,30 +1377,30 @@ namespace SketchBlade.ViewModels
                     
                     if (slotItem != inventoryItem)
                     {
-                        LoggingService.LogError($"[ДИАГНОСТИКА] РАССИНХРОНИЗАЦИЯ: Слот[{i}] = {slotItem?.Name ?? "пусто"}, Инвентарь[{i}] = {inventoryItem?.Name ?? "пусто"}");
+                        LoggingService.LogError($"[�����������] ����������������: ����[{i}] = {slotItem?.Name ?? "�����"}, ���������[{i}] = {inventoryItem?.Name ?? "�����"}");
                     }
                     else if (slotItem != null)
                     {
-                        LoggingService.LogDebug($"[ДИАГНОСТИКА] Слот[{i}] синхронизирован: {slotItem.Name}");
+                        // LoggingService.LogDebug($"[�����������] ����[{i}] ���������������: {slotItem.Name}");
                     }
                 }
                 
-                // Проверяем экипировку
+                // ��������� ����������
                 var player = _gameState.Player;
                 if (player != null)
                 {
                     if (WeaponSlot.Item != player.EquippedWeapon)
-                        LoggingService.LogError($"[ДИАГНОСТИКА] РАССИНХРОНИЗАЦИЯ: WeaponSlot = {WeaponSlot.Item?.Name ?? "пусто"}, Player.EquippedWeapon = {player.EquippedWeapon?.Name ?? "пусто"}");
+                        LoggingService.LogError($"[�����������] ����������������: WeaponSlot = {WeaponSlot.Item?.Name ?? "�����"}, Player.EquippedWeapon = {player.EquippedWeapon?.Name ?? "�����"}");
                     
                     if (HelmetSlot.Item != player.EquippedHelmet)
-                        LoggingService.LogError($"[ДИАГНОСТИКА] РАССИНХРОНИЗАЦИЯ: HelmetSlot = {HelmetSlot.Item?.Name ?? "пусто"}, Player.EquippedHelmet = {player.EquippedHelmet?.Name ?? "пусто"}");
+                        LoggingService.LogError($"[�����������] ����������������: HelmetSlot = {HelmetSlot.Item?.Name ?? "�����"}, Player.EquippedHelmet = {player.EquippedHelmet?.Name ?? "�����"}");
                 }
                 
-                LoggingService.LogInfo("[ДИАГНОСТИКА] Проверка состояния слотов завершена");
+                // LoggingService.LogInfo("[�����������] �������� ��������� ������ ���������");
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"[ДИАГНОСТИКА] Ошибка при проверке состояния слотов: {ex.Message}", ex);
+                LoggingService.LogError($"[�����������] ������ ��� �������� ��������� ������: {ex.Message}", ex);
             }
         }
         
@@ -1159,7 +1408,7 @@ namespace SketchBlade.ViewModels
         {
             try
             {
-                LoggingService.LogDebug($"[SetItemInSlot] Attempting to set {slotType}[{slotIndex}] to item: {(item?.Name) ?? "null"} (Original Hash: {item?.GetHashCode()})");
+                // LoggingService.LogDebug($"[SetItemInSlot] Attempting to set {slotType}[{slotIndex}] to item: {(item?.Name) ?? "null"} (Original Hash: {item?.GetHashCode()})");
                 Item? itemBefore = null;
 
                 switch (slotType)
@@ -1169,14 +1418,29 @@ namespace SketchBlade.ViewModels
                         {
                             itemBefore = _gameState.Inventory.Items[slotIndex];
                             _gameState.Inventory.Items[slotIndex] = item;
-                            LoggingService.LogDebug($"[SetItemInSlot] AFTER set for {slotType}[{slotIndex}]: _gameState.Inventory.Items[{slotIndex}] is now {(_gameState.Inventory.Items[slotIndex]?.Name) ?? "null"} (Hash: {_gameState.Inventory.Items[slotIndex]?.GetHashCode()}). Item param was {(item?.Name) ?? "null"} (Hash: {item?.GetHashCode()}). Item before was {(itemBefore?.Name) ?? "null"} (Hash: {itemBefore?.GetHashCode()})");
+                            // LoggingService.LogDebug($"[SetItemInSlot] AFTER set for {slotType}[{slotIndex}]: _gameState.Inventory.Items[{slotIndex}] is now {(_gameState.Inventory.Items[slotIndex]?.Name) ?? "null"} (Hash: {_gameState.Inventory.Items[slotIndex]?.GetHashCode()}). Item param was {(item?.Name) ?? "null"} (Hash: {item?.GetHashCode()}). Item before was {(itemBefore?.Name) ?? "null"} (Hash: {itemBefore?.GetHashCode()})");
                         }
                         break;
                         
                     case "Quick":
-                        if (slotIndex >= 0 && slotIndex < QuickSlots.Count)
+                        // ИСПРАВЛЕНИЕ: Сохраняем данные в основном источнике данных И в UI wrapper
+                        if (slotIndex >= 0 && slotIndex < _gameState.Inventory.QuickItems.Count)
                         {
-                            QuickSlots[slotIndex].Item = item;
+                            // Проверяем, что предмет можно поместить в быстрый слот
+                            if (item != null && item.Type != ItemType.Consumable)
+                            {
+                                LoggingService.LogWarning($"SetItemInSlot: Попытка поместить не-расходуемый предмет {item.Name} в быстрый слот");
+                                return; // Не разрешаем помещать не-расходуемые предметы
+                            }
+                            
+                            // Сохраняем в основном источнике данных
+                            _gameState.Inventory.QuickItems[slotIndex] = item;
+                            
+                            // Синхронизируем с UI wrapper
+                            if (slotIndex < QuickSlots.Count)
+                            {
+                                QuickSlots[slotIndex].Item = item;
+                            }
                         }
                         break;
                         
@@ -1270,7 +1534,7 @@ namespace SketchBlade.ViewModels
         {
             try
             {
-                LoggingService.LogDebug($"[UI] ForceImmediateUIUpdate for {sourceType}[{sourceIndex}] and {targetType}[{targetIndex}]");
+                // LoggingService.LogDebug($"[UI] ForceImmediateUIUpdate for {sourceType}[{sourceIndex}] and {targetType}[{targetIndex}]");
                 
                 // Get affected wrappers
                 var sourceWrapper = GetSlotWrapper(sourceType, sourceIndex);
@@ -1285,7 +1549,7 @@ namespace SketchBlade.ViewModels
                 {
                     if (sourceWrapper.Item != sourceItem)
                     {
-                        LoggingService.LogInfo($"[UI] Fixing source wrapper data: {sourceWrapper.Item?.Name ?? "null"} -> {sourceItem?.Name ?? "null"}");
+                        // LoggingService.LogInfo($"[UI] Fixing source wrapper data: {sourceWrapper.Item?.Name ?? "null"} -> {sourceItem?.Name ?? "null"}");
                         sourceWrapper.Item = sourceItem;
                     }
                     // Always force notification
@@ -1296,7 +1560,7 @@ namespace SketchBlade.ViewModels
                 {
                     if (targetWrapper.Item != targetItem)
                     {
-                        LoggingService.LogInfo($"[UI] Fixing target wrapper data: {targetWrapper.Item?.Name ?? "null"} -> {targetItem?.Name ?? "null"}");
+                        // LoggingService.LogInfo($"[UI] Fixing target wrapper data: {targetWrapper.Item?.Name ?? "null"} -> {targetItem?.Name ?? "null"}");
                         targetWrapper.Item = targetItem;
                     }
                     // Always force notification
@@ -1382,6 +1646,17 @@ namespace SketchBlade.ViewModels
             } 
         }
         
+        // ����������� �� ���������
+        public InventorySlotWrapper()
+        {
+        }
+        
+        // ����������� � ���������� Item
+        public InventorySlotWrapper(Item? item)
+        {
+            _item = item;
+        }
+        
         public event PropertyChangedEventHandler? PropertyChanged;
         
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
@@ -1391,32 +1666,184 @@ namespace SketchBlade.ViewModels
         
         public void NotifyItemChanged()
         {
-            // First notify on the current thread
-            OnPropertyChanged(nameof(Item));
-            
-            // Use dispatcher for UI thread safety and to ensure UI gets refreshed
-            if (System.Windows.Application.Current?.Dispatcher != null)
+            try
             {
-                if (!System.Windows.Application.Current.Dispatcher.CheckAccess())
+                // LoggingService.LogInfo($"[NOTIFY] NotifyItemChanged ������ ��� ��������: {Item?.Name ?? "null"}");
+                
+                // ������������� �������� OnPropertyChanged, ���� ���� ������ ��� ��
+                ForcePropertyChanged(nameof(Item));
+                // LoggingService.LogInfo($"[NOTIFY] ForcePropertyChanged(Item) �������� �� ������� ������");
+                
+                // Use dispatcher for UI thread safety and to ensure UI gets refreshed
+                if (System.Windows.Application.Current?.Dispatcher != null)
                 {
-                    // If we're not on the UI thread, invoke there with high priority
-                    System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() => 
+                    if (!System.Windows.Application.Current.Dispatcher.CheckAccess())
                     {
-                        // Force additional UI notification on UI thread
-                        OnPropertyChanged(nameof(Item));
-                    }), System.Windows.Threading.DispatcherPriority.Render);
+                        // LoggingService.LogInfo($"[NOTIFY] �� �� UI ������, ���������� Dispatcher.BeginInvoke");
+                        // If we're not on the UI thread, invoke there with high priority
+                        System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() => 
+                        {
+                            // LoggingService.LogInfo($"[NOTIFY] Dispatcher.BeginInvoke: ��������� ForcePropertyChanged �� UI ������");
+                            // Force additional UI notification on UI thread
+                            ForcePropertyChanged(nameof(Item));
+                        }), System.Windows.Threading.DispatcherPriority.Render);
+                    }
+                    else
+                    {
+                        // LoggingService.LogInfo($"[NOTIFY] ��� �� UI ������, ��������� ���������� �����������");
+                        // If we're already on the UI thread, add a delay before a second notification
+                        // This helps ensure the UI has time to process the first notification
+                        System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() => 
+                        {
+                            // LoggingService.LogInfo($"[NOTIFY] Delayed notification: ��������� ���������� ForcePropertyChanged");
+                            ForcePropertyChanged(nameof(Item));
+                        }), System.Windows.Threading.DispatcherPriority.ContextIdle);
+                    }
                 }
                 else
                 {
-                    // If we're already on the UI thread, add a delay before a second notification
-                    // This helps ensure the UI has time to process the first notification
-                    System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() => 
+                    LoggingService.LogWarning($"[NOTIFY] Dispatcher ����������!");
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogError($"[NOTIFY] ������ � NotifyItemChanged: {ex.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// ������������� �������� PropertyChanged, ���� ���� �������� �� ����������
+        /// </summary>
+        public void ForcePropertyChanged(string propertyName)
+        {
+            // LoggingService.LogInfo($"[FORCE] ForcePropertyChanged ������ ��� ��������: {propertyName}");
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            
+            // �������������: ������������� �������� OnItemChanged � UI ����������
+            if (propertyName == "Item")
+            {
+                // LoggingService.LogInfo($"[FORCE] ������������� �������� OnItemChanged ��� Item: {Item?.Name ?? "null"}");
+                
+                // ������� ��������� ��������� ��� ��������������� ������ OnItemChanged
+                var oldValue = Item;
+                var newValue = Item;
+                var args = new PropertyChangedEventArgs("Item");
+                
+                // ���������� ��������� ��� ������� ������ OnItemChanged
+                try
+                {
+                    // ���� ��� CoreInventorySlot � UI ������ � ������������� ��������� ��
+                    if (System.Windows.Application.Current?.MainWindow != null)
                     {
-                        OnPropertyChanged(nameof(Item));
-                    }), System.Windows.Threading.DispatcherPriority.ContextIdle);
+                        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            // LoggingService.LogInfo($"[FORCE] ���� CoreInventorySlot ���������� ��� ��������������� ����������");
+                            ForceUpdateAllInventorySlots();
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LoggingService.LogError($"[FORCE] ������ ��� �������������� ���������� UI: {ex.Message}");
                 }
             }
         }
+        
+        /// <summary>
+        /// ������������� ��������� ��� CoreInventorySlot ����������
+        /// </summary>
+        private void ForceUpdateAllInventorySlots()
+        {
+            try
+            {
+                // LoggingService.LogInfo($"[FORCE-UI] �������� �������������� ���������� ���� CoreInventorySlot");
+                
+                var mainWindow = System.Windows.Application.Current?.MainWindow;
+                if (mainWindow != null)
+                {
+                    // ������������� ��������� ���� UI
+                    mainWindow.InvalidateVisual();
+                    mainWindow.UpdateLayout();
+                    
+                    // LoggingService.LogInfo($"[FORCE-UI] MainWindow.InvalidateVisual() � UpdateLayout() ���������");
+                    
+                    // �������������: ���� � ������������� ��������� ��� CoreInventorySlot
+                    try
+                    {
+                        var coreSlots = FindVisualChildren<Views.Controls.CoreInventorySlot>(mainWindow);
+                        int slotsFound = 0;
+                        
+                        foreach (var slot in coreSlots)
+                        {
+                            try
+                            {
+                                // ������������� ��������� ������ ����
+                                slot.InvalidateVisual();
+                                slot.UpdateLayout();
+                                
+                                // ������������� �������� ���������� ������
+                                var dataContext = slot.DataContext;
+                                if (dataContext is InventorySlotWrapper wrapper)
+                                {
+                                    // ������������� ��������� binding
+                                    var binding = System.Windows.Data.BindingOperations.GetBinding(slot, Views.Controls.CoreInventorySlot.ItemProperty);
+                                    if (binding != null)
+                                    {
+                                        var bindingExpression = System.Windows.Data.BindingOperations.GetBindingExpression(slot, Views.Controls.CoreInventorySlot.ItemProperty);
+                                        bindingExpression?.UpdateTarget();
+                                        // LoggingService.LogInfo($"[FORCE-UI] ������������� �������� binding ��� ����� � ���������: {wrapper.Item?.Name ?? "null"}");
+                                    }
+                                }
+                                
+                                slotsFound++;
+                            }
+                            catch (Exception slotEx)
+                            {
+                                LoggingService.LogError($"[FORCE-UI] ������ ��� ���������� ���������� �����: {slotEx.Message}");
+                            }
+                        }
+                        
+                        // LoggingService.LogInfo($"[FORCE-UI] ������������� ��������� {slotsFound} CoreInventorySlot �����������");
+                    }
+                    catch (Exception findEx)
+                    {
+                        LoggingService.LogError($"[FORCE-UI] ������ ��� ������ CoreInventorySlot: {findEx.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogError($"[FORCE-UI] ������ � ForceUpdateAllInventorySlots: {ex.Message}");
+            }
+        }
+        
+
+
+        /// <summary>
+        /// ������� ��� �������� �������� ���������� ���� � ���������� ������
+        /// </summary>
+
+        private static IEnumerable<T> FindVisualChildren<T>(System.Windows.DependencyObject depObj) where T : System.Windows.DependencyObject
+        {
+            if (depObj != null)
+            {
+                for (int i = 0; i < System.Windows.Media.VisualTreeHelper.GetChildrenCount(depObj); i++)
+                {
+                    var child = System.Windows.Media.VisualTreeHelper.GetChild(depObj, i);
+                    if (child != null && child is T)
+                    {
+                        yield return (T)child;
+                    }
+
+                    foreach (T childOfChild in FindVisualChildren<T>(child))
+                    {
+                        yield return childOfChild;
+                    }
+                }
+            }
+        }
+        
+
     }
     
     public class MoveItemData

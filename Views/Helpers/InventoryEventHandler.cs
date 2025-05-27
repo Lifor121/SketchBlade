@@ -89,7 +89,7 @@ namespace SketchBlade.Views.Helpers
                 
                 if (equippedItem != null)
                 {
-                    var itemSlotInfo = new Controls.ItemSlotInfo("Equipment", equipmentIndex, equippedItem);
+                    var itemSlotInfo = new Controls.ItemSlotInfo(equipmentType, equipmentIndex, equippedItem);
 
                     var dragData = new DataObject("ItemSlotInfo", itemSlotInfo);
                     DragDrop.DoDragDrop(slot, dragData, DragDropEffects.Move);
@@ -131,10 +131,9 @@ namespace SketchBlade.Views.Helpers
         
         public void HandleInventorySlotMouseDown(object sender, MouseButtonEventArgs e)
         {
-            LoggingService.LogInfo($"[DragDrop] *** СОБЫТИЕ HandleInventorySlotMouseDown ПОЛУЧЕНО *** sender: {sender?.GetType().Name}");
             if (sender is not CoreInventorySlot slot)
             {
-                LoggingService.LogWarning($"[DragDrop] sender не является CoreInventorySlot: {sender?.GetType().Name}");
+                // LoggingService.LogWarning($"[DragDrop] sender не является CoreInventorySlot: {sender?.GetType().Name}");
                 return;
             }
 
@@ -147,21 +146,13 @@ namespace SketchBlade.Views.Helpers
                 // bypassing any potential lag in the CoreInventorySlot.Item DP update.
                 var item = _viewModel.GetItemFromSlot(slotType, inventoryIndex); 
                 
-                // string slotName = slot.SlotName ?? $"{slot.SlotType}[{inventoryIndex}]"; // SlotName was removed
                 string slotName = $"{slotType}[{inventoryIndex}]";
-
-                // LoggingService.LogInfo($"[DragDrop] MouseDown на {slotName} с предметом {item.Name}"); // Original line
-                LoggingService.LogInfo($"[DragDrop] MouseDown на {slotName} с предметом {(item?.Name) ?? "NULL_ITEM_IN_HANDLER"}");
 
                 if (e.LeftButton == MouseButtonState.Pressed && item != null)
                 {
                     var itemSlotInfo = new Controls.ItemSlotInfo(slotType, inventoryIndex, item);
                     var dragData = new DataObject("ItemSlotInfo", itemSlotInfo);
                     DragDrop.DoDragDrop(slot, dragData, DragDropEffects.Move);
-                }
-                else
-                {
-                    LoggingService.LogDebug($"[DragDrop] MouseDown на {slotType}[{inventoryIndex}], но предмет не найден (или слот пуст). Операция перетаскивания не начнется.");
                 }
             }
             catch (Exception ex)

@@ -1,4 +1,4 @@
-п»їusing System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -16,7 +16,7 @@ namespace SketchBlade.Views
     /// </summary>
     public partial class BattleView : UserControl
     {
-        private bool _hasNavigatedAway = false; // Р¤Р»Р°Рі РґР»СЏ РїСЂРµРґРѕС‚РІСЂР°С‰РµРЅРёСЏ РїРѕРІС‚РѕСЂРЅРѕР№ РЅР°РІРёРіР°С†РёРё
+        private bool _hasNavigatedAway = false; // Флаг для предотвращения повторной навигации
         
         public BattleView()
         {
@@ -29,47 +29,36 @@ namespace SketchBlade.Views
         
         private void BattleView_Loaded(object sender, RoutedEventArgs e)
         {
-            // РЎР±СЂР°СЃС‹РІР°РµРј С„Р»Р°Рі РЅР°РІРёРіР°С†РёРё РїСЂРё Р·Р°РіСЂСѓР·РєРµ РЅРѕРІРѕРіРѕ СЌРєСЂР°РЅР° Р±РѕСЏ
+            // Сбрасываем флаг навигации при загрузке нового экрана боя
             _hasNavigatedAway = false;
-            
-            LoggingService.LogDebug("BattleView loaded");
             
             if (DataContext is BattleViewModel viewModel)
             {
-                LoggingService.LogDebug("Battle view loaded");
-                LoggingService.LogDebug($"Battle state at load: IsBattleOver={viewModel.IsBattleOver}, IsPlayerTurn={viewModel.IsPlayerTurn}");
-                LoggingService.LogDebug($"Enemy count: {viewModel.Enemies?.Count ?? 0}");
-                LoggingService.LogDebug($"Selected enemy: {viewModel.SelectedEnemy?.Name ?? "None"}");
-                
-                // РџСЂРѕРІРµСЂСЏРµРј СЃРѕСЃС‚РѕСЏРЅРёРµ РІСЂР°РіРѕРІ
+                // Проверяем состояние врагов
                 if (viewModel.Enemies != null)
                 {
                     foreach (var enemy in viewModel.Enemies)
                     {
-                        LoggingService.LogDebug($"Enemy {enemy.Name}: IsDefeated={enemy.IsDefeated}, Health={enemy.CurrentHealth}/{enemy.MaxHealth}");
+                        // LoggingService.LogDebug($"Enemy {enemy.Name}: IsDefeated={enemy.IsDefeated}, Health={enemy.CurrentHealth}/{enemy.MaxHealth}");
                     }
                 }
                 
                 bool hasLiveEnemies = viewModel.Enemies?.Any(e => !e.IsDefeated && e.CurrentHealth > 0) ?? false;
                 bool hasValidPlayer = viewModel.PlayerCharacter != null && viewModel.PlayerCharacter.CurrentHealth > 0;
                 
-                LoggingService.LogDebug($"HasLiveEnemies: {hasLiveEnemies}, HasValidPlayer: {hasValidPlayer}");
-                
-                // Р•СЃР»Рё Р±РѕР№ РїРѕРјРµС‡РµРЅ РєР°Рє Р·Р°РІРµСЂС€РµРЅРЅС‹Р№, РЅРѕ РµСЃС‚СЊ Р¶РёРІС‹Рµ РІСЂР°РіРё - Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё РїРµСЂРµС…РѕРґРёРј РЅР° РєР°СЂС‚Сѓ
+                // Если бой помечен как завершенный, но есть живые враги - автоматически переходим на карту
                 if (viewModel.IsBattleOver && !_hasNavigatedAway)
                 {
-                    LoggingService.LogDebug("Battle is legitimately over - allowing automatic navigation");
-                    // РђРІС‚РѕРјР°С‚РёС‡РµСЃРєРё РїРµСЂРµС…РѕРґРёРј РЅР° РєР°СЂС‚Сѓ РјРёСЂР°, РЅРѕ С‚РѕР»СЊРєРѕ РѕРґРёРЅ СЂР°Р·
                     _hasNavigatedAway = true;
                     
-                    // Р”РµР°РєС‚РёРІРёСЂСѓРµРј РєРЅРѕРїРєРё РґР»СЏ РїСЂРµРґРѕС‚РІСЂР°С‰РµРЅРёСЏ РїРѕРІС‚РѕСЂРЅС‹С… РЅР°Р¶Р°С‚РёР№
+                    // Деактивируем кнопки для предотвращения повторных нажатий
                     if (AttackButton != null) AttackButton.IsEnabled = false;
                     if (CompleteButton != null) CompleteButton.IsEnabled = false;
                     if (BackToMapButton != null) BackToMapButton.IsEnabled = false;
                     
-                    // РџРµСЂРµС…РѕРґРёРј РЅР° РєР°СЂС‚Сѓ РјРёСЂР° С‡РµСЂРµР· РЅРµР±РѕР»СЊС€СѓСЋ Р·Р°РґРµСЂР¶РєСѓ
+                    // Переходим на карту мира через небольшую задержку
                     Dispatcher.BeginInvoke(new Action(() => {
-                        if (!_hasNavigatedAway) return; // Р”РІРѕР№РЅР°СЏ РїСЂРѕРІРµСЂРєР°
+                        if (!_hasNavigatedAway) return; // Двойная проверка
                         
                         try
                         {
@@ -81,14 +70,6 @@ namespace SketchBlade.Views
                         }
                     }), DispatcherPriority.Background);
                 }
-                else
-                {
-                    LoggingService.LogDebug("Battle is starting normally");
-                }
-            }
-            else
-            {
-                LoggingService.LogDebug("Warning: BattleView DataContext is not a BattleViewModel");
             }
         }
         
@@ -100,7 +81,7 @@ namespace SketchBlade.Views
                 if (viewModel.EndBattleCommand.CanExecute(null))
                 {
                     viewModel.EndBattleCommand.Execute(null);
-                    LoggingService.LogDebug("Executed EndBattleCommand directly");
+                    // LoggingService.LogDebug("Executed EndBattleCommand directly");
                 }
                 
                 // If we're still on the battle screen after a delay, try forced navigation
@@ -109,14 +90,14 @@ namespace SketchBlade.Views
                     {
                         if (viewModel.GameData.CurrentScreen == "BattleView")
                         {
-                            LoggingService.LogDebug("Still on Battle screen after command execution, forcing navigation");
+                            // LoggingService.LogDebug("Still on Battle screen after command execution, forcing navigation");
                             viewModel.GameData.CurrentScreen = "WorldMapView";
                             
                             // Try to find the MainWindow and trigger a screen update without reflection
                             var mainWindow = Application.Current.MainWindow;
                             if (mainWindow is MainWindow mw)
                             {
-                                LoggingService.LogDebug("Found MainWindow, trying to navigate directly");
+                                // LoggingService.LogDebug("Found MainWindow, trying to navigate directly");
                                 mw.NavigateToScreen("WorldMapView");
                             }
                         }
@@ -135,7 +116,7 @@ namespace SketchBlade.Views
         
         private void BattleView_Unloaded(object sender, RoutedEventArgs e)
         {
-            LoggingService.LogDebug("BattleView unloaded");
+            // LoggingService.LogDebug("BattleView unloaded");
             
             // Explicitly hide the control to prevent it from remaining visible
             this.Visibility = Visibility.Collapsed;
@@ -143,36 +124,36 @@ namespace SketchBlade.Views
             // Make sure all resources are properly released
             if (DataContext is BattleViewModel viewModel)
             {
-                // РџРѕСЃР»РµРґРЅРёР№ С€Р°РЅСЃ РѕР±СЂР°Р±РѕС‚Р°С‚СЊ РЅРµРїРµСЂРµРЅРµСЃРµРЅРЅС‹Рµ РЅР°РіСЂР°РґС‹ РїРµСЂРµРґ РІС‹РіСЂСѓР·РєРѕР№
+                // Последний шанс обработать неперенесенные награды перед выгрузкой
                 if (viewModel.BattleWon && viewModel.GameData.BattleRewardItems != null && 
                     viewModel.GameData.BattleRewardItems.Count > 0)
                 {
-                    LoggingService.LogDebug($"WARNING: Found {viewModel.GameData.BattleRewardItems.Count} unprocessed reward items during unload!");
+                    // LoggingService.LogDebug($"WARNING: Found {viewModel.GameData.BattleRewardItems.Count} unprocessed reward items during unload!");
                     
-                    // Р›РѕРіРёСЂСѓРµРј РІСЃРµ РЅР°РіСЂР°РґС‹
-                    foreach (var item in viewModel.GameData.BattleRewardItems)
-                    {
-                        LoggingService.LogDebug($"  - Unprocessed item: {item.Name}");
-                    }
+                    // Логируем все награды (только для критических случаев)
+                    // foreach (var item in viewModel.GameData.BattleRewardItems)
+                    // {
+                    //     LoggingService.LogDebug($"  - Unprocessed item: {item.Name}");
+                    // }
                     
                     try
                     {
-                        // РџСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕ РёСЃРїРѕР»СЊР·СѓРµРј РјРµС‚РѕРґ ProcessBattleRewards РёР· ViewModel
-                        LoggingService.LogDebug("Calling EndBattle to process rewards during unload");
+                        // Принудительно используем метод ProcessBattleRewards из ViewModel
+                        // LoggingService.LogDebug("Calling EndBattle to process rewards during unload");
                         viewModel.EndBattlePublic(true);
                     }
                     catch (Exception ex)
                     {
                         LoggingService.LogError($"ERROR during unload reward processing: {ex.Message}", ex);
                         
-                        // Р’ СЃР»СѓС‡Р°Рµ РѕС€РёР±РєРё, РІСЂСѓС‡РЅСѓСЋ РґРѕР±Р°РІР»СЏРµРј РїСЂРµРґРјРµС‚С‹ Рё СЃРѕС…СЂР°РЅСЏРµРј РёРіСЂСѓ
+                        // В случае ошибки, вручную добавляем предметы и сохраняем игру
                         try
                         {
-                            LoggingService.LogDebug("Trying manual inventory addition as fallback");
+                            // LoggingService.LogDebug("Trying manual inventory addition as fallback");
                             foreach (var item in viewModel.GameData.BattleRewardItems.ToList())
                             {
                                 bool added = viewModel.GameData.Inventory.AddItem(item);
-                                LoggingService.LogDebug($"Unload fallback: Added reward item to inventory: {item.Name}, success: {added}");
+                                // LoggingService.LogDebug($"Unload fallback: Added reward item to inventory: {item.Name}, success: {added}");
                             }
                             
                             // Clear reward items to prevent duplication
@@ -180,7 +161,7 @@ namespace SketchBlade.Views
                             
                             // Save game to ensure rewards are not lost
                             CoreGameService.Instance.SaveGame(viewModel.GameData);
-                            LoggingService.LogDebug("Unload fallback: Game saved");
+                            // LoggingService.LogDebug("Unload fallback: Game saved");
                         }
                         catch (Exception fallbackEx)
                         {
@@ -193,22 +174,22 @@ namespace SketchBlade.Views
         
         private void AttackButton_Click(object sender, RoutedEventArgs e)
         {
-            LoggingService.LogDebug("AttackButton_Click: Button clicked");
+            // LoggingService.LogDebug("AttackButton_Click: Button clicked");
             if (DataContext is BattleViewModel viewModel)
             {
                 if (viewModel.IsPlayerTurn && !viewModel.IsBattleOver && !viewModel.Animations.IsAnimating)
                 {
                     try
                     {
-                        // РќР°РїСЂСЏРјСѓСЋ РІС‹Р·С‹РІР°РµРј РєРѕРјР°РЅРґСѓ Attack РёР· ViewModel
+                        // Напрямую вызываем команду Attack из ViewModel
                         if (viewModel.AttackCommand.CanExecute(viewModel.SelectedEnemy))
                         {
-                            LoggingService.LogDebug($"AttackButton_Click: Executing attack on {viewModel.SelectedEnemy?.Name}");
+                            // LoggingService.LogDebug($"AttackButton_Click: Executing attack on {viewModel.SelectedEnemy?.Name}");
                             viewModel.AttackCommand.Execute(viewModel.SelectedEnemy);
                         }
                         else
                         {
-                            LoggingService.LogDebug("AttackButton_Click: AttackCommand cannot execute");
+                            // LoggingService.LogDebug("AttackButton_Click: AttackCommand cannot execute");
                         }
                     }
                     catch (Exception ex)
@@ -218,41 +199,41 @@ namespace SketchBlade.Views
                 }
                 else
                 {
-                    LoggingService.LogDebug($"AttackButton_Click: Cannot attack. PlayerTurn={viewModel.IsPlayerTurn}, BattleOver={viewModel.IsBattleOver}, Animating={viewModel.Animations.IsAnimating}");
+                    // LoggingService.LogDebug($"AttackButton_Click: Cannot attack. PlayerTurn={viewModel.IsPlayerTurn}, BattleOver={viewModel.IsBattleOver}, Animating={viewModel.Animations.IsAnimating}");
                 }
             }
             else
             {
-                LoggingService.LogDebug("AttackButton_Click: DataContext is not BattleViewModel");
+                // LoggingService.LogDebug("AttackButton_Click: DataContext is not BattleViewModel");
             }
         }
         
         private void CompleteButton_Click(object sender, RoutedEventArgs e)
         {
-            // РџСЂРµРґРѕС‚РІСЂР°С‰Р°РµРј РјРЅРѕР¶РµСЃС‚РІРµРЅРЅС‹Рµ РЅР°Р¶Р°С‚РёСЏ
+            // Предотвращаем множественные нажатия
             if (_hasNavigatedAway)
             {
-                LoggingService.LogDebug("CompleteButton_Click: РЈР¶Рµ РІС‹РїРѕР»РЅРµРЅР° РЅР°РІРёРіР°С†РёСЏ, РёРіРЅРѕСЂРёСЂСѓРµРј");
+                // LoggingService.LogDebug("CompleteButton_Click: Уже выполнена навигация, игнорируем");
                 return;
             }
             
             _hasNavigatedAway = true;
             
-            // Р”РµР°РєС‚РёРІРёСЂСѓРµРј РєРЅРѕРїРєСѓ РЅРµРјРµРґР»РµРЅРЅРѕ
+            // Деактивируем кнопку немедленно
             if (sender is Button button)
             {
                 button.IsEnabled = false;
             }
             
-            LoggingService.LogDebug("=========== CompleteButton_Click STARTED ===========");
+            // LoggingService.LogDebug("=========== CompleteButton_Click STARTED ===========");
             
             if (DataContext is BattleViewModel viewModel)
             {
                 try
                 {
-                    LoggingService.LogDebug("CompleteButton_Click: Executing EndBattleCommand");
+                    // LoggingService.LogDebug("CompleteButton_Click: Executing EndBattleCommand");
                     
-                    // РЎРѕС…СЂР°РЅСЏРµРј РёРіСЂСѓ РїРµСЂРµРґ РЅР°РІРёРіР°С†РёРµР№
+                    // Сохраняем игру перед навигацией
                     CoreGameService.Instance.SaveGame(viewModel.GameData);
                 }
                 catch (Exception ex)
@@ -260,20 +241,20 @@ namespace SketchBlade.Views
                     LoggingService.LogError($"ERROR in CompleteButton_Click: {ex.Message}", ex);
                     LoggingService.LogError($"Stack trace: {ex.StackTrace}", ex);
                     
-                    // РђРІР°СЂРёР№РЅС‹Р№ СЃРїРѕСЃРѕР± - РїСЂРѕР±СѓРµРј РІС‹РїРѕР»РЅРёС‚СЊ РЅР°РІРёРіР°С†РёСЋ
+                    // Аварийный способ - пробуем выполнить навигацию
                     try
                     {
-                        // РЎРєСЂС‹РІР°РµРј С‚РµРєСѓС‰РµРµ РїСЂРµРґСЃС‚Р°РІР»РµРЅРёРµ
+                        // Скрываем текущее представление
                         this.Visibility = Visibility.Collapsed;
                         
-                        // РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј СЌРєСЂР°РЅ РєР°СЂС‚С‹ РјРёСЂР° РІ GameData
+                        // Устанавливаем экран карты мира в GameData
                         viewModel.GameData.CurrentScreen = "WorldMapView";
                         
-                        // РџС‹С‚Р°РµРјСЃСЏ РІС‹РїРѕР»РЅРёС‚СЊ РЅР°РІРёРіР°С†РёСЋ С‡РµСЂРµР· MainWindow
+                        // Пытаемся выполнить навигацию через MainWindow
                         if (Application.Current.MainWindow is MainWindow mainWindow)
                         {
                             mainWindow.NavigateToScreen("WorldMapView");
-                            LoggingService.LogDebug("Emergency navigation completed via MainWindow");
+                            // LoggingService.LogDebug("Emergency navigation completed via MainWindow");
                         }
                     }
                     catch (Exception emergencyEx)
@@ -283,11 +264,11 @@ namespace SketchBlade.Views
                 }
                 finally
                 {
-                    // РџСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕ РїРµСЂРµС…РѕРґРёРј РЅР° РєР°СЂС‚Сѓ РјРёСЂР°
+                    // Принудительно переходим на карту мира
                     try
                     {
                         viewModel.NavigateCommand?.Execute("WorldMapView");
-                        LoggingService.LogDebug("Navigation executed via NavigateCommand");
+                        // LoggingService.LogDebug("Navigation executed via NavigateCommand");
                     }
                     catch (Exception navEx)
                     {
@@ -297,30 +278,30 @@ namespace SketchBlade.Views
             }
             else
             {
-                LoggingService.LogDebug("CompleteButton_Click: DataContext is not BattleViewModel");
+                // LoggingService.LogDebug("CompleteButton_Click: DataContext is not BattleViewModel");
             }
             
-            LoggingService.LogDebug("=========== CompleteButton_Click COMPLETED ===========");
+            // LoggingService.LogDebug("=========== CompleteButton_Click COMPLETED ===========");
         }
         
         private void BackToMapButton_Click(object sender, RoutedEventArgs e)
         {
-            // РџСЂРµРґРѕС‚РІСЂР°С‰Р°РµРј РјРЅРѕР¶РµСЃС‚РІРµРЅРЅС‹Рµ РЅР°Р¶Р°С‚РёСЏ
+            // Предотвращаем множественные нажатия
             if (_hasNavigatedAway)
             {
-                LoggingService.LogDebug("BackToMapButton_Click: РЈР¶Рµ РІС‹РїРѕР»РЅРµРЅР° РЅР°РІРёРіР°С†РёСЏ, РёРіРЅРѕСЂРёСЂСѓРµРј");
+                // LoggingService.LogDebug("BackToMapButton_Click: Уже выполнена навигация, игнорируем");
                 return;
             }
             
             _hasNavigatedAway = true;
             
-            // Р”РµР°РєС‚РёРІРёСЂСѓРµРј РєРЅРѕРїРєСѓ РЅРµРјРµРґР»РµРЅРЅРѕ
+            // Деактивируем кнопку немедленно
             if (sender is Button button)
             {
                 button.IsEnabled = false;
             }
             
-            LoggingService.LogDebug("=========== BackToMapButton_Click STARTED ===========");
+            // LoggingService.LogDebug("=========== BackToMapButton_Click STARTED ===========");
             
             if (DataContext is BattleViewModel viewModel)
             {
@@ -330,20 +311,20 @@ namespace SketchBlade.Views
                     var mainWindow = Application.Current.MainWindow as MainWindow;
                     if (mainWindow != null)
                     {
-                        LoggingService.LogDebug("Using direct MainWindow navigation");
+                        // LoggingService.LogDebug("Using direct MainWindow navigation");
                         mainWindow.NavigateToScreen("WorldMapView");
                     }
                     else
                     {
                         // Try using the view model's NavigateCommand
-                        LoggingService.LogDebug("MainWindow not found, using NavigateCommand");
+                        // LoggingService.LogDebug("MainWindow not found, using NavigateCommand");
                         if (viewModel.NavigateCommand != null && viewModel.NavigateCommand.CanExecute("WorldMapView"))
                         {
                             viewModel.NavigateCommand.Execute("WorldMapView");
                         }
                         else
                         {
-                            LoggingService.LogDebug("ERROR: Could not find navigation mechanism");
+                            // LoggingService.LogDebug("ERROR: Could not find navigation mechanism");
                         }
                     }
                 }
@@ -364,7 +345,7 @@ namespace SketchBlade.Views
                                     if (Application.Current.MainWindow is MainWindow mainWindow)
                                     {
                                         mainWindow.NavigateToScreen("WorldMapView");
-                                        LoggingService.LogDebug("Used dispatcher to navigate after failure");
+                                        // LoggingService.LogDebug("Used dispatcher to navigate after failure");
                                     }
                                 }
                                 catch (Exception dispatcherEx)
@@ -381,7 +362,7 @@ namespace SketchBlade.Views
                 }
             }
             
-            LoggingService.LogDebug("=========== BackToMapButton_Click COMPLETED ===========");
+            // LoggingService.LogDebug("=========== BackToMapButton_Click COMPLETED ===========");
         }
     }
 }
