@@ -9,17 +9,53 @@ namespace SketchBlade.Helpers.Converters
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            if (values.Length != 2) return false;
-            
-            var character = values[0] as Character;
-            var attackingCharacter = values[1] as Character;
-            
-            if (character == null || attackingCharacter == null) return false;
-            
-            return ReferenceEquals(character, attackingCharacter);
+            try
+            {
+                if (values == null || values.Length != 2) 
+                    return false;
+                
+                var character = values[0] as Character;
+                var attackingCharacter = values[1] as Character;
+                
+                // Если любой из персонажей null, возвращаем false
+                if (character == null || attackingCharacter == null) 
+                    return false;
+                
+                return ReferenceEquals(character, attackingCharacter);
+            }
+            catch
+            {
+                // В случае любой ошибки возвращаем false
+                return false;
+            }
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    // Новый конвертер для сравнения персонажа с параметром
+    public class CharacterComparisonConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            // Безопасная проверка на null для избежания ошибок привязки
+            if (value == null || parameter == null) 
+                return false;
+            
+            var character = value as Character;
+            var targetCharacter = parameter as Character;
+            
+            // Дополнительная проверка после приведения типов
+            if (character == null || targetCharacter == null) 
+                return false;
+            
+            return ReferenceEquals(character, targetCharacter);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }

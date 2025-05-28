@@ -21,6 +21,7 @@
         <converters:TranslationConverter x:Key="TranslationConverter"/>
         <converters:ImagePathToBitmapConverter x:Key="ImagePathToBitmapConverter"/>
         <converters:AttackingCharacterConverter x:Key="AttackingCharacterConverter"/>
+        <converters:CharacterComparisonConverter x:Key="CharacterComparisonConverter"/>
         <converters:DebugLoggingConverter x:Key="DebugLoggingConverter"/>
         
         <ControlTemplate x:Key="HealthBarTemplate" TargetType="ProgressBar">
@@ -176,45 +177,88 @@
                                 </DataTrigger.ExitActions>
                             </DataTrigger>
                             
-                            <!-- Анимация использования предметов - питье зелий -->
+                            <!-- Цветовые эффекты зелий для игрока -->
+                            <!-- Эффект зелья лечения - розовый -->
                             <MultiDataTrigger>
                                 <MultiDataTrigger.Conditions>
-                                    <Condition Binding="{Binding IsUsingItem}" Value="True"/>
-                                    <Condition Binding="{Binding CurrentItemAnimationType}" Value="Drinking"/>
+                                    <Condition Binding="{Binding IsPlayerPotionEffect}" Value="True"/>
+                                    <Condition Binding="{Binding CurrentPotionEffect}" Value="Healing"/>
                                 </MultiDataTrigger.Conditions>
                                 <MultiDataTrigger.EnterActions>
-                                    <BeginStoryboard Name="PlayerDrinkingStoryboard">
+                                    <BeginStoryboard Name="PlayerHealingEffectStoryboard">
                                         <Storyboard>
-                                            <!-- Анимация поднятия руки к лицу -->
-                                            <DoubleAnimationUsingKeyFrames 
-                                                Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.Y)">
-                                                <EasingDoubleKeyFrame KeyTime="0:0:0.0" Value="0"/>
-                                                <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="-10">
-                                                    <EasingDoubleKeyFrame.EasingFunction>
-                                                        <SineEase EasingMode="EaseOut"/>
-                                                    </EasingDoubleKeyFrame.EasingFunction>
-                                                </EasingDoubleKeyFrame>
-                                                <EasingDoubleKeyFrame KeyTime="0:0:0.6" Value="-10"/>
-                                                <EasingDoubleKeyFrame KeyTime="0:0:0.8" Value="0">
-                                                    <EasingDoubleKeyFrame.EasingFunction>
-                                                        <SineEase EasingMode="EaseIn"/>
-                                                    </EasingDoubleKeyFrame.EasingFunction>
-                                                </EasingDoubleKeyFrame>
-                                            </DoubleAnimationUsingKeyFrames>
-                                            <!-- Легкое покачивание -->
-                                            <DoubleAnimationUsingKeyFrames 
-                                                Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[2].(RotateTransform.Angle)">
-                                                <EasingDoubleKeyFrame KeyTime="0:0:0.0" Value="0"/>
-                                                <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="2"/>
-                                                <EasingDoubleKeyFrame KeyTime="0:0:0.4" Value="-2"/>
-                                                <EasingDoubleKeyFrame KeyTime="0:0:0.6" Value="2"/>
-                                                <EasingDoubleKeyFrame KeyTime="0:0:0.8" Value="0"/>
-                                            </DoubleAnimationUsingKeyFrames>
+                                            <ColorAnimation 
+                                                Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                From="#FAFAFA" To="#FFB6C1" Duration="0:0:0.5" 
+                                                AutoReverse="True" RepeatBehavior="Forever"/>
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </MultiDataTrigger.EnterActions>
                                 <MultiDataTrigger.ExitActions>
-                                    <StopStoryboard BeginStoryboardName="PlayerDrinkingStoryboard"/>
+                                    <StopStoryboard BeginStoryboardName="PlayerHealingEffectStoryboard"/>
+                                </MultiDataTrigger.ExitActions>
+                            </MultiDataTrigger>
+                            
+                            <!-- Эффект зелья ярости - красный -->
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding IsPlayerPotionEffect}" Value="True"/>
+                                    <Condition Binding="{Binding CurrentPotionEffect}" Value="Rage"/>
+                                </MultiDataTrigger.Conditions>
+                                <MultiDataTrigger.EnterActions>
+                                    <BeginStoryboard Name="PlayerRageEffectStoryboard">
+                                        <Storyboard>
+                                            <ColorAnimation 
+                                                Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                From="#FAFAFA" To="#FFB6B6" Duration="0:0:0.8" 
+                                                AutoReverse="True" RepeatBehavior="Forever"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </MultiDataTrigger.EnterActions>
+                                <MultiDataTrigger.ExitActions>
+                                    <StopStoryboard BeginStoryboardName="PlayerRageEffectStoryboard"/>
+                                </MultiDataTrigger.ExitActions>
+                            </MultiDataTrigger>
+                            
+                            <!-- Эффект зелья неуязвимости - синий -->
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding IsPlayerPotionEffect}" Value="True"/>
+                                    <Condition Binding="{Binding CurrentPotionEffect}" Value="Defense"/>
+                                </MultiDataTrigger.Conditions>
+                                <MultiDataTrigger.EnterActions>
+                                    <BeginStoryboard Name="PlayerDefenseEffectStoryboard">
+                                        <Storyboard>
+                                            <ColorAnimation 
+                                                Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                From="#FAFAFA" To="#B6D7FF" Duration="0:0:0.8" 
+                                                AutoReverse="True" RepeatBehavior="Forever"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </MultiDataTrigger.EnterActions>
+                                <MultiDataTrigger.ExitActions>
+                                    <StopStoryboard BeginStoryboardName="PlayerDefenseEffectStoryboard"/>
+                                </MultiDataTrigger.ExitActions>
+                            </MultiDataTrigger>
+                            
+                            <!-- Эффект отравления для игрока - зеленоватый -->
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding IsPlayerPotionEffect}" Value="True"/>
+                                    <Condition Binding="{Binding CurrentPotionEffect}" Value="Poison"/>
+                                </MultiDataTrigger.Conditions>
+                                <MultiDataTrigger.EnterActions>
+                                    <BeginStoryboard Name="PlayerPoisonEffectStoryboard">
+                                        <Storyboard>
+                                            <ColorAnimation 
+                                                Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                From="#FAFAFA" To="#B6FFB6" Duration="0:0:0.5" 
+                                                AutoReverse="True"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </MultiDataTrigger.EnterActions>
+                                <MultiDataTrigger.ExitActions>
+                                    <StopStoryboard BeginStoryboardName="PlayerPoisonEffectStoryboard"/>
                                 </MultiDataTrigger.ExitActions>
                             </MultiDataTrigger>
                             
@@ -619,6 +663,121 @@
                                                     <StopStoryboard BeginStoryboardName="EnemyHitStoryboard"/>
                                                 </DataTrigger.ExitActions>
                                             </DataTrigger>
+                                            
+                                            <!-- Цветовые эффекты зелий для врагов - зеленые оттенки -->
+                                            <!-- Эффект зелья лечения для врага - светло-зеленый -->
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding DataContext.IsEnemyPotionEffect, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="True"/>
+                                                    <Condition Binding="{Binding DataContext.CurrentPotionEffect, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="Healing"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <MultiDataTrigger.EnterActions>
+                                                    <BeginStoryboard Name="EnemyHealingEffectStoryboard">
+                                                        <Storyboard>
+                                                            <ColorAnimation 
+                                                                Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                From="#FFFFFF" To="#B6FFB6" Duration="0:0:0.5" 
+                                                                AutoReverse="True" RepeatBehavior="Forever"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </MultiDataTrigger.EnterActions>
+                                                <MultiDataTrigger.ExitActions>
+                                                    <StopStoryboard BeginStoryboardName="EnemyHealingEffectStoryboard"/>
+                                                </MultiDataTrigger.ExitActions>
+                                            </MultiDataTrigger>
+                                            
+                                            <!-- Эффект зелья ярости для врага - темно-зеленый -->
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding DataContext.IsEnemyPotionEffect, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="True"/>
+                                                    <Condition Binding="{Binding DataContext.CurrentPotionEffect, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="Rage"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <MultiDataTrigger.EnterActions>
+                                                    <BeginStoryboard Name="EnemyRageEffectStoryboard">
+                                                        <Storyboard>
+                                                            <ColorAnimation 
+                                                                Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                From="#FFFFFF" To="#90EE90" Duration="0:0:0.8" 
+                                                                AutoReverse="True" RepeatBehavior="Forever"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </MultiDataTrigger.EnterActions>
+                                                <MultiDataTrigger.ExitActions>
+                                                    <StopStoryboard BeginStoryboardName="EnemyRageEffectStoryboard"/>
+                                                </MultiDataTrigger.ExitActions>
+                                            </MultiDataTrigger>
+                                            
+                                            <!-- Эффект зелья неуязвимости для врага - изумрудный -->
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding DataContext.IsEnemyPotionEffect, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="True"/>
+                                                    <Condition Binding="{Binding DataContext.CurrentPotionEffect, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="Defense"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <MultiDataTrigger.EnterActions>
+                                                    <BeginStoryboard Name="EnemyDefenseEffectStoryboard">
+                                                        <Storyboard>
+                                                            <ColorAnimation 
+                                                                Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                From="#FFFFFF" To="#98FB98" Duration="0:0:0.8" 
+                                                                AutoReverse="True" RepeatBehavior="Forever"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </MultiDataTrigger.EnterActions>
+                                                <MultiDataTrigger.ExitActions>
+                                                    <StopStoryboard BeginStoryboardName="EnemyDefenseEffectStoryboard"/>
+                                                </MultiDataTrigger.ExitActions>
+                                            </MultiDataTrigger>
+                                            
+                                            <!-- Эффект отравления для врага - зеленоватый -->
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding DataContext.IsEnemyPotionEffect, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="True"/>
+                                                    <Condition Binding="{Binding DataContext.CurrentPotionEffect, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="Poison"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <MultiDataTrigger.EnterActions>
+                                                    <BeginStoryboard Name="EnemyPoisonEffectStoryboard">
+                                                        <Storyboard>
+                                                            <ColorAnimation 
+                                                                Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                From="#FFFFFF" To="#90EE90" Duration="0:0:0.5" 
+                                                                AutoReverse="True"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </MultiDataTrigger.EnterActions>
+                                                <MultiDataTrigger.ExitActions>
+                                                    <StopStoryboard BeginStoryboardName="EnemyPoisonEffectStoryboard"/>
+                                                </MultiDataTrigger.ExitActions>
+                                            </MultiDataTrigger>
+                                            
+                                            <!-- Подсветка конкретного врага при использовании метательных предметов -->
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding DataContext.IsTargetingItem, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="True"/>
+                                                    <Condition Value="True">
+                                                        <Condition.Binding>
+                                                            <MultiBinding Converter="{StaticResource AttackingCharacterConverter}" FallbackValue="False">
+                                                                <Binding Path="."/>
+                                                                <Binding Path="DataContext.TargetedCharacter" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                                                            </MultiBinding>
+                                                        </Condition.Binding>
+                                                    </Condition>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="BorderThickness" Value="3"/>
+                                                <Setter Property="BorderBrush" Value="Gold"/>
+                                                <MultiDataTrigger.EnterActions>
+                                                    <BeginStoryboard Name="TargetedEnemyStoryboard">
+                                                        <Storyboard>
+                                                            <ColorAnimation 
+                                                                Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                From="#FFFFFF" To="#FFD700" Duration="0:0:0.3" 
+                                                                AutoReverse="True" RepeatBehavior="Forever"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </MultiDataTrigger.EnterActions>
+                                                <MultiDataTrigger.ExitActions>
+                                                    <StopStoryboard BeginStoryboardName="TargetedEnemyStoryboard"/>
+                                                </MultiDataTrigger.ExitActions>
+                                            </MultiDataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Border.Style>
@@ -798,10 +957,6 @@
                                         <Trigger Property="IsMouseOver" Value="True">
                                             <Setter Property="Background" Value="#E8E8E8"/>
                                         </Trigger>
-                                        <!-- Добавляем стиль для недоступного предмета -->
-                                        <DataTrigger Binding="{Binding UseItemCommand.CanExecute}" Value="False">
-                                            <Setter Property="Opacity" Value="0.6"/>
-                                        </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </Border.Style>
@@ -879,10 +1034,6 @@
                                         <Trigger Property="IsMouseOver" Value="True">
                                             <Setter Property="Background" Value="#E8E8E8"/>
                                         </Trigger>
-                                        <!-- Добавляем стиль для недоступного предмета -->
-                                        <DataTrigger Binding="{Binding UseItemCommand.CanExecute}" Value="False">
-                                            <Setter Property="Opacity" Value="0.6"/>
-                                        </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </Border.Style>
