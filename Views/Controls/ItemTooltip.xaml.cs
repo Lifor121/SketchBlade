@@ -4,12 +4,17 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using SketchBlade.Models;
 using SketchBlade.Services;
+using System.Collections.Generic;
+using System.Windows.Media.Imaging;
+using System.IO;
+using SketchBlade.Utilities;
 
 namespace SketchBlade.Views.Controls
 {
     public partial class ItemTooltip : UserControl
     {
         private Item _item;
+        private SimplifiedCraftingRecipe _recipe;
         
         public ItemTooltip()
         {
@@ -47,6 +52,21 @@ namespace SketchBlade.Views.Controls
             }
             
             _item = item;
+            _recipe = null; // Сбрасываем рецепт при обычном показе предмета
+            UpdateDisplay();
+            this.Visibility = Visibility.Visible;
+        }
+
+        public void SetItemWithRecipe(Item item, SimplifiedCraftingRecipe recipe)
+        {
+            if (item == null)
+            {
+                this.Visibility = Visibility.Collapsed;
+                return;
+            }
+            
+            _item = item;
+            _recipe = recipe;
             UpdateDisplay();
             this.Visibility = Visibility.Visible;
         }
@@ -54,6 +74,7 @@ namespace SketchBlade.Views.Controls
         public void Hide()
         {
             this.Visibility = Visibility.Collapsed;
+            _recipe = null;
         }
         
         private void UpdateDisplay()
@@ -113,6 +134,85 @@ namespace SketchBlade.Views.Controls
                 DamagePanel.Visibility = Visibility.Collapsed;
                 DefensePanel.Visibility = Visibility.Collapsed;
             }
+
+            // Show recipe if available
+            UpdateRecipeDisplay();
+        }
+
+        private void UpdateRecipeDisplay()
+        {
+            if (_recipe != null)
+            {
+                RecipePanel.Visibility = Visibility.Visible;
+                
+                // Create material view models
+                var materialViewModels = new List<RecipeMaterialViewModel>();
+                
+                foreach (var material in _recipe.RequiredMaterials)
+                {
+                    var materialVM = new RecipeMaterialViewModel
+                    {
+                        Required = material.Value,
+                        IconPath = GetMaterialIconPath(material.Key)
+                    };
+                    materialViewModels.Add(materialVM);
+                }
+
+                RecipeMaterialsControl.ItemsSource = materialViewModels;
+            }
+            else
+            {
+                RecipePanel.Visibility = Visibility.Collapsed;
+                RecipeMaterialsControl.ItemsSource = null;
+            }
+        }
+
+        private string GetMaterialIconPath(string materialName)
+        {
+            try
+            {
+                // Создаем временный предмет для получения пути к иконке
+                var tempItem = ItemFactory.CreateMaterialByName(materialName);
+                if (tempItem != null && !string.IsNullOrEmpty(tempItem.SpritePath))
+                {
+                    return tempItem.SpritePath;
+                }
+
+                // Fallback: попробуем найти по названию
+                return GetIconPathByMaterialName(materialName);
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogError($"Ошибка при получении иконки для материала {materialName}: {ex.Message}", ex);
+                return AssetPaths.DEFAULT_IMAGE;
+            }
+        }
+
+        private string GetIconPathByMaterialName(string materialName)
+        {
+            // Маппинг названий материалов на пути к иконкам
+            var materialIconPaths = new Dictionary<string, string>
+            {
+                { "Дерево", AssetPaths.Materials.WOOD },
+                { "Палка", AssetPaths.Materials.STICK },
+                { "Железный слиток", AssetPaths.Materials.IRON_INGOT },
+                { "Золотой слиток", AssetPaths.Materials.GOLD_INGOT },
+                { "Люминит", AssetPaths.Materials.LUMINITE },
+                { "Фрагмент люминита", AssetPaths.Materials.LUMINITE_FRAGMENT },
+                { "Трава", AssetPaths.Materials.HERB },
+                { "Фляга", AssetPaths.Materials.FLASK },
+                { "Кристаллическая пыль", AssetPaths.Materials.CRYSTAL_DUST },
+                { "Ткань", AssetPaths.Materials.CLOTH },
+                { "Перо", AssetPaths.Materials.FEATHER },
+                { "Экстракт яда", AssetPaths.Materials.POISON_EXTRACT },
+                { "Порох", AssetPaths.Materials.GUNPOWDER },
+                { "Железная руда", AssetPaths.Materials.IRON_ORE },
+                { "Золотая руда", AssetPaths.Materials.GOLD_ORE }
+            };
+
+            return materialIconPaths.TryGetValue(materialName, out string iconPath) 
+                ? iconPath 
+                : AssetPaths.DEFAULT_IMAGE;
         }
         
         private SolidColorBrush GetRarityBrush(ItemRarity rarity)
@@ -145,6 +245,43 @@ namespace SketchBlade.Views.Controls
                 return "";
                 
             return LocalizationService.Instance.GetTranslation($"ItemMaterials.{material}");
+        }
+    }
+
+    // ViewModel для отображения материала в рецепте
+    public class RecipeMaterialViewModel
+    {
+        public int Required { get; set; }
+        public string IconPath { get; set; } = string.Empty;
+        
+        public BitmapImage? Icon
+        {
+            get
+            {
+                try
+                {
+                    if (string.IsNullOrEmpty(IconPath))
+                        return null;
+
+                    string fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, IconPath);
+                    if (File.Exists(fullPath))
+                    {
+                        var bitmap = new BitmapImage();
+                        bitmap.BeginInit();
+                        bitmap.UriSource = new Uri(fullPath, UriKind.Absolute);
+                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                        bitmap.EndInit();
+                        bitmap.Freeze();
+                        return bitmap;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LoggingService.LogError($"Ошибка при загрузке иконки материала: {ex.Message}", ex);
+                }
+                
+                return null;
+            }
         }
     }
 } 

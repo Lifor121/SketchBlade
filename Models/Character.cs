@@ -55,6 +55,16 @@ namespace SketchBlade.Models
         [NonSerialized]
         private int _defenseBonusTurnsRemaining = 0;
         
+        // Добавляем поля для новых эффектов
+        [NonSerialized]
+        private int _poisonDamage = 0;
+        [NonSerialized]
+        private int _poisonTurnsRemaining = 0;
+        [NonSerialized]
+        private bool _isStunned = false;
+        [NonSerialized]
+        private int _stunTurnsRemaining = 0;
+        
         private Dictionary<string, string> _equippedItemsData = new Dictionary<string, string>();
         
         [NonSerialized]
@@ -199,6 +209,13 @@ namespace SketchBlade.Models
         public int TotalAttack => GetTotalAttack();
         public int TotalDefense => GetTotalDefense();
         public int TotalMaxHealth => GetTotalMaxHealth();
+        
+        // Свойства для эффектов
+        public bool IsPoisoned => _poisonTurnsRemaining > 0;
+        public bool IsStunned => _isStunned && _stunTurnsRemaining > 0;
+        public int PoisonTurnsRemaining => _poisonTurnsRemaining;
+        public int StunTurnsRemaining => _stunTurnsRemaining;
+        public int PoisonDamage => _poisonDamage;
         
         public string ImagePath 
         { 
@@ -634,10 +651,18 @@ namespace SketchBlade.Models
                     Heal(power);
                     break;
                 case BuffType.Poison:
-                    LoggingService.LogError($"Applied poison to {Name} for {duration} turns with power {power}", null);
+                    _poisonDamage = power;
+                    _poisonTurnsRemaining = duration;
+                    LoggingService.LogInfo($"Applied poison to {Name} for {duration} turns with {power} damage per turn");
+                    OnPropertyChanged(nameof(IsPoisoned));
+                    OnPropertyChanged(nameof(PoisonTurnsRemaining));
                     break;
                 case BuffType.Stun:
-                    LoggingService.LogError($"Stunned {Name} for {duration} turns", null);
+                    _isStunned = true;
+                    _stunTurnsRemaining = duration;
+                    LoggingService.LogInfo($"Stunned {Name} for {duration} turns");
+                    OnPropertyChanged(nameof(IsStunned));
+                    OnPropertyChanged(nameof(StunTurnsRemaining));
                     break;
                 default:
                     LoggingService.LogError($"Buff type {buffType} not implemented", null);
@@ -665,6 +690,34 @@ namespace SketchBlade.Models
                     _temporaryDefenseBonus = 0;
                     OnPropertyChanged(nameof(TotalDefense));
                 }
+            }
+            
+            // Обработка отравления
+            if (_poisonTurnsRemaining > 0)
+            {
+                TakeDamage(_poisonDamage);
+                LoggingService.LogInfo($"{Name} получает {_poisonDamage} урона от яда");
+                _poisonTurnsRemaining--;
+                if (_poisonTurnsRemaining <= 0)
+                {
+                    _poisonDamage = 0;
+                    LoggingService.LogInfo($"{Name} больше не отравлен");
+                }
+                OnPropertyChanged(nameof(IsPoisoned));
+                OnPropertyChanged(nameof(PoisonTurnsRemaining));
+            }
+            
+            // Обработка оглушения
+            if (_stunTurnsRemaining > 0)
+            {
+                _stunTurnsRemaining--;
+                if (_stunTurnsRemaining <= 0)
+                {
+                    _isStunned = false;
+                    LoggingService.LogInfo($"{Name} больше не оглушен");
+                }
+                OnPropertyChanged(nameof(IsStunned));
+                OnPropertyChanged(nameof(StunTurnsRemaining));
             }
         }
         

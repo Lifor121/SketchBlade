@@ -37,6 +37,11 @@ namespace SketchBlade.Models
         private bool _rewardsProcessed = false;
         private int _currentEnemyIndex = 0;
 
+        // Новые свойства для режима выбора цели предметов
+        private bool _isTargetSelectionMode = false;
+        private Item _pendingTargetItem = null;
+        private string _targetSelectionMessage = "";
+
         public Character PlayerCharacter
         {
             get => _playerCharacter;
@@ -163,6 +168,25 @@ namespace SketchBlade.Models
             set => SetProperty(ref _currentEnemyIndex, value);
         }
 
+        // Новые свойства для режима выбора цели предметов
+        public bool IsTargetSelectionMode
+        {
+            get => _isTargetSelectionMode;
+            set => SetProperty(ref _isTargetSelectionMode, value);
+        }
+
+        public Item PendingTargetItem
+        {
+            get => _pendingTargetItem;
+            set => SetProperty(ref _pendingTargetItem, value);
+        }
+
+        public string TargetSelectionMessage
+        {
+            get => _targetSelectionMessage;
+            set => SetProperty(ref _targetSelectionMessage, value);
+        }
+
         public int PlayerHealth => PlayerCharacter?.CurrentHealth ?? 0;
         public int PlayerMaxHealth => PlayerCharacter?.MaxHealth ?? 0;
         public double PlayerHealthPercent => PlayerCharacter != null ? 
@@ -184,6 +208,11 @@ namespace SketchBlade.Models
             TurnCounter = 0;
             RewardsProcessed = false;
             CurrentEnemyIndex = 0;
+            
+            // Сброс режима выбора цели
+            IsTargetSelectionMode = false;
+            PendingTargetItem = null;
+            TargetSelectionMessage = "";
             
             BattleLog.Clear();
             Enemies.Clear();

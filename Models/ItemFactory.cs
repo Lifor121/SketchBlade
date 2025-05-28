@@ -367,6 +367,7 @@ namespace SketchBlade.Models
                 Type = ItemType.Consumable,
                 Rarity = ItemRarity.Common,
                 Value = 25,
+                EffectPower = 30,
                 Weight = 0.5f,
                 MaxStackSize = 10,
                 StackSize = amount,
@@ -400,6 +401,7 @@ namespace SketchBlade.Models
                 Rarity = ItemRarity.Uncommon,
                 Value = 40,
                 Damage = 8,
+                EffectPower = 5,
                 Weight = 0.2f,
                 MaxStackSize = 20,
                 StackSize = amount,
@@ -433,6 +435,7 @@ namespace SketchBlade.Models
                 Type = ItemType.Consumable,
                 Rarity = ItemRarity.Rare,
                 Value = 80,
+                EffectPower = 10,
                 Weight = 0.5f,
                 MaxStackSize = 5,
                 StackSize = amount,
@@ -449,6 +452,7 @@ namespace SketchBlade.Models
                 Type = ItemType.Consumable,
                 Rarity = ItemRarity.Epic,
                 Value = 150,
+                EffectPower = 15,
                 Weight = 0.5f,
                 MaxStackSize = 3,
                 StackSize = amount,
@@ -730,6 +734,32 @@ namespace SketchBlade.Models
         }
 
         #endregion
+
+        public static Item? CreateMaterialByName(string materialName)
+        {
+            if (string.IsNullOrEmpty(materialName))
+                return null;
+
+            return materialName switch
+            {
+                "Дерево" => CreateWood(),
+                "Палка" => CreateStick(),
+                "Железный слиток" => CreateIronIngot(),
+                "Золотой слиток" => CreateGoldIngot(),
+                "Люминит" => CreateLuminite(),
+                "Фрагмент люминита" => CreateLuminiteFragment(),
+                "Трава" => CreateHerb(),
+                "Фляга" => CreateFlask(),
+                "Кристаллическая пыль" => CreateCrystalDust(),
+                "Ткань" => CreateCloth(),
+                "Перо" => CreateFeather(),
+                "Экстракт яда" => CreatePoisonExtract(),
+                "Порох" => CreateGunpowder(),
+                "Железная руда" => CreateIronOre(),
+                "Золотая руда" => CreateGoldOre(),
+                _ => null
+            };
+        }
 
         public static Item? CreateItem(string itemName, int quantity = 1)
         {

@@ -20,6 +20,8 @@ namespace SketchBlade.ViewModels
         private readonly BattleAnimations _animations;
         private bool _waitingForEnemyTurn = false;
         private System.Threading.Timer? _safetyTimer; // Таймер безопасности для предотвращения зависания
+        private DateTime _lastItemUseTime = DateTime.MinValue; // Добавляем кулдаун для использования предметов
+        private const int ITEM_USE_COOLDOWN_MS = 500; // Кулдаун 0.5 секунды между использованием предметов
 
         public ICommand NavigateCommand { get; private set; }
         public ICommand AttackCommand { get; private set; }
@@ -28,6 +30,7 @@ namespace SketchBlade.ViewModels
         public ICommand SelectEnemyCommand { get; private set; }
         public ICommand ClickEnemyCommand { get; private set; }
         public ICommand ForceEndTurnCommand { get; private set; }
+        public ICommand CancelTargetSelectionCommand { get; private set; }
 
         public BattleViewModel(GameData GameData, Action<string> navigateAction)
         {
@@ -60,6 +63,7 @@ namespace SketchBlade.ViewModels
             SelectEnemyCommand = new RelayCommand<Character>(ExecuteSelectEnemy, null, "SelectEnemy");
             ClickEnemyCommand = new RelayCommand<Character>(ExecuteClickEnemy, CanClickEnemy, "ClickEnemy");
             ForceEndTurnCommand = new RelayCommand<object>(_ => ExecuteForceEndTurn(), null, "ForceEndTurn");
+            CancelTargetSelectionCommand = new RelayCommand<object>(_ => ExecuteCancelTargetSelection(), null, "CancelTargetSelection");
         }
 
         private void InitializeBattle()
@@ -135,12 +139,12 @@ namespace SketchBlade.ViewModels
         {
             _battleState.UsableItems.Clear();
             
-            //    null  
-            var consumableItems = _gameState.Inventory.Items
+            // Загружаем только предметы из панели быстрого доступа
+            var quickItems = _gameState.Inventory.QuickItems
                 .Where(item => item != null && item.Type == ItemType.Consumable)
                 .ToList();
 
-            foreach (var item in consumableItems)
+            foreach (var item in quickItems)
             {
                 _battleState.UsableItems.Add(item);
             }
@@ -151,8 +155,8 @@ namespace SketchBlade.ViewModels
             try
             {
                 _navigateAction(screen ?? "WorldMapView");
-                var saveManager = new GameSaveManager();
-                saveManager.SaveGame(_gameState);
+                // Сохраняем игру после победы
+                OptimizedSaveSystem.SaveGame(_gameState);
             }
             catch (Exception ex)
             {
@@ -189,7 +193,7 @@ namespace SketchBlade.ViewModels
             LoggingService.LogDebug($"ExecuteAttack: Запускаем анимацию атаки игрока -> {target.Name}, урон: {damage}");
             _animations.StartAttackAnimation(player, target, damage, isCritical);
             _battleLogic.ApplyDamage(target, damage);
-
+            
             string attackMessage = isCritical 
                 ? $"Критический удар! Игрок нанёс {damage} урона {target.Name}"
                 : $"Игрок атаковал {target.Name} и нанёс {damage} урона";
@@ -255,30 +259,148 @@ namespace SketchBlade.ViewModels
         {
             if (item == null || _animations.IsAnimating) return;
 
-            var player = _battleState.PlayerCharacter;
-
-            switch (item.Name)
+            // Проверяем кулдаун
+            var timeSinceLastUse = DateTime.Now - _lastItemUseTime;
+            if (timeSinceLastUse.TotalMilliseconds < ITEM_USE_COOLDOWN_MS)
             {
-                case "Healing Potion":
-                    _battleLogic.UseHealingPotion(player, 30);
-                    _battleState.AddToBattleLog("Использовано зелье лечения");
-                    break;
-                case "Rage Potion":
-                    _battleLogic.ApplyRagePotion(player, 10, 3);
-                    _battleState.AddToBattleLog("Использовано зелье ярости");
-                    break;
-                case "Bomb":
-                    int bombDamage = _battleLogic.CalculateBombDamage();
-                    foreach (var enemy in _battleState.Enemies.Where(e => !e.IsDefeated))
-                    {
-                        _battleLogic.ApplyDamage(enemy, bombDamage);
-                    }
-                    _battleState.AddToBattleLog($"Выпущена бомба, нанесён урон {bombDamage} всем врагам");
-                    break;
+                _battleState.AddToBattleLog("Подождите перед использованием следующего предмета");
+                return;
             }
 
-            _gameState.Inventory.RemoveItem(item, 1);
-            LoadUsableItems();
+            var player = _battleState.PlayerCharacter;
+
+            // Устанавливаем время последнего использования предмета
+            _lastItemUseTime = DateTime.Now;
+
+            // Запускаем анимацию использования предмета
+            _animations.StartItemUseAnimation(item.Name);
+
+            // Нормализуем название предмета для сравнения
+            string itemName = item.Name.ToLower();
+            bool itemUsedSuccessfully = false;
+
+            if (itemName.Contains("healing") || itemName.Contains("зелье лечения"))
+            {
+                int healAmount = 30;
+                int actualHeal = Math.Min(healAmount, player.MaxHealth - player.CurrentHealth);
+                _battleLogic.UseHealingPotion(player, healAmount);
+                _battleState.AddToBattleLog($"Использовано зелье лечения (+{actualHeal} HP)");
+                itemUsedSuccessfully = true;
+            }
+            else if (itemName.Contains("rage") || itemName.Contains("зелье ярости"))
+            {
+                _battleLogic.ApplyRagePotion(player, 10, 3);
+                _battleState.AddToBattleLog("Использовано зелье ярости (+10 атака на 3 хода)");
+                itemUsedSuccessfully = true;
+            }
+            else if (itemName.Contains("invulnerability") || itemName.Contains("зелье неуязвимости"))
+            {
+                // Логика для зелья неуязвимости
+                _battleState.AddToBattleLog("Использовано зелье неуязвимости (защита на 2 хода)");
+                itemUsedSuccessfully = true;
+            }
+            else if (itemName.Contains("bomb") || itemName.Contains("бомба"))
+            {
+                int bombDamage = _battleLogic.CalculateBombDamage();
+                int enemiesHit = 0;
+                foreach (var enemy in _battleState.Enemies.Where(e => !e.IsDefeated))
+                {
+                    _battleLogic.ApplyDamage(enemy, bombDamage);
+                    enemiesHit++;
+                }
+                _battleState.AddToBattleLog($"Бомба нанесла {bombDamage} урона {enemiesHit} врагам");
+                itemUsedSuccessfully = true;
+            }
+            else if (itemName.Contains("pillow") || itemName.Contains("подушка"))
+            {
+                // Логика для подушки - включаем режим выбора цели
+                var aliveEnemies = _battleState.Enemies.Where(e => !e.IsDefeated).ToList();
+                if (aliveEnemies.Count > 0)
+                {
+                    if (aliveEnemies.Count == 1)
+                    {
+                        // Если враг один, применяем эффект сразу
+                        var target = aliveEnemies[0];
+                        target.ApplyBuff(BuffType.Stun, 100, 3); // 3 хода оглушения
+                        _battleState.AddToBattleLog($"Подушка попала в {target.Name} и оглушила его!");
+                        itemUsedSuccessfully = true;
+                    }
+                    else
+                    {
+                        // Если врагов несколько, включаем режим выбора цели
+                        _battleState.IsTargetSelectionMode = true;
+                        _battleState.PendingTargetItem = item;
+                        _battleState.TargetSelectionMessage = "Выберите цель для подушки (левой кнопкой мыши)";
+                        _battleState.AddToBattleLog("Выберите цель для подушки...");
+                        return; // Выходим без удаления предмета
+                    }
+                }
+                else
+                {
+                    _battleState.AddToBattleLog("Подушка пролетела мимо - нет живых врагов!");
+                }
+            }
+            else if (itemName.Contains("shuriken") || itemName.Contains("сюрикен"))
+            {
+                // Логика для сюрикена - включаем режим выбора цели
+                var aliveEnemies = _battleState.Enemies.Where(e => !e.IsDefeated).ToList();
+                if (aliveEnemies.Count > 0)
+                {
+                    if (aliveEnemies.Count == 1)
+                    {
+                        // Если враг один, применяем эффект сразу
+                        var target = aliveEnemies[0];
+                        var targets = new List<Character> { target };
+                        bool success = item.UseInCombat(player, targets);
+                        if (success)
+                        {
+                            _battleState.AddToBattleLog($"Отравленный сюрикен нанёс {item.Damage} урона {target.Name} и отравил его на 3 хода!");
+                            itemUsedSuccessfully = true;
+                        }
+                    }
+                    else
+                    {
+                        // Если врагов несколько, включаем режим выбора цели
+                        _battleState.IsTargetSelectionMode = true;
+                        _battleState.PendingTargetItem = item;
+                        _battleState.TargetSelectionMessage = "Выберите цель для сюрикена (левой кнопкой мыши)";
+                        _battleState.AddToBattleLog("Выберите цель для сюрикена...");
+                        return; // Выходим без удаления предмета
+                    }
+                }
+                else
+                {
+                    _battleState.AddToBattleLog("Сюрикен пролетел мимо - нет живых врагов!");
+                }
+            }
+            else
+            {
+                // Обработка неизвестного предмета
+                _battleState.AddToBattleLog($"Использован предмет: {item.Name}");
+                itemUsedSuccessfully = true;
+            }
+
+            // Удаляем предмет из быстрых слотов только если он был успешно использован
+            if (itemUsedSuccessfully)
+            {
+                for (int i = 0; i < _gameState.Inventory.QuickItems.Count; i++)
+                {
+                    if (_gameState.Inventory.QuickItems[i] == item)
+                    {
+                        if (item.StackSize > 1)
+                        {
+                            item.StackSize--;
+                        }
+                        else
+                        {
+                            _gameState.Inventory.QuickItems[i] = null;
+                        }
+                        break;
+                    }
+                }
+                
+                LoadUsableItems();
+            }
 
             // Обновляем UI характеристик после использования предмета
             OnPropertyChanged(nameof(PlayerCharacter));
@@ -287,38 +409,26 @@ namespace SketchBlade.ViewModels
             OnPropertyChanged(nameof(PlayerDefense));
             RefreshEnemiesUI();
 
-            _battleState.IsPlayerTurn = false;
+            // ВАЖНО: Ход НЕ заканчивается при использовании предмета!
+            // Игрок может продолжать использовать предметы или атаковать
+            // _battleState.IsPlayerTurn остается true
             
-            // Устанавливаем флаг ожидания хода врага
-            _waitingForEnemyTurn = true;
-            LoggingService.LogDebug("ExecuteUseItem: Ожидаем хода врага после использования предмета");
+            LoggingService.LogDebug("ExecuteUseItem: Предмет использован, ход игрока продолжается");
             
-            // Запускаем таймер безопасности
-            StartSafetyTimer();
-            
-            // Запускаем ход врага после небольшой задержки (без анимации для предметов)
-            System.Threading.Tasks.Task.Delay(500).ContinueWith(_ => 
-            {
-                System.Windows.Application.Current.Dispatcher.Invoke(() => 
-                {
-                    if (!_battleState.IsBattleOver)
-                    {
-                        _waitingForEnemyTurn = false;
-                        // Останавливаем таймер безопасности, так как переходим к ходу врага
-                        _safetyTimer?.Dispose();
-                        _safetyTimer = null;
-                        ExecuteEnemyTurn();
-                    }
-                });
-            });
+            // Анимация завершится автоматически через таймер в BattleAnimations
         }
 
         private bool CanUseItem(Item item)
         {
+            // Проверяем кулдаун использования предметов
+            var timeSinceLastUse = DateTime.Now - _lastItemUseTime;
+            bool cooldownReady = timeSinceLastUse.TotalMilliseconds >= ITEM_USE_COOLDOWN_MS;
+            
             return _battleState.IsPlayerTurn && 
                    !_battleState.IsBattleOver && 
                    !_animations.IsAnimating && 
-                   item != null;
+                   item != null &&
+                   cooldownReady;
         }
 
         private void ExecuteEnemyTurn()
@@ -326,6 +436,13 @@ namespace SketchBlade.ViewModels
             LoggingService.LogDebug("=== ExecuteEnemyTurn START ===");
             LoggingService.LogDebug($"Current animation state - IsPlayerAttacking: {_animations.IsPlayerAttacking}, IsEnemyAttacking: {_animations.IsEnemyAttacking}");
             LoggingService.LogDebug($"IsAnimating: {_animations.IsAnimating}");
+            
+            // Обновляем временные эффекты в начале хода врага
+            _battleState.PlayerCharacter.UpdateTemporaryBonuses();
+            foreach (var enemy in _battleState.Enemies.Where(e => !e.IsDefeated))
+            {
+                enemy.UpdateTemporaryBonuses();
+            }
             
             var activeEnemy = _battleLogic.GetNextActiveEnemy(_battleState);
             if (activeEnemy == null)
@@ -338,6 +455,20 @@ namespace SketchBlade.ViewModels
             LoggingService.LogDebug($"ExecuteEnemyTurn: {activeEnemy.Name} атакует игрока");
 
             var player = _battleState.PlayerCharacter;
+            
+            // Проверяем, оглушен ли враг
+            if (activeEnemy.IsStunned)
+            {
+                _battleState.AddToBattleLog($"{activeEnemy.Name} оглушен и пропускает ход!");
+                LoggingService.LogDebug($"ExecuteEnemyTurn: {activeEnemy.Name} оглушен, пропускает ход");
+                
+                // Возвращаем ход игроку без анимации
+                _battleState.IsPlayerTurn = true;
+                OnPropertyChanged(nameof(IsPlayerTurn));
+                OnPropertyChanged(nameof(CanAttack));
+                return;
+            }
+            
             bool useSpecialAbility = _battleLogic.ShouldEnemyUseSpecialAbility(activeEnemy);
             int damage;
             string attackMessage;
@@ -402,15 +533,93 @@ namespace SketchBlade.ViewModels
 
         private void ExecuteClickEnemy(Character enemy)
         {
-            if (CanClickEnemy(enemy))
+            if (!CanClickEnemy(enemy)) return;
+
+            // Если активен режим выбора цели для предмета
+            if (_battleState.IsTargetSelectionMode && _battleState.PendingTargetItem != null)
             {
-                _battleState.SelectedEnemy = enemy;
-                ExecuteAttack();
+                ApplyTargetedItemEffect(_battleState.PendingTargetItem, enemy);
+                
+                // Выходим из режима выбора цели
+                _battleState.IsTargetSelectionMode = false;
+                _battleState.PendingTargetItem = null;
+                _battleState.TargetSelectionMessage = "";
+                
+                return;
             }
+
+            // Обычная логика атаки
+            _battleState.SelectedEnemy = enemy;
+            ExecuteAttack();
+        }
+
+        private void ApplyTargetedItemEffect(Item item, Character target)
+        {
+            if (item == null || target == null || target.IsDefeated) return;
+
+            var player = _battleState.PlayerCharacter;
+            string itemName = item.Name.ToLower();
+            bool itemUsedSuccessfully = false;
+
+            // Запускаем анимацию использования предмета
+            _animations.StartItemUseAnimation(item.Name);
+
+            if (itemName.Contains("pillow") || itemName.Contains("подушка"))
+            {
+                target.ApplyBuff(BuffType.Stun, 100, 3); // 3 хода оглушения
+                _battleState.AddToBattleLog($"Подушка попала в {target.Name} и оглушила его!");
+                itemUsedSuccessfully = true;
+            }
+            else if (itemName.Contains("shuriken") || itemName.Contains("сюрикен"))
+            {
+                var targets = new List<Character> { target };
+                bool success = item.UseInCombat(player, targets);
+                if (success)
+                {
+                    _battleState.AddToBattleLog($"Отравленный сюрикен нанёс {item.Damage} урона {target.Name} и отравил его на 3 хода!");
+                    itemUsedSuccessfully = true;
+                }
+            }
+
+            // Удаляем предмет из быстрых слотов только если он был успешно использован
+            if (itemUsedSuccessfully)
+            {
+                for (int i = 0; i < _gameState.Inventory.QuickItems.Count; i++)
+                {
+                    if (_gameState.Inventory.QuickItems[i] == item)
+                    {
+                        if (item.StackSize > 1)
+                        {
+                            item.StackSize--;
+                        }
+                        else
+                        {
+                            _gameState.Inventory.QuickItems[i] = null;
+                        }
+                        break;
+                    }
+                }
+                
+                LoadUsableItems();
+            }
+
+            // Обновляем UI характеристик после использования предмета
+            OnPropertyChanged(nameof(PlayerCharacter));
+            OnPropertyChanged(nameof(PlayerHealth));
+            OnPropertyChanged(nameof(PlayerDamage));
+            OnPropertyChanged(nameof(PlayerDefense));
+            RefreshEnemiesUI();
         }
 
         private bool CanClickEnemy(Character enemy)
         {
+            // В режиме выбора цели разрешаем клики по живым врагам
+            if (_battleState.IsTargetSelectionMode)
+            {
+                return enemy != null && !enemy.IsDefeated;
+            }
+
+            // Обычная логика для атаки
             return _battleState.IsPlayerTurn && 
                    !_battleState.IsBattleOver && 
                    !_animations.IsAnimating && 
@@ -420,7 +629,7 @@ namespace SketchBlade.ViewModels
 
         private void ExecuteEndBattle()
         {
-            LoggingService.LogInfo("=== ExecuteEndBattle: ������ '���������' ������ ===");
+            LoggingService.LogInfo("=== ExecuteEndBattle: ������ ''  ===");
             
             if (_battleState.IsBattleOver)
             {
@@ -467,40 +676,27 @@ namespace SketchBlade.ViewModels
                 _battleState.BattleResultMessage = "Победа!";
                 _battleState.AddToBattleLog("Победа!");
                 
-                LoggingService.LogInfo($"EndBattle: IsBossHeroBattle = {_battleState.IsBossHeroBattle}");
-                
-                // �����: �������� ����� ��� ������������ ��� ������
-                if (_battleState.IsBossHeroBattle && _gameState.CurrentLocation != null)
-                {
-                    _gameState.CurrentLocation.HeroDefeated = true;
-                    _gameState.CurrentLocation.IsCompleted = true;
-                    LoggingService.LogInfo($"Hero {_gameState.CurrentLocation.Hero?.Name} marked as defeated in {_gameState.CurrentLocation.Name}");
-                    
-                    // ������������ ��������� ������� ��������
-                    UnlockNextLocation();
-                }
-                
-                LoggingService.LogInfo("EndBattle: ���������� �������...");
+                LoggingService.LogInfo("EndBattle:  ...");
                 var rewards = _battleLogic.GenerateBattleRewards(
                     _gameState, 
                     _battleState.IsBossHeroBattle);
                 
-                LoggingService.LogInfo($"EndBattle: ������������� {rewards?.Count ?? 0} ������");
+                LoggingService.LogInfo($"EndBattle:  {rewards?.Count ?? 0} ");
                 
                 if (rewards != null && rewards.Count > 0)
                 {
                     foreach (var reward in rewards)
                     {
-                        LoggingService.LogInfo($"EndBattle: �������: {reward.Name}");
+                        LoggingService.LogInfo($"EndBattle: : {reward.Name}");
                     }
                 }
                 else
                 {
-                    LoggingService.LogWarning("EndBattle: ������� �� ������������� ��� ������ ����");
+                    LoggingService.LogWarning("EndBattle:      ");
                 }
                 
                 _gameState.BattleRewardItems = rewards;
-                LoggingService.LogInfo($"EndBattle: BattleRewardItems ����������, ����������: {_gameState.BattleRewardItems?.Count ?? 0}");
+                LoggingService.LogInfo($"EndBattle: BattleRewardItems , : {_gameState.BattleRewardItems?.Count ?? 0}");
                 
                 // Отладочная информация о путях к изображениям
                 if (rewards != null && rewards.Count > 0)
@@ -519,6 +715,7 @@ namespace SketchBlade.ViewModels
             {
                 _battleState.BattleResultMessage = "Поражение...";
                 _battleState.AddToBattleLog("Поражение...");
+                
                 LoggingService.LogInfo("EndBattle: ,   ");
             }
             
@@ -606,6 +803,15 @@ namespace SketchBlade.ViewModels
                 case nameof(BattleState.BattleLog):
                     OnPropertyChanged(nameof(BattleLog));
                     break;
+                case nameof(BattleState.IsTargetSelectionMode):
+                    OnPropertyChanged(nameof(IsTargetSelectionMode));
+                    break;
+                case nameof(BattleState.PendingTargetItem):
+                    OnPropertyChanged(nameof(PendingTargetItem));
+                    break;
+                case nameof(BattleState.TargetSelectionMessage):
+                    OnPropertyChanged(nameof(TargetSelectionMessage));
+                    break;
             }
         }
 
@@ -627,6 +833,18 @@ namespace SketchBlade.ViewModels
                 case nameof(BattleAnimations.IsEnemyAttacking):
                     LoggingService.LogDebug($"OnAnimationsChanged: IsEnemyAttacking = {_animations.IsEnemyAttacking}");
                     OnPropertyChanged(nameof(IsEnemyAttacking));
+                    break;
+                case nameof(BattleAnimations.IsUsingItem):
+                    LoggingService.LogDebug($"OnAnimationsChanged: IsUsingItem = {_animations.IsUsingItem}");
+                    OnPropertyChanged(nameof(IsUsingItem));
+                    break;
+                case nameof(BattleAnimations.CurrentItemAnimationType):
+                    LoggingService.LogDebug($"OnAnimationsChanged: CurrentItemAnimationType = {_animations.CurrentItemAnimationType}");
+                    OnPropertyChanged(nameof(CurrentItemAnimationType));
+                    break;
+                case nameof(BattleAnimations.CurrentItemName):
+                    LoggingService.LogDebug($"OnAnimationsChanged: CurrentItemName = {_animations.CurrentItemName}");
+                    OnPropertyChanged(nameof(CurrentItemName));
                     break;
                 case nameof(BattleAnimations.AnimationDamage):
                 case nameof(BattleAnimations.IsCriticalHit):
@@ -654,6 +872,9 @@ namespace SketchBlade.ViewModels
             OnPropertyChanged(nameof(CanAttack));
             OnPropertyChanged(nameof(IsPlayerAttacking));
             OnPropertyChanged(nameof(IsEnemyAttacking));
+            OnPropertyChanged(nameof(IsUsingItem));
+            OnPropertyChanged(nameof(CurrentItemAnimationType));
+            OnPropertyChanged(nameof(CurrentItemName));
             
             // Обновляем UI характеристик после завершения анимации
             OnPropertyChanged(nameof(PlayerCharacter));
@@ -698,9 +919,24 @@ namespace SketchBlade.ViewModels
             else if (!_battleState.IsPlayerTurn)
             {
                 LoggingService.LogDebug("OnAnimationCompleted: Возвращаем ход игроку");
+                
+                // Обновляем временные эффекты в начале хода игрока
+                _battleState.PlayerCharacter.UpdateTemporaryBonuses();
+                foreach (var enemy in _battleState.Enemies.Where(e => !e.IsDefeated))
+                {
+                    enemy.UpdateTemporaryBonuses();
+                }
+                
                 _battleState.IsPlayerTurn = true;
                 OnPropertyChanged(nameof(IsPlayerTurn));
                 OnPropertyChanged(nameof(CanAttack));
+                
+                // Обновляем UI после обработки эффектов
+                OnPropertyChanged(nameof(PlayerCharacter));
+                OnPropertyChanged(nameof(PlayerHealth));
+                OnPropertyChanged(nameof(PlayerDamage));
+                OnPropertyChanged(nameof(PlayerDefense));
+                RefreshEnemiesUI();
             }
             else
             {
@@ -742,10 +978,18 @@ namespace SketchBlade.ViewModels
         public bool ShowEnemySelection => _battleState.ShowEnemySelection;
         public bool IsPlayerAttacking => _animations.IsPlayerAttacking;
         public bool IsEnemyAttacking => _animations.IsEnemyAttacking;
+        public bool IsUsingItem => _animations.IsUsingItem;
+        public ItemAnimationType CurrentItemAnimationType => _animations.CurrentItemAnimationType;
+        public string CurrentItemName => _animations.CurrentItemName;
         public int AnimationDamage => _animations.AnimationDamage;
         public bool IsCriticalHit => _animations.IsCriticalHit;
         public Character AttackingCharacter => _animations.AttackingCharacter;
         public Character TargetCharacter => _animations.TargetCharacter;
+
+        // Новые свойства для режима выбора цели
+        public bool IsTargetSelectionMode => _battleState.IsTargetSelectionMode;
+        public Item PendingTargetItem => _battleState.PendingTargetItem;
+        public string TargetSelectionMessage => _battleState.TargetSelectionMessage;
 
         // Свойства для отображения характеристик игрока в UI
         public string PlayerHealth => $"{PlayerCharacter?.CurrentHealth ?? 0}/{PlayerCharacter?.MaxHealth ?? 0}";
@@ -855,6 +1099,17 @@ namespace SketchBlade.ViewModels
             
             // Уведомляем об изменении коллекции противников
             OnPropertyChanged(nameof(Enemies));
+        }
+
+        private void ExecuteCancelTargetSelection()
+        {
+            if (_battleState.IsTargetSelectionMode)
+            {
+                _battleState.IsTargetSelectionMode = false;
+                _battleState.PendingTargetItem = null;
+                _battleState.TargetSelectionMessage = "";
+                _battleState.AddToBattleLog("Выбор цели отменен");
+            }
         }
     }
 } 

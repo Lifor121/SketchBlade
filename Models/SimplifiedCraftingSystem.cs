@@ -91,31 +91,149 @@ namespace SketchBlade.Models
                         { "Дерево", 2 } 
                     }, 4);
 
+                // Деревянная броня
                 AddValidatedRecipe("Wooden Helmet", ItemFactory.CreateWoodenArmor(ItemSlotType.Head),
                     new Dictionary<string, int> { 
                         { "Дерево", 5 } 
                     });
 
+                AddValidatedRecipe("Wooden Chestplate", ItemFactory.CreateWoodenArmor(ItemSlotType.Chest),
+                    new Dictionary<string, int> { 
+                        { "Дерево", 8 } 
+                    });
+
+                AddValidatedRecipe("Wooden Leggings", ItemFactory.CreateWoodenArmor(ItemSlotType.Legs),
+                    new Dictionary<string, int> { 
+                        { "Дерево", 7 } 
+                    });
+
+                // Железная броня
                 AddValidatedRecipe("Iron Helmet", ItemFactory.CreateIronArmor(ItemSlotType.Head),
                     new Dictionary<string, int> { 
                         { "Железный слиток", 5 } 
                     });
 
+                AddValidatedRecipe("Iron Chestplate", ItemFactory.CreateIronArmor(ItemSlotType.Chest),
+                    new Dictionary<string, int> { 
+                        { "Железный слиток", 8 } 
+                    });
+
+                AddValidatedRecipe("Iron Leggings", ItemFactory.CreateIronArmor(ItemSlotType.Legs),
+                    new Dictionary<string, int> { 
+                        { "Железный слиток", 7 } 
+                    });
+
+                // Золотая броня
+                AddValidatedRecipe("Gold Helmet", ItemFactory.CreateGoldArmor(ItemSlotType.Head),
+                    new Dictionary<string, int> { 
+                        { "Золотой слиток", 5 } 
+                    });
+
+                AddValidatedRecipe("Gold Chestplate", ItemFactory.CreateGoldArmor(ItemSlotType.Chest),
+                    new Dictionary<string, int> { 
+                        { "Золотой слиток", 8 } 
+                    });
+
+                AddValidatedRecipe("Gold Leggings", ItemFactory.CreateGoldArmor(ItemSlotType.Legs),
+                    new Dictionary<string, int> { 
+                        { "Золотой слиток", 7 } 
+                    });
+
+                // Люминитовая броня
+                AddValidatedRecipe("Luminite Helmet", ItemFactory.CreateLuminiteArmor(ItemSlotType.Head),
+                    new Dictionary<string, int> { 
+                        { "Люминит", 3 }, 
+                        { "Фрагмент люминита", 2 } 
+                    });
+
+                AddValidatedRecipe("Luminite Chestplate", ItemFactory.CreateLuminiteArmor(ItemSlotType.Chest),
+                    new Dictionary<string, int> { 
+                        { "Люминит", 5 }, 
+                        { "Фрагмент люминита", 3 } 
+                    });
+
+                AddValidatedRecipe("Luminite Leggings", ItemFactory.CreateLuminiteArmor(ItemSlotType.Legs),
+                    new Dictionary<string, int> { 
+                        { "Люминит", 4 }, 
+                        { "Фрагмент люминита", 2 } 
+                    });
+
+                // Щиты
                 AddValidatedRecipe("Iron Shield", ItemFactory.CreateIronShield(),
                     new Dictionary<string, int> { 
                         { "Железный слиток", 6 }, 
                         { "Дерево", 2 } 
                     });
 
+                AddValidatedRecipe("Gold Shield", ItemFactory.CreateGoldShield(),
+                    new Dictionary<string, int> { 
+                        { "Золотой слиток", 6 }, 
+                        { "Дерево", 2 } 
+                    });
+
+                AddValidatedRecipe("Luminite Shield", ItemFactory.CreateLuminiteShield(),
+                    new Dictionary<string, int> { 
+                        { "Люминит", 4 }, 
+                        { "Фрагмент люминита", 2 }, 
+                        { "Дерево", 1 } 
+                    });
+
+                // Зелья и расходники
                 AddValidatedRecipe("Healing Potion", ItemFactory.CreateHealingPotion(),
                     new Dictionary<string, int> { 
                         { "Трава", 2 }, 
                         { "Фляга", 1 } 
                     });
 
+                AddValidatedRecipe("Rage Potion", ItemFactory.CreateRagePotion(),
+                    new Dictionary<string, int> { 
+                        { "Трава", 3 }, 
+                        { "Фляга", 1 }, 
+                        { "Кристаллическая пыль", 1 } 
+                    });
+
+                AddValidatedRecipe("Invulnerability Potion", ItemFactory.CreateInvulnerabilityPotion(),
+                    new Dictionary<string, int> { 
+                        { "Трава", 4 }, 
+                        { "Фляга", 1 }, 
+                        { "Фрагмент люминита", 1 }, 
+                        { "Кристаллическая пыль", 2 } 
+                    });
+
+                AddValidatedRecipe("Pillow", ItemFactory.CreatePillow(),
+                    new Dictionary<string, int> { 
+                        { "Ткань", 3 }, 
+                        { "Перо", 5 } 
+                    });
+
+                AddValidatedRecipe("Poisoned Shuriken", ItemFactory.CreatePoisonedShuriken(),
+                    new Dictionary<string, int> { 
+                        { "Железный слиток", 1 }, 
+                        { "Экстракт яда", 1 } 
+                    }, 3);
+
+                AddValidatedRecipe("Bomb", ItemFactory.CreateBomb(),
+                    new Dictionary<string, int> { 
+                        { "Порох", 2 }, 
+                        { "Железный слиток", 1 }, 
+                        { "Ткань", 1 } 
+                    });
+
+                // Материалы
                 AddValidatedRecipe("Iron Ingot", ItemFactory.CreateIronIngot(),
                     new Dictionary<string, int> { 
                         { "Железная руда", 1 } 
+                    });
+
+                AddValidatedRecipe("Gold Ingot", ItemFactory.CreateGoldIngot(),
+                    new Dictionary<string, int> { 
+                        { "Золотая руда", 1 } 
+                    });
+
+                AddValidatedRecipe("Luminite", ItemFactory.CreateLuminite(),
+                    new Dictionary<string, int> { 
+                        { "Фрагмент люминита", 4 }, 
+                        { "Кристаллическая пыль", 2 } 
                     });
 
                 LoggingService.LogInfo($"Инициализировано {_recipes.Count} рецептов крафта");

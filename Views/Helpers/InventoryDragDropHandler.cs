@@ -300,7 +300,7 @@ namespace SketchBlade.Views.Helpers
             return equipmentType switch
             {
                 "Helmet" => item.Type == ItemType.Helmet,
-                "Armor" => item.Type == ItemType.Chestplate,
+                "Chestplate" => item.Type == ItemType.Chestplate,
                 "Leggings" => item.Type == ItemType.Leggings,
                 "Weapon" => item.Type == ItemType.Weapon,
                 "Shield" => item.Type == ItemType.Shield,
@@ -313,7 +313,7 @@ namespace SketchBlade.Views.Helpers
             return equipmentType switch
             {
                 "Helmet" => 0,
-                "Armor" => 1,
+                "Chestplate" => 1,
                 "Leggings" => 2,
                 "Weapon" => 3,
                 "Shield" => 4,

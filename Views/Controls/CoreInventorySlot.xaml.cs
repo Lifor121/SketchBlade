@@ -60,6 +60,10 @@ namespace SketchBlade.Views.Controls
             DependencyProperty.Register("CanAcceptDrag", typeof(bool), typeof(CoreInventorySlot),
                 new PropertyMetadata(true));
 
+        public static readonly DependencyProperty IsCraftAvailableProperty =
+            DependencyProperty.Register("IsCraftAvailable", typeof(bool), typeof(CoreInventorySlot),
+                new PropertyMetadata(true, OnIsCraftAvailableChanged));
+
         private static readonly SolidColorBrush SlotNormalBrush = new SolidColorBrush(Color.FromRgb(221, 219, 216));
         private static readonly SolidColorBrush SlotHoverBrush = new SolidColorBrush(Color.FromRgb(200, 197, 194));
         private static readonly SolidColorBrush SlotSelectedBrush = new SolidColorBrush(Color.FromRgb(255, 204, 128));
@@ -160,6 +164,12 @@ namespace SketchBlade.Views.Controls
         }
 
         public bool IsEmpty => Item == null;
+
+        public bool IsCraftAvailable
+        {
+            get { return (bool)GetValue(IsCraftAvailableProperty); }
+            set { SetValue(IsCraftAvailableProperty, value); }
+        }
 
         public CoreInventorySlot()
         {
@@ -451,6 +461,14 @@ namespace SketchBlade.Views.Controls
             }
         }
 
+        private static void OnIsCraftAvailableChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is CoreInventorySlot slot)
+            {
+                slot.UpdateCraftAvailabilityVisuals();
+            }
+        }
+
         private void UpdateSlotVisuals()
         {
             try
@@ -504,6 +522,9 @@ namespace SketchBlade.Views.Controls
                     this.UpdateLayout();
                     this.InvalidateVisual();
                 }), DispatcherPriority.Render);
+                
+                // Обновляем визуалы доступности крафта
+                UpdateCraftAvailabilityVisuals();
             }
             catch (Exception ex)
             {
@@ -1673,7 +1694,18 @@ namespace SketchBlade.Views.Controls
                     }
                 }
 
-                _tooltip.SetItem(Item);
+                // Проверяем, находится ли слот в панели крафта
+                SimplifiedCraftingRecipe? recipe = GetCraftingRecipeFromContext();
+                if (recipe != null)
+                {
+                    // Показываем тултип с рецептом для предметов в панели крафта
+                    _tooltip.SetItemWithRecipe(Item, recipe);
+                }
+                else
+                {
+                    // Показываем обычный тултип для предметов в инвентаре
+                    _tooltip.SetItem(Item);
+                }
 
                 Point cursorPos = Mouse.GetPosition(parentWindow);
                 _tooltip.Margin = new Thickness(cursorPos.X + 15, cursorPos.Y + 15, 0, 0);
@@ -1685,6 +1717,54 @@ namespace SketchBlade.Views.Controls
             catch (Exception ex)
             {
                 MessageBox.Show($"Error showing tooltip: {ex.Message}");
+            }
+        }
+
+        private SimplifiedCraftingRecipe? GetCraftingRecipeFromContext()
+        {
+            try
+            {
+                // Проверяем, является ли SlotType типом крафта
+                if (SlotType == "CraftResult")
+                {
+                    // Ищем родительский CraftingPanel
+                    var craftingPanel = FindParentOfType<Recipes.CraftingPanel>(this);
+                    if (craftingPanel?.DataContext is SimplifiedCraftingViewModel craftingVM)
+                    {
+                        // Ищем рецепт по DataContext слота
+                        if (DataContext is SimplifiedCraftingRecipeViewModel recipeVM)
+                        {
+                            return recipeVM.Recipe;
+                        }
+                    }
+                }
+                
+                return null;
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogError($"Ошибка при получении рецепта из контекста: {ex.Message}", ex);
+                return null;
+            }
+        }
+
+        private T? FindParentOfType<T>(DependencyObject child) where T : DependencyObject
+        {
+            try
+            {
+                DependencyObject parentObject = VisualTreeHelper.GetParent(child);
+                
+                if (parentObject == null)
+                    return null;
+                
+                if (parentObject is T parent)
+                    return parent;
+                
+                return FindParentOfType<T>(parentObject);
+            }
+            catch (Exception ex)
+            {
+                return null;
             }
         }
 
@@ -2043,6 +2123,42 @@ namespace SketchBlade.Views.Controls
             {
                 MessageBox.Show($"Error in SetImageSourceSafely: {ex.Message}");
                 SafeSetVisibility(CoreItemImage, Visibility.Collapsed);
+            }
+        }
+
+        private void UpdateCraftAvailabilityVisuals()
+        {
+            try
+            {
+                // Показываем серый оверлей только для слотов крафта, когда предмет недоступен
+                if (SlotType == "CraftResult" && !IsCraftAvailable)
+                {
+                    SafeSetVisibility(UnavailableOverlay, Visibility.Visible);
+                    SafeSetOpacity(UnavailableOverlay, 0.7);
+                }
+                else
+                {
+                    SafeSetVisibility(UnavailableOverlay, Visibility.Collapsed);
+                    SafeSetOpacity(UnavailableOverlay, 0);
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogError($"Error in UpdateCraftAvailabilityVisuals: {ex.Message}", ex);
+            }
+        }
+
+        private void SafeSetOpacity(UIElement element, double opacity)
+        {
+            if (element == null) return;
+
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.Invoke(() => { element.Opacity = opacity; });
+            }
+            else
+            {
+                element.Opacity = opacity;
             }
         }
     }

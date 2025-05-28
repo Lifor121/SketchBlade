@@ -55,21 +55,11 @@
                                                    Item="{Binding Result}" 
                                                    SlotType="CraftResult" 
                                                    SlotIndex="0"
+                                                   IsCraftAvailable="{Binding CanCraft}"
                                                    Width="50" Height="50"
                                                    Margin="3"
                                                    Cursor="Hand"
-                                                   MouseDown="CraftableItem_MouseDown">
-                                        <!-- Добавляем визуальный индикатор возможности крафта -->
-                                        <controls:CoreInventorySlot.Style>
-                                            <Style TargetType="controls:CoreInventorySlot">
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding CanCraft}" Value="False">
-                                                        <Setter Property="Opacity" Value="0.6"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </controls:CoreInventorySlot.Style>
-                                    </controls:CoreInventorySlot>
+                                                   MouseDown="CraftableItem_MouseDown"/>
                                 </Grid>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>

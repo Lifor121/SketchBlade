@@ -50,6 +50,47 @@
                 </StackPanel>
             </StackPanel>
             
+            <!-- Recipe Section (only shown for crafting) -->
+            <StackPanel x:Name="RecipePanel" Visibility="Collapsed" Margin="0,4,0,0">
+                <Separator Background="#555555" Margin="0,0,0,4"/>
+                <TextBlock Text="Рецепт:" FontWeight="Bold" FontSize="12" Foreground="#FFD700" Margin="0,0,0,4"/>
+                
+                <!-- Materials Grid -->
+                <ItemsControl x:Name="RecipeMaterialsControl">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" MaxWidth="220"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="#3C3C3C" CornerRadius="3" Margin="2" Padding="3">
+                                <Grid>
+                                    <!-- Material Icon -->
+                                    <Border Width="24" Height="24" Background="#555555" CornerRadius="2">
+                                        <Image Source="{Binding Icon}" Stretch="Uniform" Margin="1"/>
+                                    </Border>
+                                    
+                                    <!-- Material Count Badge -->
+                                    <Border Background="#FFD700" CornerRadius="8" 
+                                           Width="16" Height="16" 
+                                           HorizontalAlignment="Right" 
+                                           VerticalAlignment="Bottom"
+                                           Margin="0,0,-2,-2">
+                                        <TextBlock Text="{Binding Required}" 
+                                                 Foreground="Black" 
+                                                 FontSize="9" 
+                                                 FontWeight="Bold"
+                                                 HorizontalAlignment="Center"
+                                                 VerticalAlignment="Center"/>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+            
             <!-- Description -->
             <TextBlock x:Name="ItemDescriptionText" Text="Описание предмета" 
                      Foreground="#BBBBBB" TextWrapping="Wrap" FontSize="11" Margin="0,2,0,0"/>

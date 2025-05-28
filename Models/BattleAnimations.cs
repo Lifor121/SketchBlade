@@ -7,6 +7,12 @@ using SketchBlade.Services;
 
 namespace SketchBlade.Models
 {
+    public enum ItemAnimationType
+    {
+        Drinking,  // Для зелий
+        Throwing   // Для подушек, сюрикенов, бомб
+    }
+
     public class BattleAnimations : INotifyPropertyChanged, IDisposable
     {
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -14,11 +20,15 @@ namespace SketchBlade.Models
         private bool _isAnimating = false;
         private bool _isPlayerAttacking = false;
         private bool _isEnemyAttacking = false;
+        private bool _isUsingItem = false;
         private Character? _attackingCharacter;
         private Character? _targetCharacter;
         private int _animationDamage = 0;
         private bool _isCriticalHit = false;
         private Timer? _animationTimer; // Таймер для анимации
+        private ItemAnimationType _currentItemAnimationType = ItemAnimationType.Drinking;
+        private string _currentItemName = "";
+        private int _animationDuration = 0;
 
         public event Action? AnimationCompleted;
 
@@ -50,6 +60,28 @@ namespace SketchBlade.Models
                 LoggingService.LogDebug($"BattleAnimations.IsEnemyAttacking: {_isEnemyAttacking} -> {value}");
                 SetProperty(ref _isEnemyAttacking, value);
             }
+        }
+
+        public bool IsUsingItem
+        {
+            get => _isUsingItem;
+            private set 
+            {
+                LoggingService.LogDebug($"BattleAnimations.IsUsingItem: {_isUsingItem} -> {value}");
+                SetProperty(ref _isUsingItem, value);
+            }
+        }
+
+        public ItemAnimationType CurrentItemAnimationType
+        {
+            get => _currentItemAnimationType;
+            private set => SetProperty(ref _currentItemAnimationType, value);
+        }
+
+        public string CurrentItemName
+        {
+            get => _currentItemName;
+            private set => SetProperty(ref _currentItemName, value);
         }
 
         public Character? AttackingCharacter
@@ -109,6 +141,7 @@ namespace SketchBlade.Models
             LoggingService.LogDebug($"Setting animation flags...");
             IsPlayerAttacking = attacker.IsPlayer;
             IsEnemyAttacking = !attacker.IsPlayer;
+            IsUsingItem = false;
             LoggingService.LogDebug($"After setting flags - IsPlayerAttacking: {IsPlayerAttacking}, IsEnemyAttacking: {IsEnemyAttacking}");
 
             IsAnimating = true;
@@ -128,10 +161,69 @@ namespace SketchBlade.Models
             LoggingService.LogDebug($"=== StartAttackAnimation END ===");
         }
 
+        public void StartItemUseAnimation(string itemName)
+        {
+            if (IsAnimating) return;
+
+            // Останавливаем предыдущий таймер, если он есть
+            _animationTimer?.Dispose();
+
+            IsPlayerAttacking = false;
+            IsEnemyAttacking = false;
+            IsUsingItem = true;
+            IsAnimating = true;
+            CurrentItemName = itemName;
+
+            // Определяем тип анимации на основе названия предмета
+            string normalizedName = itemName.ToLower();
+            
+            // Проверяем на зелья (питье)
+            if (normalizedName.Contains("зелье") || 
+                normalizedName.Contains("potion") || 
+                normalizedName.Contains("healing") ||
+                normalizedName.Contains("лечения") ||
+                normalizedName.Contains("ярости") ||
+                normalizedName.Contains("rage") ||
+                normalizedName.Contains("неуязвимости") ||
+                normalizedName.Contains("invulnerability"))
+            {
+                CurrentItemAnimationType = ItemAnimationType.Drinking;
+                _animationDuration = 800; // Дольше для питья
+            }
+            // Проверяем на метательные предметы
+            else if (normalizedName.Contains("бомба") || 
+                     normalizedName.Contains("bomb") ||
+                     normalizedName.Contains("подушка") ||
+                     normalizedName.Contains("pillow") ||
+                     normalizedName.Contains("сюрикен") ||
+                     normalizedName.Contains("shuriken"))
+            {
+                CurrentItemAnimationType = ItemAnimationType.Throwing;
+                _animationDuration = 600; // Быстрее для броска
+            }
+            else
+            {
+                // По умолчанию - питье
+                CurrentItemAnimationType = ItemAnimationType.Drinking;
+                _animationDuration = 800;
+            }
+
+            LoggingService.LogDebug($"StartItemUseAnimation: {itemName} -> {CurrentItemAnimationType}, duration: {_animationDuration}ms");
+
+            // Запускаем таймер завершения анимации
+            _animationTimer = new System.Threading.Timer(OnAnimationCompleted, null, _animationDuration, Timeout.Infinite);
+        }
+
+        private void OnAnimationCompleted(object? state)
+        {
+            LoggingService.LogDebug("OnAnimationCompleted: Завершаем анимацию");
+            CompleteAnimation();
+        }
+
         private void CompleteAnimation()
         {
             LoggingService.LogDebug("=== CompleteAnimation START ===");
-            LoggingService.LogDebug($"Current state - IsAnimating: {IsAnimating}, IsPlayerAttacking: {IsPlayerAttacking}, IsEnemyAttacking: {IsEnemyAttacking}");
+            LoggingService.LogDebug($"Current state - IsAnimating: {IsAnimating}, IsPlayerAttacking: {IsPlayerAttacking}, IsEnemyAttacking: {IsEnemyAttacking}, IsUsingItem: {IsUsingItem}");
             
             // Останавливаем таймер
             _animationTimer?.Dispose();
@@ -140,10 +232,13 @@ namespace SketchBlade.Models
             IsAnimating = false;
             IsPlayerAttacking = false;
             IsEnemyAttacking = false;
+            IsUsingItem = false;
             AttackingCharacter = null;
             TargetCharacter = null;
             AnimationDamage = 0;
             IsCriticalHit = false;
+            CurrentItemName = "";
+            CurrentItemAnimationType = ItemAnimationType.Drinking; // Сбрасываем тип анимации
 
             LoggingService.LogDebug("Вызываем событие AnimationCompleted");
             AnimationCompleted?.Invoke();

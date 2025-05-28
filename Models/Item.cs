@@ -437,18 +437,23 @@ namespace SketchBlade.Models
             switch (Name.ToLower())
             {
                 case "healing potion":
-                    int healAmount = EffectPower > 0 ? EffectPower : 20;
+                case "зелье лечения":
+                    int healAmount = EffectPower > 0 ? EffectPower : 30;
                     target.Health += healAmount;
                     if (target.Health > target.MaxHealth)
                         target.Health = target.MaxHealth;
                     break;
                     
                 case "rage potion":
-                    target.ApplyBuff(BuffType.Attack, EffectPower, 3);
+                case "зелье ярости":
+                    int attackBonus = EffectPower > 0 ? EffectPower : 10;
+                    target.ApplyBuff(BuffType.Attack, attackBonus, 3); // 3 хода
                     break;
                     
                 case "зелье неуязвимости":
-                    target.ApplyBuff(BuffType.Defense, 50, 3);
+                case "invulnerability potion":
+                    int defenseBonus = EffectPower > 0 ? EffectPower : 15;
+                    target.ApplyBuff(BuffType.Defense, defenseBonus, 3); // 3 хода
                     break;
                     
                 default:
@@ -468,21 +473,27 @@ namespace SketchBlade.Models
             switch (Name.ToLower())
             {
                 case "healing potion":
-                    int healAmount = EffectPower > 0 ? EffectPower : 20;
+                case "зелье лечения":
+                    int healAmount = EffectPower > 0 ? EffectPower : 30;
                     user.Health += healAmount;
                     if (user.Health > user.MaxHealth)
                         user.Health = user.MaxHealth;
                     break;
                     
                 case "rage potion":
-                    user.ApplyBuff(BuffType.Attack, EffectPower, 3);
+                case "зелье ярости":
+                    int attackBonus = EffectPower > 0 ? EffectPower : 10;
+                    user.ApplyBuff(BuffType.Attack, attackBonus, 3); // 3 хода
                     break;
                     
                 case "зелье неуязвимости":
-                    user.ApplyBuff(BuffType.Defense, 50, 3);
+                case "invulnerability potion":
+                    int defenseBonus = EffectPower > 0 ? EffectPower : 15;
+                    user.ApplyBuff(BuffType.Defense, defenseBonus, 3); // 3 хода
                     break;
                     
                 case "bomb":
+                case "бомба":
                     int damageAmount = Damage > 0 ? Damage : 45;
                     foreach (var target in targets)
                     {
@@ -491,23 +502,25 @@ namespace SketchBlade.Models
                     break;
                     
                 case "pillow":
-                    int stunTurns = EffectPower > 0 ? EffectPower : 2;
-                    
+                case "подушка":
                     if (targets.Count > 0)
                     {
                         var target = targets[new Random().Next(targets.Count)];
-                        target.ApplyBuff(BuffType.Stun, 100, stunTurns);
+                        target.ApplyBuff(BuffType.Stun, 100, 3); // 3 хода оглушения
                     }
                     break;
                     
                 case "poisoned shuriken":
-                    int initialDamage = Damage > 0 ? Damage : 15;
-                    int poisonDamage = EffectPower > 0 ? EffectPower : 5;
-                    
+                case "отравленный сюрикен":
                     if (targets.Count > 0)
                     {
                         var target = targets[new Random().Next(targets.Count)];
+                        // Небольшой урон при броске
+                        int initialDamage = Damage > 0 ? Damage : 8;
                         target.TakeDamage(initialDamage);
+                        
+                        // Отравление на 3 хода
+                        int poisonDamage = EffectPower > 0 ? EffectPower : 5;
                         target.ApplyBuff(BuffType.Poison, poisonDamage, 3);
                     }
                     break;
