@@ -342,6 +342,15 @@ namespace SketchBlade.Models
             }
         }
         
+        /// <summary>
+        /// Публичный метод для обновления спрайта персонажа.
+        /// Автоматически определяет правильный путь к изображению на основе типа персонажа.
+        /// </summary>
+        public void UpdateSprite()
+        {
+            LoadSprite();
+        }
+        
         public int GetTotalAttack()
         {
             int totalAttack = Attack + _temporaryAttackBonus;

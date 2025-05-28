@@ -51,9 +51,9 @@ namespace SketchBlade.Services
         private static readonly Lazy<CoreGameService> _instance = new(() => new CoreGameService());
         public static CoreGameService Instance => _instance.Value;
 
-        private static readonly string SaveFileName = "savegame.dat";
-        private static readonly string BackupSaveFileName = "savegame.backup.dat";
-        private static readonly string SettingsFileName = "settings.json";
+        private static readonly string SaveFileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Saves", "savegame.dat");
+        private static readonly string BackupSaveFileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Saves", "savegame.backup.dat");
+        private static readonly string SettingsFileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Saves", "settings.json");
 
         private Timer? _autoSaveTimer;
         private Action? _saveAction;
@@ -68,6 +68,13 @@ namespace SketchBlade.Services
 
         private CoreGameService()
         {
+            // Ensure the saves directory exists
+            var saveDirectory = Path.GetDirectoryName(SaveFileName);
+            if (!string.IsNullOrEmpty(saveDirectory) && !Directory.Exists(saveDirectory))
+            {
+                Directory.CreateDirectory(saveDirectory);
+            }
+            
             LoadSettings();
         }
 
@@ -114,9 +121,18 @@ namespace SketchBlade.Services
                 var json = File.ReadAllText(SaveFileName);
                 var saveData = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
 
-                GameLoaded?.Invoke(this, new GameLoadEventArgs { Success = true, LoadedData = saveData });
+                if (saveData == null)
+                {
+                    LoggingService.LogError("Failed to deserialize save data");
+                    return null;
+                }
+
+                // Десериализуем данные в объект GameData
+                var gameData = DeserializeGameData(saveData);
+
+                GameLoaded?.Invoke(this, new GameLoadEventArgs { Success = true, LoadedData = gameData });
                 
-                return saveData;
+                return gameData;
             }
             catch (Exception ex)
             {
@@ -297,7 +313,16 @@ namespace SketchBlade.Services
                     return null;
 
                 var json = File.ReadAllText(BackupSaveFileName);
-                return JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+                var saveData = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+                
+                if (saveData == null)
+                {
+                    LoggingService.LogError("Failed to deserialize backup save data");
+                    return null;
+                }
+
+                // Десериализуем данные в объект GameData
+                return DeserializeGameData(saveData);
             }
             catch (Exception ex)
             {
@@ -345,7 +370,10 @@ namespace SketchBlade.Services
                 ["Level"] = player.Level,
                 ["XP"] = player.XP,
                 ["Money"] = player.Money,
-                ["ImagePath"] = player.ImagePath ?? AssetPaths.Characters.PLAYER
+                ["IsPlayer"] = player.IsPlayer,
+                ["IsHero"] = player.IsHero,
+                ["Type"] = player.Type,
+                ["LocationType"] = (int)player.LocationType
             };
 
             if (player.EquippedItems != null)
@@ -430,15 +458,262 @@ namespace SketchBlade.Services
                 ["Value"] = item.Value,
                 ["Damage"] = item.Damage,
                 ["Defense"] = item.Defense,
-                ["SpritePath"] = item.SpritePath ?? "",
-                ["IsStackable"] = item.IsStackable,
                 ["StackSize"] = item.StackSize,
                 ["MaxStackSize"] = item.MaxStackSize,
-                ["EquipSlot"] = (int)item.EquipSlot,
                 ["EffectPower"] = item.EffectPower,
                 ["Material"] = (int)item.Material,
                 ["Weight"] = item.Weight
             };
+        }
+
+        private GameData DeserializeGameData(Dictionary<string, JsonElement> saveData)
+        {
+            var gameData = new GameData
+            {
+                Gold = saveData["Gold"].GetInt32(),
+                CurrentLocationIndex = saveData["CurrentLocationIndex"].GetInt32(),
+                CurrentScreen = saveData["CurrentScreen"].GetString() ?? "MainMenuView"
+            };
+
+            if (saveData.TryGetValue("Player", out var playerElement))
+            {
+                var playerDict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(playerElement.GetRawText());
+                if (playerDict != null)
+                {
+                    gameData.Player = DeserializePlayer(playerDict);
+                }
+            }
+
+            if (saveData.TryGetValue("Inventory", out var inventoryElement))
+            {
+                var inventoryDict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(inventoryElement.GetRawText());
+                if (inventoryDict != null)
+                {
+                    gameData.Inventory = DeserializeInventory(inventoryDict);
+                }
+            }
+
+            if (saveData.TryGetValue("Locations", out var locationsElement))
+            {
+                var locationsList = JsonSerializer.Deserialize<List<JsonElement>>(locationsElement.GetRawText());
+                if (locationsList != null)
+                {
+                    gameData.Locations = new ObservableCollection<Location>(DeserializeLocations(locationsList));
+                }
+            }
+
+            return gameData;
+        }
+
+        private Character DeserializePlayer(Dictionary<string, JsonElement> playerData)
+        {
+            var player = new Character
+            {
+                Name = playerData["Name"].GetString() ?? "Player",
+                MaxHealth = playerData["MaxHealth"].GetInt32(),
+                CurrentHealth = playerData["CurrentHealth"].GetInt32(),
+                Attack = playerData["Attack"].GetInt32(),
+                Defense = playerData["Defense"].GetInt32(),
+                Level = playerData["Level"].GetInt32(),
+                XP = playerData["XP"].GetInt32(),
+                Money = playerData["Money"].GetInt32(),
+                IsPlayer = playerData["IsPlayer"].GetBoolean(),
+                IsHero = playerData["IsHero"].GetBoolean(),
+                Type = playerData["Type"].GetString() ?? "Humanoid",
+                LocationType = (LocationType)playerData["LocationType"].GetInt32()
+            };
+
+            if (playerData.TryGetValue("EquippedItems", out var equippedItemsElement))
+            {
+                var equippedDict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(equippedItemsElement.GetRawText());
+                if (equippedDict != null)
+                {
+                    player.EquippedItems = DeserializeEquippedItems(equippedDict);
+                }
+            }
+
+            // Автоматически определяем путь к изображению на основе типа персонажа
+            player.UpdateSprite();
+
+            return player;
+        }
+
+        private Dictionary<EquipmentSlot, Item> DeserializeEquippedItems(Dictionary<string, JsonElement> equippedData)
+        {
+            var equipped = new Dictionary<EquipmentSlot, Item>();
+            foreach (var kvp in equippedData)
+            {
+                if (Enum.TryParse<EquipmentSlot>(kvp.Key, out var slot))
+                {
+                    var itemDict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(kvp.Value.GetRawText());
+                    if (itemDict != null)
+                    {
+                        var item = DeserializeItem(itemDict);
+                        if (item != null)
+                        {
+                            equipped[slot] = item;
+                        }
+                    }
+                }
+            }
+            return equipped;
+        }
+
+        private Inventory DeserializeInventory(Dictionary<string, JsonElement> inventoryData)
+        {
+            var inventory = new Inventory
+            {
+                Gold = inventoryData["Gold"].GetInt32()
+            };
+
+            if (inventoryData.TryGetValue("Items", out var itemsElement))
+            {
+                var itemsList = JsonSerializer.Deserialize<List<JsonElement>>(itemsElement.GetRawText());
+                if (itemsList != null)
+                {
+                    var items = DeserializeItemList(itemsList);
+                    // Очищаем и заполняем коллекцию
+                    inventory.Items.Clear();
+                    foreach (var item in items)
+                    {
+                        inventory.Items.Add(item);
+                    }
+                }
+            }
+
+            if (inventoryData.TryGetValue("QuickItems", out var quickItemsElement))
+            {
+                var quickItemsList = JsonSerializer.Deserialize<List<JsonElement>>(quickItemsElement.GetRawText());
+                if (quickItemsList != null)
+                {
+                    var quickItems = DeserializeItemList(quickItemsList);
+                    // Очищаем и заполняем коллекцию
+                    inventory.QuickItems.Clear();
+                    foreach (var item in quickItems)
+                    {
+                        inventory.QuickItems.Add(item);
+                    }
+                }
+            }
+
+            if (inventoryData.TryGetValue("CraftItems", out var craftItemsElement))
+            {
+                var craftItemsList = JsonSerializer.Deserialize<List<JsonElement>>(craftItemsElement.GetRawText());
+                if (craftItemsList != null)
+                {
+                    var craftItems = DeserializeItemList(craftItemsList);
+                    // Очищаем и заполняем коллекцию
+                    inventory.CraftItems.Clear();
+                    foreach (var item in craftItems)
+                    {
+                        inventory.CraftItems.Add(item);
+                    }
+                }
+            }
+
+            if (inventoryData.TryGetValue("TrashItem", out var trashItemElement))
+            {
+                var trashItemDict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(trashItemElement.GetRawText());
+                if (trashItemDict != null)
+                {
+                    inventory.TrashItem = DeserializeItem(trashItemDict);
+                }
+            }
+
+            return inventory;
+        }
+
+        private List<Item?> DeserializeItemList(List<JsonElement> itemElements)
+        {
+            var items = new List<Item?>();
+            foreach (var itemElement in itemElements)
+            {
+                if (itemElement.ValueKind == JsonValueKind.Null)
+                {
+                    items.Add(null);
+                }
+                else
+                {
+                    var itemDict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(itemElement.GetRawText());
+                    if (itemDict != null)
+                    {
+                        items.Add(DeserializeItem(itemDict));
+                    }
+                    else
+                    {
+                        items.Add(null);
+                    }
+                }
+            }
+            return items;
+        }
+
+        private List<Location> DeserializeLocations(IEnumerable<JsonElement> locationElements)
+        {
+            var locations = new List<Location>();
+            foreach (var locationElement in locationElements)
+            {
+                var locationDict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(locationElement.GetRawText());
+                if (locationDict != null)
+                {
+                    locations.Add(DeserializeLocation(locationDict));
+                }
+            }
+            return locations;
+        }
+
+        private Item? DeserializeItem(Dictionary<string, JsonElement> itemData)
+        {
+            if (itemData == null) return null;
+
+            var item = new Item
+            {
+                Name = itemData["Name"].GetString() ?? "",
+                Description = itemData["Description"].GetString() ?? "",
+                Type = (ItemType)itemData["Type"].GetInt32(),
+                Rarity = (ItemRarity)itemData["Rarity"].GetInt32(),
+                Value = itemData["Value"].GetInt32(),
+                Damage = itemData["Damage"].GetInt32(),
+                Defense = itemData["Defense"].GetInt32(),
+                StackSize = itemData["StackSize"].GetInt32(),
+                MaxStackSize = itemData["MaxStackSize"].GetInt32(),
+                EffectPower = itemData["EffectPower"].GetInt32(),
+                Material = (ItemMaterial)itemData["Material"].GetInt32(),
+                Weight = itemData["Weight"].GetSingle()
+            };
+
+            // Автоматически определяем путь к спрайту на основе типа и материала
+            item.UpdateSpritePath();
+
+            return item;
+        }
+
+        private Location DeserializeLocation(Dictionary<string, JsonElement> locationData)
+        {
+            var location = new Location
+            {
+                Name = locationData["Name"].GetString() ?? "",
+                Description = locationData["Description"].GetString() ?? "",
+                Type = (LocationType)locationData["Type"].GetInt32(),
+                IsCompleted = locationData["IsCompleted"].GetBoolean(),
+                IsUnlocked = locationData["IsUnlocked"].GetBoolean(),
+                IsAvailable = locationData["IsAvailable"].GetBoolean(),
+                HeroDefeated = locationData["HeroDefeated"].GetBoolean()
+            };
+
+            if (locationData.TryGetValue("Hero", out var heroElement))
+            {
+                var heroDict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(heroElement.GetRawText());
+                if (heroDict != null)
+                {
+                    location.Hero = DeserializePlayer(heroDict);
+                }
+            }
+
+            // Автоматически определяем путь к спрайту на основе типа локации
+            location.UpdateSpritePath();
+
+            return location;
         }
 
         #endregion

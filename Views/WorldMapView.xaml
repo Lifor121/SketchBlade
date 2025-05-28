@@ -15,7 +15,7 @@
         <converters:BoolToVisibilityConverter x:Key="CustomBoolToVisibilityConverter"/>
         <converters:StringToImageConverter x:Key="StringToImageConverter"/>
         <converters:TranslationConverter x:Key="TranslationConverter"/>
-        <BitmapImage x:Key="DefaultImage" UriSource="Assets/Images/def.png"/>
+        <BitmapImage x:Key="DefaultImage" UriSource="Resources/Assets/Images/def.png"/>
     </UserControl.Resources>
     
     <Grid>

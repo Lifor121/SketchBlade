@@ -326,6 +326,14 @@ namespace SketchBlade.Models
             SpritePath = path;
         }
 
+        /// <summary>
+        /// Автоматически определяет путь к спрайту локации на основе её типа
+        /// </summary>
+        public void UpdateSpritePath()
+        {
+            SpritePath = AssetPaths.Locations.GetLocationPath(Type.ToString().ToLower());
+        }
+
         public List<EnemyData> GetRandomEnemies()
         {
             Random random = new Random();

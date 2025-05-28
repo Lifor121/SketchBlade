@@ -75,6 +75,12 @@ namespace SketchBlade.Models
             
             Inventory = new Inventory();
             Settings = new GameSettings();
+            
+            // Уведомляем об изменении ключевых свойств
+            OnPropertyChanged(nameof(Player));
+            OnPropertyChanged(nameof(Inventory));
+            OnPropertyChanged(nameof(Locations));
+            OnPropertyChanged(nameof(CurrentLocation));
         }
 
         public GameData CreateSaveCopy()
@@ -109,6 +115,9 @@ namespace SketchBlade.Models
         {
             LoggingService.LogInfo("=== ИНИЦИАЛИЗАЦИЯ НОВОЙ ИГРЫ (GameData.Initialize) ===");
             
+            // Очищаем все данные перед инициализацией новой игры
+            Reset();
+            
             var gameInitializer = new Services.GameInitializer();
             gameInitializer.InitializeNewGame(this);
             
@@ -117,22 +126,67 @@ namespace SketchBlade.Models
 
         public void SaveGame()
         {
-            CoreGameService.Instance.SaveGame(this);
+            try
+            {
+                LoggingService.LogInfo("=== СОХРАНЕНИЕ ИГРЫ ===");
+                
+                // Используем новую оптимизированную систему сохранений
+                bool success = OptimizedSaveSystem.SaveGame(this);
+                
+                if (success)
+                {
+                    HasSaveGame = true;
+                    LoggingService.LogInfo("Игра успешно сохранена в оптимизированном формате");
+                }
+                else
+                {
+                    LoggingService.LogError("Не удалось сохранить игру");
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogError($"Ошибка при сохранении игры: {ex.Message}", ex);
+            }
         }
 
         public void LoadGame()
         {
-            var loadedData = CoreGameService.Instance.LoadGame() as GameData;
-            if (loadedData != null)
+            try
             {
-                CopyFrom(loadedData);
+                LoggingService.LogInfo("=== ЗАГРУЗКА ИГРЫ ===");
+                
+                // Загружаем из оптимизированного формата
+                var loadedData = OptimizedSaveSystem.LoadGame();
+                
+                if (loadedData != null)
+                {
+                    CopyFrom(loadedData);
+                    HasSaveGame = true;
+                    LoggingService.LogInfo("Игра успешно загружена из оптимизированного формата");
+                }
+                else
+                {
+                    LoggingService.LogError("Не удалось загрузить игру");
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogError($"Ошибка при загрузке игры: {ex.Message}", ex);
             }
         }
 
-        public bool CheckForSaveGame()
+        private void CheckForSaveGame()
         {
-            HasSaveGame = CoreGameService.Instance.HasSaveFile();
-            return HasSaveGame;
+            // Проверяем наличие оптимизированного сохранения
+            HasSaveGame = OptimizedSaveSystem.HasSaveFile();
+            if (HasSaveGame)
+            {
+                LoggingService.LogInfo("Найдено сохранение игры");
+            }
+            else
+            {
+                LoggingService.LogInfo("Сохранения игры не найдены");
+            }
         }
 
         public void StartBattleWithMobs(Location location)
@@ -167,6 +221,14 @@ namespace SketchBlade.Models
             {
                 Locations.Add(location);
             }
+            
+            // Уведомляем об изменении всех ключевых свойств после загрузки
+            OnPropertyChanged(nameof(Player));
+            OnPropertyChanged(nameof(Inventory));
+            OnPropertyChanged(nameof(CurrentLocation));
+            OnPropertyChanged(nameof(Locations));
+            OnPropertyChanged(nameof(Gold));
+            OnPropertyChanged(nameof(HasSaveGame));
         }
 
         protected virtual void SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)

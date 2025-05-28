@@ -470,12 +470,17 @@ namespace SketchBlade.Services
             if (Path.IsPathRooted(relativePath))
                 return relativePath;
 
-            if (relativePath.StartsWith("Assets/") || relativePath.StartsWith("Assets\\"))
+            if (relativePath.StartsWith("Resources/") || relativePath.StartsWith("Resources\\"))
             {
                 return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, relativePath);
             }
 
-            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Images", relativePath);
+            if (relativePath.StartsWith("Assets/") || relativePath.StartsWith("Assets\\"))
+            {
+                return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", relativePath);
+            }
+
+            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Assets", "Images", relativePath);
         }
 
         #endregion

@@ -11,7 +11,7 @@ using SketchBlade.Utilities;
 namespace SketchBlade;
 
 /// <summary>
-/// Логика взаимодействия для App.xaml
+/// пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ App.xaml
 /// </summary>
 public partial class App : Application
 {
@@ -19,10 +19,10 @@ public partial class App : Application
     {
         try
         {
-            // Устанавливаем уровень логирования на Debug для максимальной детализации
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ Debug пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             LoggingService.SetLogLevel(LoggingService.LogLevel.Debug);
             
-            // Устанавливаем обработчики исключений как можно раньше
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             Current.DispatcherUnhandledException += Current_DispatcherUnhandledException;
             
@@ -30,7 +30,7 @@ public partial class App : Application
             
             EnsureAssetsAvailable();
             
-            // Предзагружаем критические ресурсы
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             _ = ResourceService.Instance.PreloadCriticalResourcesAsync();
             
             PreloadAndFreezeImages();
@@ -59,7 +59,7 @@ public partial class App : Application
         }
         catch
         {
-            // Игнорируем ошибки логирования
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         }
     }
     
@@ -78,7 +78,7 @@ public partial class App : Application
         }
         catch
         {
-            // Игнорируем ошибки обработки исключений
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         }
     }
     
@@ -112,7 +112,7 @@ public partial class App : Application
                 }
             }
             
-            // Создаем пустое изображение для fallback
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ fallback
             try 
             {
                 var emptyImage = ResourceService.Instance.GetImage(AssetPaths.DEFAULT_IMAGE);
@@ -138,17 +138,23 @@ public partial class App : Application
         {
             string execDir = AppDomain.CurrentDomain.BaseDirectory;
             
-            // Проверяем наличие основных папок
+            // РџСЂРѕРІРµСЂСЏРµРј РЅР°Р»РёС‡РёРµ РѕСЃРЅРѕРІРЅС‹С… РїР°РїРѕРє
             string[] requiredDirectories = {
-                Path.Combine(execDir, "Assets"),
-                Path.Combine(execDir, "Assets", "Images"),
-                Path.Combine(execDir, "Assets", "Images", "Locations"),
-                Path.Combine(execDir, "Assets", "Images", "Characters"),
-                Path.Combine(execDir, "Assets", "Images", "items"),
-                Path.Combine(execDir, "Assets", "Images", "items", "weapons"),
-                Path.Combine(execDir, "Assets", "Images", "items", "armor"),
-                Path.Combine(execDir, "Assets", "Images", "items", "consumables"),
-                Path.Combine(execDir, "Assets", "Images", "items", "materials")
+                Path.Combine(execDir, "Resources"),
+                Path.Combine(execDir, "Resources", "Assets"),
+                Path.Combine(execDir, "Resources", "Assets", "Images"),
+                Path.Combine(execDir, "Resources", "Assets", "Images", "Locations"),
+                Path.Combine(execDir, "Resources", "Assets", "Images", "Characters"),
+                Path.Combine(execDir, "Resources", "Assets", "Images", "Enemies"),
+                Path.Combine(execDir, "Resources", "Assets", "Images", "UI"),
+                Path.Combine(execDir, "Resources", "Assets", "Images", "items"),
+                Path.Combine(execDir, "Resources", "Assets", "Images", "items", "weapons"),
+                Path.Combine(execDir, "Resources", "Assets", "Images", "items", "armor"),
+                Path.Combine(execDir, "Resources", "Assets", "Images", "items", "consumables"),
+                Path.Combine(execDir, "Resources", "Assets", "Images", "items", "materials"),
+                Path.Combine(execDir, "Resources", "Localizations"),
+                Path.Combine(execDir, "Resources", "Saves"),
+                Path.Combine(execDir, "Resources", "Logs")
             };
             
             foreach (var dir in requiredDirectories)
@@ -160,8 +166,8 @@ public partial class App : Application
                 }
             }
             
-            // Проверяем наличие критически важного файла def.png
-            string defPngPath = Path.Combine(execDir, "Assets", "Images", "def.png");
+            // РџСЂРѕРІРµСЂСЏРµРј РЅР°Р»РёС‡РёРµ РєСЂРёС‚РёС‡РµСЃРєРё РІР°Р¶РЅРѕРіРѕ С„Р°Р№Р»Р° def.png
+            string defPngPath = Path.Combine(execDir, "Resources", "Assets", "Images", "def.png");
             if (!File.Exists(defPngPath))
             {
                 LoggingService.LogError($"CRITICAL: Default image (def.png) not found at {defPngPath}");
@@ -200,27 +206,27 @@ public partial class App : Application
     {
         try
         {
-            // Инициализируем сервисы перед созданием главного окна
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
             InitializeServices();
             
-            // Создаем основное окно приложения
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             var mainWindow = new MainWindow();
             
-            // Устанавливаем его как главное окно
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
             MainWindow = mainWindow;
             
-            // Показываем окно
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
             mainWindow.Show();
         }
         catch (Exception ex)
         {
-            // Критическая ошибка запуска
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             string errorDetails = $"Critical error during application startup:\n\n" +
                                  $"Message: {ex.Message}\n" +
                                  $"Stack Trace: {ex.StackTrace}";
             MessageBox.Show(errorDetails, "Application Startup Error", MessageBoxButton.OK, MessageBoxImage.Error);
             
-            // Записываем в лог и завершаем приложение
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             LoggingService.LogError("Application startup failed", ex);
             Environment.Exit(1);
         }
@@ -230,10 +236,10 @@ public partial class App : Application
     {
         try
         {
-            // Инициализируем ConfigService первым
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ ConfigService пїЅпїЅпїЅпїЅпїЅпїЅ
             var configService = ConfigService.Instance;
             
-            // Устанавливаем уровень логирования из конфигурации
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             var loggingLevelStr = configService.GetValue(ConfigService.LOGGING_LEVEL, "Warning");
             if (Enum.TryParse<LoggingService.LogLevel>(loggingLevelStr, out var loggingLevel))
             {
@@ -241,11 +247,11 @@ public partial class App : Application
             }
             else
             {
-                // Устанавливаем Warning уровень по умолчанию для уменьшения количества логов
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ Warning пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                 LoggingService.SetLogLevel(LoggingService.LogLevel.Warning);
             }
             
-            // Инициализируем остальные сервисы
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             var resourceService = ResourceService.Instance;
             var localizationService = LocalizationService.Instance;
             var gameLogicService = GameLogicService.Instance;
@@ -257,7 +263,7 @@ public partial class App : Application
         catch (Exception ex)
         {
             LoggingService.LogError($"Error initializing services: {ex.Message}", ex);
-            MessageBox.Show($"Ошибка инициализации сервисов: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show($"пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: {ex.Message}", "пїЅпїЅпїЅпїЅпїЅпїЅ", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
@@ -267,14 +273,14 @@ public partial class App : Application
         {
             // LoggingService.LogDebug("Application is shutting down");
             
-            // Останавливаем все активные сервисы
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             CoreGameService.Instance?.Dispose();
             
             // LoggingService.LogDebug("Application shutdown completed");
         }
         catch (Exception ex)
         {
-            // Логируем ошибку при завершении, но не прерываем процесс закрытия
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             LoggingService.LogError("Error during application shutdown", ex);
         }
     }
@@ -291,22 +297,22 @@ public partial class App : Application
 
             MessageBox.Show(errorMessage, "Unexpected Error", MessageBoxButton.OK, MessageBoxImage.Error);
             
-            // Помечаем исключение как обработанное, чтобы приложение не закрылось
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             e.Handled = true;
         }
         catch (Exception logEx)
         {
-            // Если даже логирование не работает, просто показываем минимальное сообщение
+            // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             MessageBox.Show($"Critical error: {e.Exception.Message}", "Fatal Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
     /// <summary>
-    /// Безопасный метод для записи сообщений в файл логов в критических ситуациях
+    /// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     /// </summary>
     private void SafeLogToFile(string message)
     {
-        // Логирование отключено
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         /*
         try
         {
@@ -315,7 +321,7 @@ public partial class App : Application
         }
         catch
         {
-            // Если не можем писать в файл, игнорируем
+            // пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         }
         */
     }

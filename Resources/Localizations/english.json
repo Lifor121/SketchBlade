@@ -324,23 +324,23 @@
   "Locations": {
     "Village": {
       "Name": "Village",
-      "Description": "A peaceful village where your journey begins"
+      "Description": "A peaceful village with friendly inhabitants"
     },
     "Forest": {
       "Name": "Forest",
-      "Description": "A dark forest filled with dangers"
+      "Description": "A dense forest full of dangerous creatures"
     },
     "Cave": {
       "Name": "Cave",
-      "Description": "A mysterious cave with hidden treasures"
+      "Description": "A dark cave with valuable minerals and lurking monsters"
     },
-    "Ancient Ruins": {
+    "Ruins": {
       "Name": "Ancient Ruins",
-      "Description": "Ancient ruins with powerful artifacts"
+      "Description": "Mysterious ruins full of ancient treasures and dangers"
     },
-    "Dark Castle": {
-      "Name": "Dark Castle",
-      "Description": "The final challenge awaits in this dark fortress"
+    "Castle": {
+      "Name": "Castle",
+      "Description": "An imposing castle ruled by dark forces"
     }
   },
   "Characters": {
@@ -368,54 +368,6 @@
       "CaveTroll": "Cave Troll",
       "GuardianGolem": "Guardian Golem",
       "DarkKing": "Dark King"
-    }
-  },
-  "Heroes": {
-    "Village": {
-      "Name": "Village Guardian",
-      "Description": "Protector of the village"
-    },
-    "Forest": {
-      "Name": "Forest Guardian",
-      "Description": "Ancient guardian of the forest"
-    },
-    "Cave": {
-      "Name": "Cave Lord",
-      "Description": "Master of the underground caves"
-    },
-    "Ancient Ruins": {
-      "Name": "Ancient Guardian",
-      "Description": "Guardian of ancient secrets"
-    },
-    "Dark Castle": {
-      "Name": "Dark Lord",
-      "Description": "The ultimate evil that must be defeated"
-    }
-  },
-  "Enemies": {
-    "Thief": {
-      "Name": "Thief",
-      "Description": "A sneaky criminal"
-    },
-    "Bandit": {
-      "Name": "Bandit",
-      "Description": "A dangerous outlaw"
-    },
-    "Wolf": {
-      "Name": "Wolf",
-      "Description": "A wild forest wolf"
-    },
-    "Goblin": {
-      "Name": "Goblin",
-      "Description": "A mischievous cave dweller"
-    },
-    "Skeleton": {
-      "Name": "Skeleton",
-      "Description": "An undead warrior"
-    },
-    "Orc": {
-      "Name": "Orc",
-      "Description": "A fierce warrior"
     }
   }
 } 

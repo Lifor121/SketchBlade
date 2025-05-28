@@ -7,6 +7,19 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <RootNamespace>SketchBlade</RootNamespace>
+    
+    <!-- Framework-dependent deployment settings -->
+    <SelfContained>false</SelfContained>
+    <!-- RuntimeIdentifier removed for framework-dependent deployment -->
+    <PublishSingleFile>false</PublishSingleFile>
+    <PublishTrimmed>false</PublishTrimmed>
+    <!-- IncludeNativeLibrariesForSelfExtract not needed for framework-dependent -->
+    <!-- EnableCompressionInSingleFile not needed for framework-dependent -->
+    
+    <!-- Application settings -->
+    <AssemblyTitle>SketchBlade</AssemblyTitle>
+    <Product>SketchBlade</Product>
+    <Copyright>Copyright © 2024</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,18 +38,21 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Assets\Images\items\consumables\" Condition="!Exists('Assets\Images\items\consumables')" />
-    <Folder Include="Assets\Images\items\weapons\" Condition="!Exists('Assets\Images\items\weapons')" />
-    <Folder Include="Assets\Images\items\armor\" Condition="!Exists('Assets\Images\items\armor')" />
-    <Folder Include="Assets\Images\items\materials\" Condition="!Exists('Assets\Images\items\materials')" />
-    <Folder Include="Assets\Images\Characters\" Condition="!Exists('Assets\Images\Characters')" />
-    <Folder Include="Assets\Images\Enemies\" Condition="!Exists('Assets\Images\Enemies')" />
-    <Folder Include="Assets\Images\Locations\" Condition="!Exists('Assets\Images\Locations')" />
+    <Folder Include="Resources\Assets\Images\items\consumables\" Condition="!Exists('Resources\Assets\Images\items\consumables')" />
+    <Folder Include="Resources\Assets\Images\items\weapons\" Condition="!Exists('Resources\Assets\Images\items\weapons')" />
+    <Folder Include="Resources\Assets\Images\items\armor\" Condition="!Exists('Resources\Assets\Images\items\armor')" />
+    <Folder Include="Resources\Assets\Images\items\materials\" Condition="!Exists('Resources\Assets\Images\items\materials')" />
+    <Folder Include="Resources\Assets\Images\Characters\" Condition="!Exists('Resources\Assets\Images\Characters')" />
+    <Folder Include="Resources\Assets\Images\Enemies\" Condition="!Exists('Resources\Assets\Images\Enemies')" />
+    <Folder Include="Resources\Assets\Images\Locations\" Condition="!Exists('Resources\Assets\Images\Locations')" />
+    <Folder Include="Resources\Localizations\" Condition="!Exists('Resources\Localizations')" />
+    <Folder Include="Resources\Saves\" Condition="!Exists('Resources\Saves')" />
+    <Folder Include="Resources\Logs\" Condition="!Exists('Resources\Logs')" />
   </ItemGroup>
 
-  <!-- Copy localization files -->
+  <!-- Copy all resources to output directory -->
   <ItemGroup>
-    <None Update="Resources\Localization\*.json">
+    <None Update="Resources\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

@@ -340,38 +340,52 @@ namespace SketchBlade.Models
         {
             string materialPrefix;
             
+            LoggingService.LogInfo($"UpdateSpritePath для предмета '{Name}': Type={Type}, Material={Material}");
+            
             switch (Type)
             {
                 case ItemType.Weapon:
                     materialPrefix = GetMaterialPrefix(Material);
-                    SpritePath = AssetPaths.Weapons.GetWeaponPath(materialPrefix, "sword");
+                    SpritePath = AssetPaths.Weapons.GetWeaponPath("sword", materialPrefix);
+                    LoggingService.LogInfo($"Оружие '{Name}': материал={materialPrefix}, путь={SpritePath}");
                     break;
                 case ItemType.Helmet:
                     materialPrefix = GetMaterialPrefix(Material);
                     SpritePath = AssetPaths.Armor.GetArmorPath(materialPrefix, "helmet");
+                    LoggingService.LogInfo($"Шлем '{Name}': материал={materialPrefix}, путь={SpritePath}");
                     break;
                 case ItemType.Chestplate:
                     materialPrefix = GetMaterialPrefix(Material);
                     SpritePath = AssetPaths.Armor.GetArmorPath(materialPrefix, "chest");
+                    LoggingService.LogInfo($"Нагрудник '{Name}': материал={materialPrefix}, путь={SpritePath}");
                     break;
                 case ItemType.Leggings:
                     materialPrefix = GetMaterialPrefix(Material);
                     SpritePath = AssetPaths.Armor.GetArmorPath(materialPrefix, "legs");
+                    LoggingService.LogInfo($"Поножи '{Name}': материал={materialPrefix}, путь={SpritePath}");
                     break;
                 case ItemType.Shield:
                     materialPrefix = GetMaterialPrefix(Material);
                     SpritePath = AssetPaths.Armor.GetArmorPath(materialPrefix, "shield");
+                    LoggingService.LogInfo($"Щит '{Name}': материал={materialPrefix}, путь={SpritePath}");
                     break;
                 case ItemType.Consumable:
                     SpritePath = AssetPaths.Consumables.GetConsumablePath(Name);
+                    LoggingService.LogInfo($"Расходник '{Name}': путь={SpritePath}");
                     break;
                 case ItemType.Material:
                     SpritePath = AssetPaths.Materials.GetMaterialPath(Name);
+                    LoggingService.LogInfo($"Материал '{Name}': путь={SpritePath}");
                     break;
                 default:
                     SpritePath = AssetPaths.DEFAULT_IMAGE;
+                    LoggingService.LogWarning($"Неизвестный тип предмета '{Name}': {Type}, используется дефолтное изображение");
                     break;
             }
+            
+            // Сбрасываем кэшированную иконку, чтобы она перезагрузилась с новым путем
+            _icon = null;
+            NotifyPropertyChanged(nameof(Icon));
         }
         
         private string GetMaterialPrefix(ItemMaterial material)

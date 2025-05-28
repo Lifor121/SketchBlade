@@ -234,6 +234,13 @@ namespace SketchBlade.ViewModels
                 OnPropertyChanged(nameof(PlayerDamage));
                 OnPropertyChanged(nameof(PlayerDefense));
             }
+            
+            // Обновляем слоты при изменении инвентаря
+            if (e.PropertyName == nameof(GameData.Inventory))
+            {
+                RefreshAllSlots();
+                InitializeCraftingIfReady();
+            }
         }
         
         public void RefreshAllSlots()

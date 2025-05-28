@@ -34,8 +34,8 @@ namespace SketchBlade.Services
         private Dictionary<Language, Dictionary<string, string>> _itemTranslations = new();
         private Language _currentLanguage = Language.Russian;
 
-        private static readonly string RussianLocalizationFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Localization", "russian.json");
-        private static readonly string EnglishLocalizationFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Localization", "english.json");
+        private static readonly string RussianLocalizationFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Localizations", "russian.json");
+        private static readonly string EnglishLocalizationFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Localizations", "english.json");
 
         public event EventHandler? LanguageChanged;
 
@@ -55,8 +55,24 @@ namespace SketchBlade.Services
 
         private LocalizationService()
         {
-            LoadTranslationsFromFiles();
-            LoadItemTranslations();
+            try
+            {
+                // Ensure the localizations directory exists
+                var localizationDirectory = Path.GetDirectoryName(RussianLocalizationFile);
+                if (!string.IsNullOrEmpty(localizationDirectory) && !Directory.Exists(localizationDirectory))
+                {
+                    Directory.CreateDirectory(localizationDirectory);
+                }
+                
+                LoadTranslationsFromFiles();
+                LoadItemTranslations();
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogError($"Error initializing LocalizationService: {ex.Message}", ex);
+                // Load fallback translations if initialization fails
+                LoadFallbackTranslations();
+            }
         }
 
         #region Translation Methods
@@ -342,7 +358,7 @@ namespace SketchBlade.Services
         {
             try
             {
-                var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Localization", fileName);
+                var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Localizations", fileName);
                 
                 if (File.Exists(filePath))
                 {

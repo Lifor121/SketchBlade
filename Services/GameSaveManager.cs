@@ -12,7 +12,7 @@ namespace SketchBlade.Services
 
         public GameSaveManager()
         {
-            string saveDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Saves");
+            string saveDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Saves");
             Directory.CreateDirectory(saveDirectory);
             _saveFilePath = Path.Combine(saveDirectory, SAVE_FILE_NAME);
         }

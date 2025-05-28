@@ -13,33 +13,33 @@ namespace SketchBlade.Helpers
 {
     public static class ImageHelper
     {
-        [Obsolete("Use AssetPaths.DEFAULT_IMAGE instead")]
-        private const string DefaultImagePath = "Assets/Images/def.png";
-        [Obsolete("Use AssetPaths.Locations folder methods instead")]
-        private const string LocationsFolder = "Assets/Images/Locations";
-        [Obsolete("Use AssetPaths.Weapons methods instead")]
-        private const string WeaponsFolder = "Assets/Images/items/weapons";
-        [Obsolete("Use AssetPaths.Armor methods instead")]
-        private const string ArmorFolder = "Assets/Images/items/armor";
-        [Obsolete("Use AssetPaths.Consumables methods instead")]
-        private const string ConsumablesFolder = "Assets/Images/items/consumables";
-        [Obsolete("Use AssetPaths.Materials methods instead")]
-        private const string MaterialsFolder = "Assets/Images/items/materials";
-        [Obsolete("Use AssetPaths.Characters instead")]
-        private const string CharactersFolder = "Assets/Images/Characters";
-        [Obsolete("Use AssetPaths.Enemies methods instead")]
-        private const string EnemiesFolder = "Assets/Images/Enemies";
-        [Obsolete("Use AssetPaths.UI instead")]
-        private const string UIFolder = "Assets/Images/UI";
+        // РљРѕРЅСЃС‚Р°РЅС‚С‹ РїСѓС‚РµР№ Рє РёР·РѕР±СЂР°Р¶РµРЅРёСЏРј
+        private const string DefaultImagePath = "Resources/Assets/Images/def.png";
         
-        [Obsolete("Use AssetPaths.Characters.PLAYER instead")]
-        public const string PlayerSpritePath = "Assets/Images/Characters/player.png";
-        [Obsolete("Use AssetPaths.Characters.NPC instead")]
-        public const string NpcSpritePath = "Assets/Images/Characters/npc.png";
-        [Obsolete("Use AssetPaths.Characters.HERO instead")]
-        public const string HeroSpritePath = "Assets/Images/Characters/hero.png";
-        [Obsolete("Use AssetPaths.DEFAULT_IMAGE instead")]
-        public const string DefaultSpritePath = "Assets/Images/def.png";
+        private const string LocationsFolder = "Resources/Assets/Images/Locations";
+        
+        private const string WeaponsFolder = "Resources/Assets/Images/items/weapons";
+        
+        private const string ArmorFolder = "Resources/Assets/Images/items/armor";
+        
+        private const string ConsumablesFolder = "Resources/Assets/Images/items/consumables";
+        
+        private const string MaterialsFolder = "Resources/Assets/Images/items/materials";
+        
+        private const string CharactersFolder = "Resources/Assets/Images/Characters";
+        
+        private const string EnemiesFolder = "Resources/Assets/Images/Enemies";
+        
+        private const string UIFolder = "Resources/Assets/Images/UI";
+        
+        // РљРѕРЅСЃС‚Р°РЅС‚С‹ РґР»СЏ СЃРїСЂР°Р№С‚РѕРІ РїРµСЂСЃРѕРЅР°Р¶РµР№
+        public const string PlayerSpritePath = "Resources/Assets/Images/Characters/player.png";
+        
+        public const string NpcSpritePath = "Resources/Assets/Images/Characters/npc.png";
+        
+        public const string HeroSpritePath = "Resources/Assets/Images/Characters/hero.png";
+        
+        public const string DefaultSpritePath = "Resources/Assets/Images/def.png";
         
         private static readonly Dictionary<string, BitmapImage> _imageCache = new Dictionary<string, BitmapImage>();
         private static BitmapImage _defaultImage;
@@ -65,7 +65,7 @@ namespace SketchBlade.Helpers
                 if (_isCacheInitialized)
                     return;
                     
-                // LoggingService.LogDebug("Инициализация кэша изображений");
+                // LoggingService.LogDebug("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
                 
                 string basePath = AppDomain.CurrentDomain.BaseDirectory;
                 string defaultImagePath = Path.Combine(basePath, AssetPaths.DEFAULT_IMAGE);
@@ -73,15 +73,15 @@ namespace SketchBlade.Helpers
                 if (File.Exists(defaultImagePath))
                 {
                     _defaultImage = CreateCachedBitmapImage(defaultImagePath);
-                    _imageCache[AssetPaths.DEFAULT_IMAGE] = _defaultImage; // Кэшируем def.png по его пути
-                    // LoggingService.LogDebug($"Загружено дефолтное изображение из {defaultImagePath}");
+                    _imageCache[AssetPaths.DEFAULT_IMAGE] = _defaultImage; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ def.png пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+                    // LoggingService.LogDebug($"пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ {defaultImagePath}");
                 }
                 else
                 {
                     _defaultImage = new BitmapImage();
                 }
                 
-                string locationsPath = Path.Combine(basePath, "Assets/Images/Locations");
+                string locationsPath = Path.Combine(basePath, "Resources/Assets/Images/Locations");
                 if (Directory.Exists(locationsPath))
                 {
                     foreach (var file in Directory.GetFiles(locationsPath, "*.png"))
@@ -103,7 +103,7 @@ namespace SketchBlade.Helpers
                     }
                 }
                 
-                string charactersPath = Path.Combine(basePath, "Assets/Images/Characters");
+                string charactersPath = Path.Combine(basePath, "Resources/Assets/Images/Characters");
                 EnsureDirectoryExists(charactersPath);
                 
                 _isCacheInitialized = true;
@@ -166,11 +166,12 @@ namespace SketchBlade.Helpers
             {
                 string basePath = AppDomain.CurrentDomain.BaseDirectory;
                 
-                EnsureDirectoryExists(Path.Combine(basePath, "Assets"));
-                EnsureDirectoryExists(Path.Combine(basePath, "Assets/Images"));
+                EnsureDirectoryExists(Path.Combine(basePath, "Resources"));
+                EnsureDirectoryExists(Path.Combine(basePath, "Resources/Assets"));
+                EnsureDirectoryExists(Path.Combine(basePath, "Resources/Assets/Images"));
                 
                 EnsureDirectoryExists(Path.Combine(basePath, LocationsFolder));
-                EnsureDirectoryExists(Path.Combine(basePath, "Assets/Images/items"));
+                EnsureDirectoryExists(Path.Combine(basePath, "Resources/Assets/Images/items"));
                 EnsureDirectoryExists(Path.Combine(basePath, WeaponsFolder));
                 EnsureDirectoryExists(Path.Combine(basePath, ArmorFolder));
                 EnsureDirectoryExists(Path.Combine(basePath, ConsumablesFolder));
@@ -297,7 +298,7 @@ namespace SketchBlade.Helpers
 
             if (string.IsNullOrEmpty(path))
             {
-                LoggingService.LogError("LoadImage вызван с пустым путем");
+                LoggingService.LogError("LoadImage пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ");
                 return GetDefaultImage();
             }
             
@@ -386,7 +387,7 @@ namespace SketchBlade.Helpers
             
             try
             {
-                string defaultPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets/Images/def.png");
+                string defaultPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources/Assets/Images/def.png");
                 
                 if (File.Exists(defaultPath))
                 {
@@ -470,7 +471,7 @@ namespace SketchBlade.Helpers
                 {
                     BitmapImage fallbackImage = new BitmapImage();
                     fallbackImage.BeginInit();
-                    fallbackImage.UriSource = new Uri("pack://application:,,,/Assets/Images/def.png", UriKind.Absolute);
+                    fallbackImage.UriSource = new Uri("pack://application:,,,/Resources/Assets/Images/def.png", UriKind.Absolute);
                     fallbackImage.CacheOption = BitmapCacheOption.OnLoad;
                     fallbackImage.EndInit();
                     
@@ -492,9 +493,13 @@ namespace SketchBlade.Helpers
         public static void VerifyAssetDirectories()
         {
             string basePath = AppDomain.CurrentDomain.BaseDirectory;
-            string assetsDir = Path.Combine(basePath, "Assets");
+            string resourcesDir = Path.Combine(basePath, "Resources");
+            string assetsDir = Path.Combine(resourcesDir, "Assets");
             string imagesDir = Path.Combine(assetsDir, "Images");
             string defaultImagePath = Path.Combine(basePath, DefaultImagePath);
+            
+            if (!Directory.Exists(resourcesDir))
+                Directory.CreateDirectory(resourcesDir);
             
             if (!Directory.Exists(assetsDir))
                 Directory.CreateDirectory(assetsDir);
@@ -561,62 +566,62 @@ namespace SketchBlade.Helpers
             
             var imagePaths = new List<string>
             {
-                Path.Combine(basePath, "Assets/Images/items/weapons/wooden_sword.png"),
-                Path.Combine(basePath, "Assets/Images/items/weapons/iron_sword.png"),
-                Path.Combine(basePath, "Assets/Images/items/weapons/golden_sword.png"),
-                Path.Combine(basePath, "Assets/Images/items/weapons/luminite_sword.png"),
-                Path.Combine(basePath, "Assets/Images/items/weapons/wooden_axe.png"),
-                Path.Combine(basePath, "Assets/Images/items/weapons/iron_axe.png"),
-                Path.Combine(basePath, "Assets/Images/items/weapons/golden_axe.png"),
-                Path.Combine(basePath, "Assets/Images/items/weapons/luminite_axe.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/weapons/wooden_sword.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/weapons/iron_sword.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/weapons/golden_sword.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/weapons/luminite_sword.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/weapons/wooden_axe.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/weapons/iron_axe.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/weapons/golden_axe.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/weapons/luminite_axe.png"),
                 
-                Path.Combine(basePath, "Assets/Images/items/armor/wooden_helmet.png"),
-                Path.Combine(basePath, "Assets/Images/items/armor/iron_helmet.png"),
-                Path.Combine(basePath, "Assets/Images/items/armor/golden_helmet.png"),
-                Path.Combine(basePath, "Assets/Images/items/armor/luminite_helmet.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/armor/wooden_helmet.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/armor/iron_helmet.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/armor/golden_helmet.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/armor/luminite_helmet.png"),
                 
-                Path.Combine(basePath, "Assets/Images/items/armor/wooden_chest.png"),
-                Path.Combine(basePath, "Assets/Images/items/armor/iron_chest.png"),
-                Path.Combine(basePath, "Assets/Images/items/armor/golden_chest.png"),
-                Path.Combine(basePath, "Assets/Images/items/armor/luminite_chest.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/armor/wooden_chest.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/armor/iron_chest.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/armor/golden_chest.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/armor/luminite_chest.png"),
                 
-                Path.Combine(basePath, "Assets/Images/items/armor/wooden_legs.png"),
-                Path.Combine(basePath, "Assets/Images/items/armor/iron_legs.png"),
-                Path.Combine(basePath, "Assets/Images/items/armor/golden_legs.png"),
-                Path.Combine(basePath, "Assets/Images/items/armor/luminite_legs.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/armor/wooden_legs.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/armor/iron_legs.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/armor/golden_legs.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/armor/luminite_legs.png"),
                 
-                Path.Combine(basePath, "Assets/Images/items/armor/wooden_shield.png"),
-                Path.Combine(basePath, "Assets/Images/items/armor/iron_shield.png"),
-                Path.Combine(basePath, "Assets/Images/items/armor/golden_shield.png"),
-                Path.Combine(basePath, "Assets/Images/items/armor/luminite_shield.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/armor/wooden_shield.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/armor/iron_shield.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/armor/golden_shield.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/armor/luminite_shield.png"),
                 
-                Path.Combine(basePath, "Assets/Images/items/consumables/health_potion.png"),
-                Path.Combine(basePath, "Assets/Images/items/consumables/healing_potion.png"),
-                Path.Combine(basePath, "Assets/Images/items/consumables/rage_potion.png"),
-                Path.Combine(basePath, "Assets/Images/items/consumables/invulnerability_potion.png"),
-                Path.Combine(basePath, "Assets/Images/items/consumables/bomb.png"),
-                Path.Combine(basePath, "Assets/Images/items/consumables/pillow.png"),
-                Path.Combine(basePath, "Assets/Images/items/consumables/poisoned_shuriken.png"),
-                Path.Combine(basePath, "Assets/Images/items/consumables/generic_potion.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/consumables/health_potion.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/consumables/healing_potion.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/consumables/rage_potion.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/consumables/invulnerability_potion.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/consumables/bomb.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/consumables/pillow.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/consumables/poisoned_shuriken.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/consumables/generic_potion.png"),
                 
-                Path.Combine(basePath, "Assets/Images/Locations/village.png"),
-                Path.Combine(basePath, "Assets/Images/Locations/forest.png"),
-                Path.Combine(basePath, "Assets/Images/Locations/cave.png"),
-                Path.Combine(basePath, "Assets/Images/Locations/ruins.png"),
-                Path.Combine(basePath, "Assets/Images/Locations/castle.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/Locations/village.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/Locations/forest.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/Locations/cave.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/Locations/ruins.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/Locations/castle.png"),
                 
-                Path.Combine(basePath, "Assets/Images/Characters/player.png"),
-                Path.Combine(basePath, "Assets/Images/Characters/npc.png"),
-                Path.Combine(basePath, "Assets/Images/Characters/hero.png")
+                Path.Combine(basePath, "Resources/Assets/Images/Characters/player.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/Characters/npc.png"),
+                Path.Combine(basePath, "Resources/Assets/Images/Characters/hero.png")
             };
             
             string[] criticalDirectories = {
-                Path.Combine(basePath, "Assets/Images/items/weapons"),
-                Path.Combine(basePath, "Assets/Images/items/armor"),
-                Path.Combine(basePath, "Assets/Images/items/consumables"),
-                Path.Combine(basePath, "Assets/Images/items/materials"),
-                Path.Combine(basePath, "Assets/Images/Characters"),
-                Path.Combine(basePath, "Assets/Images/Locations")
+                Path.Combine(basePath, "Resources/Assets/Images/items/weapons"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/armor"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/consumables"),
+                Path.Combine(basePath, "Resources/Assets/Images/items/materials"),
+                Path.Combine(basePath, "Resources/Assets/Images/Characters"),
+                Path.Combine(basePath, "Resources/Assets/Images/Locations")
             };
             
             foreach (var dir in criticalDirectories)

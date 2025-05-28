@@ -8,7 +8,7 @@ namespace SketchBlade.Services
 {
     public static class LoggingService
     {
-        private static readonly string LogFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error_log.txt");
+        private static readonly string LogFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Logs", "error_log.txt");
         private static readonly object LogLock = new object();
         private static LogLevel _currentLogLevel = LogLevel.Debug;
         
@@ -32,12 +32,20 @@ namespace SketchBlade.Services
         {
             try
             {
+                // Ensure the log directory exists
+                var logDirectory = Path.GetDirectoryName(LogFilePath);
+                if (!string.IsNullOrEmpty(logDirectory) && !Directory.Exists(logDirectory))
+                {
+                    Directory.CreateDirectory(logDirectory);
+                }
+                
                 CleanupLogFileIfNeeded();
                 // LogInfo("НОВЫЙ ЗАПУСК ПРИЛОЖЕНИЯ");
             }
             catch (Exception ex)
             {
                 // Failed to initialize logging - continue silently
+                Console.WriteLine($"Failed to initialize logging: {ex.Message}");
             }
         }
 
@@ -97,6 +105,13 @@ namespace SketchBlade.Services
             {
                 lock (LogLock)
                 {
+                    // Ensure the log directory exists before writing
+                    var logDirectory = Path.GetDirectoryName(LogFilePath);
+                    if (!string.IsNullOrEmpty(logDirectory) && !Directory.Exists(logDirectory))
+                    {
+                        Directory.CreateDirectory(logDirectory);
+                    }
+                    
                     File.AppendAllText(LogFilePath, message + Environment.NewLine);
                     
                     if (new Random().Next(100) == 0) // Проверяем в 1% случаев

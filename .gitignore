@@ -179,6 +179,11 @@ DocProject/Help/html
 # Click-Once directory
 publish/
 
+# SketchBlade build directories
+dist/
+SketchBlade_*/
+*.zip
+
 # Publish Web Output
 *.[Pp]ublish.xml
 *.azurePubxml

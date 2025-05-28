@@ -27,15 +27,15 @@ public partial class MainWindow : Window
     {
         try
         {
-            // ������������� ����� � �������������
+            // Инициализация папок и изображений
             Helpers.ImageHelper.InitializeDirectories();
             
-            // �������� ������� ����� Assets/Images
+            // Проверка наличия папки Resources/Assets/Images
             string basePath = AppDomain.CurrentDomain.BaseDirectory;
-            if (!Directory.Exists(Path.Combine(basePath, "Assets/Images")))
+            if (!Directory.Exists(Path.Combine(basePath, "Resources/Assets/Images")))
             {
-                MessageBox.Show("����� Assets/Images �� �������. ��������� ����� �������� �����������.", 
-                    "��������������", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Папка Resources/Assets/Images не найдена. Возможны ошибки загрузки изображений.", 
+                    "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
             
             // Check if ViewModels are already initialized

@@ -180,12 +180,15 @@ namespace SketchBlade.ViewModels
                 // Subscribe to GameData property changes
                 _gameState.PropertyChanged += GameState_PropertyChanged;
                 
-                // Check for existing save game
-                _gameState.CheckForSaveGame();
+                // Проверяем наличие сохранений
+                if (OptimizedSaveSystem.HasSaveFile())
+                {
+                    _gameState.HasSaveGame = true;
+                }
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"������ ������������� MainViewModel: {ex.Message}", ex);
+                LoggingService.LogError($"������ �������� MainViewModel: {ex.Message}", ex);
             }
         }
         
@@ -225,7 +228,7 @@ namespace SketchBlade.ViewModels
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"������ ������������� ������: {ex.Message}", ex);
+                LoggingService.LogError($"  : {ex.Message}", ex);
             }
         }
         
@@ -240,37 +243,37 @@ namespace SketchBlade.ViewModels
                     return;
                 }
 
-                // LoggingService.LogInfo("=== ������ �������� ����� ���� ===");
+                // LoggingService.LogInfo("===     ===");
 
-                // �������������� ����
+                //  
                 _gameState.Initialize();
                 
-                // �����������: ������� ���������� ������ ���������������
-                // ������� ������ ����� ���������������� ������������� ��� ������ ���������
-                // LoggingService.LogInfo("���� ����������������, ��������� � ������ ���������");
+                // :    
+                //        
+                // LoggingService.LogInfo(" ,   ");
                 
-                // ������������� ������� �����
-                // LoggingService.LogDebug("������������� CurrentScreen = InventoryView");
+                //   
+                // LoggingService.LogDebug(" CurrentScreen = InventoryView");
                 CurrentScreen = "InventoryView";
-                // LoggingService.LogDebug($"CurrentScreen ����������: {CurrentScreen}");
+                // LoggingService.LogDebug($"CurrentScreen : {CurrentScreen}");
                 
-                // ���������
-                // LoggingService.LogDebug("�������� _navigateAction � InventoryView");
+                // 
+                // LoggingService.LogDebug(" _navigateAction InventoryView");
                 _navigateAction?.Invoke("InventoryView");
-                // LoggingService.LogDebug("_navigateAction ��������");
+                // LoggingService.LogDebug("_navigateAction ");
                 
-                // ���������, ��� ��������� ������ �������
-                // LoggingService.LogDebug($"CurrentScreen ����� ���������: {CurrentScreen}");
+                // ,    
+                // LoggingService.LogDebug($"CurrentScreen  : {CurrentScreen}");
                 
-                // ���� ��������� �� ���������, ��������� ��� ��� ����� Dispatcher
+                //    ,     Dispatcher
                 if (CurrentScreen != "InventoryView")
                 {
-                    // LoggingService.LogDebug("��������� �� ���������, ������� ����� Dispatcher");
+                    // LoggingService.LogDebug("  ,   Dispatcher");
                     Application.Current.Dispatcher.BeginInvoke(new Action(() => {
-                        // LoggingService.LogDebug("��������� ������� ��������� ����� Dispatcher");
+                        // LoggingService.LogDebug("    Dispatcher");
                         CurrentScreen = "InventoryView";
                         _navigateAction?.Invoke("InventoryView");
-                        // LoggingService.LogDebug($"CurrentScreen ����� ��������� ���������: {CurrentScreen}");
+                        // LoggingService.LogDebug($"CurrentScreen   : {CurrentScreen}");
                     }));
                 }
                 

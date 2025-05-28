@@ -15,7 +15,7 @@ namespace SketchBlade.Utilities
         /// <summary>
         /// Базовый путь к директории с ресурсами
         /// </summary>
-        public const string BASE_ASSETS_PATH = "Assets/Images/";
+        public const string BASE_ASSETS_PATH = "Resources/Assets/Images/";
         
         /// <summary>
         /// Путь к изображению по умолчанию (используется при отсутствии других ресурсов)
