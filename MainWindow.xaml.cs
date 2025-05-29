@@ -464,26 +464,11 @@ public partial class MainWindow : Window
         try
         {
             RefreshCurrentScreen();
-            MessageBox.Show("UI ��������!", "����������", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("UI обновлён!", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (Exception ex)
         {
             // Error refreshing UI - continue silently
-        }
-    }
-    
-    private void WorldMapButton_Click(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            if (_mainViewModel?.NavigateCommand != null)
-            {
-                _mainViewModel.NavigateCommand.Execute("WorldMapView");
-            }
-        }
-        catch (Exception ex)
-        {
-            // Error in WorldMapButton_Click - continue silently
         }
     }
 } 

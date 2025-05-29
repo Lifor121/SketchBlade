@@ -303,7 +303,11 @@
     "YourTurn": "Ваш ход",
     "CriticalHit": "Критический удар!",
     "Missed": "Промах!",
-    "Damage": "Урон"
+    "Damage": "Урон",
+    "QuickAccess": "Быстрый доступ",
+    "Cancel": "Отменить",
+    "VS": "VS",
+    "Using": "Использует: {0}"
   },
   "WorldMap": {
     "Title": "Карта мира",
@@ -346,6 +350,7 @@
   },
   "Characters": {
     "Player": "Герой",
+    "PlayerName": "Герой",
     "Enemies": {
       "Village": {
         "Regular": "Деревенский бандит"

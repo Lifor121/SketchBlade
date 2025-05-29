@@ -185,6 +185,10 @@ namespace SketchBlade.ViewModels
                 {
                     _gameState.HasSaveGame = true;
                 }
+                
+                // Принудительно обновляем команды после инициализации
+                System.Windows.Input.CommandManager.InvalidateRequerySuggested();
+                OnPropertyChanged(nameof(HasSaveGame));
             }
             catch (Exception ex)
             {
@@ -248,6 +252,11 @@ namespace SketchBlade.ViewModels
                 //  
                 _gameState.Initialize();
                 
+                // Принудительно обновляем состояние HasSaveGame после инициализации
+                // Это нужно для корректной работы кнопки "Продолжить"
+                OnPropertyChanged(nameof(HasSaveGame));
+                System.Windows.Input.CommandManager.InvalidateRequerySuggested();
+                
                 // :    
                 //        
                 // LoggingService.LogInfo(" ,   ");
@@ -282,7 +291,7 @@ namespace SketchBlade.ViewModels
             catch (Exception ex)
             {
                 LoggingService.LogError($"Error starting new game: {ex.Message}", ex);
-                MessageBox.Show($"������ ��� �������� ����� ����: {ex.Message}", "������", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"    : {ex.Message}", "", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         
@@ -509,6 +518,8 @@ namespace SketchBlade.ViewModels
                 if (e.PropertyName == nameof(GameData.HasSaveGame))
                 {
                     OnPropertyChanged(nameof(HasSaveGame));
+                    // Принудительно обновляем команду ContinueGame
+                    System.Windows.Input.CommandManager.InvalidateRequerySuggested();
                 }
                 else if (e.PropertyName == nameof(GameData.CurrentScreen))
                 {
@@ -517,7 +528,7 @@ namespace SketchBlade.ViewModels
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"������ � GameState_PropertyChanged: {ex.Message}", ex);
+                LoggingService.LogError($"Ошибка в GameState_PropertyChanged: {ex.Message}", ex);
             }
         }
 
@@ -532,12 +543,16 @@ namespace SketchBlade.ViewModels
                     return;
                 }
 
-                // LoggingService.LogDebug("SaveGame ������");
+                // LoggingService.LogDebug("SaveGame вызван");
                 _gameState.SaveGame();
+                
+                // Принудительно обновляем HasSaveGame и команды после сохранения
+                OnPropertyChanged(nameof(HasSaveGame));
+                System.Windows.Input.CommandManager.InvalidateRequerySuggested();
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"������ ���������� ����: {ex.Message}", ex);
+                LoggingService.LogError($"Ошибка сохранения игры: {ex.Message}", ex);
             }
         }
 

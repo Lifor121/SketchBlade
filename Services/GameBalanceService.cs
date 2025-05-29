@@ -132,8 +132,10 @@ namespace SketchBlade.Services
                 Defense = baseDefense,
                 Level = CalculateEnemyLevel(locationType, isBoss),
                 Type = isBoss ? "Boss" : "Enemy",
+                LocationType = locationType,
                 ImagePath = AssetPaths.Enemies.GetEnemyPathByName(spriteName),
-                IsPlayer = false
+                IsPlayer = false,
+                IsHero = isBoss
             };
             
             return enemy;

@@ -28,6 +28,8 @@ namespace SketchBlade.Services
         
         void SaveSettings();
         void LoadSettings();
+        void SaveGameSettings(GameSettings gameSettings);
+        void LoadGameSettings(GameSettings gameSettings);
         
         event EventHandler<GameSaveEventArgs>? GameSaved;
         event EventHandler<GameLoadEventArgs>? GameLoaded;
@@ -51,9 +53,9 @@ namespace SketchBlade.Services
         private static readonly Lazy<CoreGameService> _instance = new(() => new CoreGameService());
         public static CoreGameService Instance => _instance.Value;
 
-        private static readonly string SaveFileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Saves", "savegame.dat");
-        private static readonly string BackupSaveFileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Saves", "savegame.backup.dat");
-        private static readonly string SettingsFileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Saves", "settings.json");
+        private static readonly string SaveFileName = Path.Combine(ResourcePathManager.SavesPath, "savegame.dat");
+        private static readonly string BackupSaveFileName = Path.Combine(ResourcePathManager.SavesPath, "savegame.backup.dat");
+        private static readonly string GameSettingsFileName = Path.Combine(ResourcePathManager.SavesPath, "game_settings.json");
 
         private Timer? _autoSaveTimer;
         private Action? _saveAction;
@@ -251,7 +253,9 @@ namespace SketchBlade.Services
                 };
 
                 var json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(SettingsFileName, json);
+                File.WriteAllText(GameSettingsFileName, json);
+                
+                LoggingService.LogInfo("Core settings saved successfully");
             }
             catch (Exception ex)
             {
@@ -259,16 +263,80 @@ namespace SketchBlade.Services
             }
         }
 
+        public void SaveGameSettings(GameSettings gameSettings)
+        {
+            try
+            {
+                if (gameSettings == null)
+                {
+                    LoggingService.LogError("GameSettings cannot be null");
+                    return;
+                }
+
+                // Загружаем существующие настройки или создаем новые
+                var settings = new Dictionary<string, object>();
+                
+                if (File.Exists(GameSettingsFileName))
+                {
+                    try
+                    {
+                        var existingJson = File.ReadAllText(GameSettingsFileName);
+                        var existingSettings = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(existingJson);
+                        
+                        if (existingSettings != null)
+                        {
+                            // Сохраняем существующие настройки CoreGameService
+                            if (existingSettings.TryGetValue("IsAutoSaveEnabled", out var autoSaveElement))
+                                settings["IsAutoSaveEnabled"] = autoSaveElement.GetBoolean();
+                            else
+                                settings["IsAutoSaveEnabled"] = IsAutoSaveEnabled;
+
+                            if (existingSettings.TryGetValue("AutoSaveIntervalMinutes", out var intervalElement))
+                                settings["AutoSaveIntervalMinutes"] = intervalElement.GetDouble();
+                            else
+                                settings["AutoSaveIntervalMinutes"] = AutoSaveInterval.TotalMinutes;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggingService.LogWarning($"Could not load existing settings, creating new: {ex.Message}");
+                        settings["IsAutoSaveEnabled"] = IsAutoSaveEnabled;
+                        settings["AutoSaveIntervalMinutes"] = AutoSaveInterval.TotalMinutes;
+                    }
+                }
+                else
+                {
+                    settings["IsAutoSaveEnabled"] = IsAutoSaveEnabled;
+                    settings["AutoSaveIntervalMinutes"] = AutoSaveInterval.TotalMinutes;
+                }
+
+                // Добавляем игровые настройки
+                settings["Language"] = (int)gameSettings.Language;
+                settings["Difficulty"] = (int)gameSettings.Difficulty;
+                settings["ShowCombatDamageNumbers"] = gameSettings.ShowCombatDamageNumbers;
+                settings["UIScale"] = gameSettings.UIScale;
+
+                var json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(GameSettingsFileName, json);
+                
+                LoggingService.LogInfo("Game settings saved successfully");
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogError($"Error saving game settings: {ex.Message}", ex);
+            }
+        }
+
         public void LoadSettings()
         {
             try
             {
-                if (!File.Exists(SettingsFileName))
+                if (!File.Exists(GameSettingsFileName))
                 {
                     return;
                 }
 
-                var json = File.ReadAllText(SettingsFileName);
+                var json = File.ReadAllText(GameSettingsFileName);
                 var settings = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
 
                 if (settings != null)
@@ -283,6 +351,55 @@ namespace SketchBlade.Services
             catch (Exception ex)
             {
                 LoggingService.LogError($"Error loading settings: {ex.Message}", ex);
+            }
+        }
+
+        public void LoadGameSettings(GameSettings gameSettings)
+        {
+            try
+            {
+                if (gameSettings == null)
+                {
+                    LoggingService.LogError("GameSettings cannot be null");
+                    return;
+                }
+
+                if (!File.Exists(GameSettingsFileName))
+                {
+                    LoggingService.LogInfo("Game settings file not found, using defaults");
+                    return;
+                }
+
+                var json = File.ReadAllText(GameSettingsFileName);
+                var settings = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+
+                if (settings != null)
+                {
+                    if (settings.TryGetValue("Language", out var languageElement))
+                        gameSettings.Language = (Language)languageElement.GetInt32();
+
+                    if (settings.TryGetValue("Difficulty", out var difficultyElement))
+                        gameSettings.Difficulty = (Difficulty)difficultyElement.GetInt32();
+
+                    if (settings.TryGetValue("ShowCombatDamageNumbers", out var damageNumbersElement))
+                        gameSettings.ShowCombatDamageNumbers = damageNumbersElement.GetBoolean();
+
+                    if (settings.TryGetValue("UIScale", out var uiScaleElement))
+                        gameSettings.UIScale = uiScaleElement.GetDouble();
+                        
+                    LoggingService.LogInfo("Game settings loaded successfully");
+                    
+                    // Загружаем также настройки CoreGameService
+                    if (settings.TryGetValue("IsAutoSaveEnabled", out var autoSaveElement))
+                        IsAutoSaveEnabled = autoSaveElement.GetBoolean();
+
+                    if (settings.TryGetValue("AutoSaveIntervalMinutes", out var intervalElement))
+                        AutoSaveInterval = TimeSpan.FromMinutes(intervalElement.GetDouble());
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogError($"Error loading game settings: {ex.Message}", ex);
             }
         }
 

@@ -42,6 +42,7 @@ namespace SketchBlade.Models
     {
         bool CanCraft(SimplifiedCraftingRecipe recipe, Inventory inventory);
         bool Craft(SimplifiedCraftingRecipe recipe, Inventory inventory);
+        bool Craft(SimplifiedCraftingRecipe recipe, Inventory inventory, Character? player);
         List<SimplifiedCraftingRecipe> GetAvailableRecipes();
         List<SimplifiedCraftingRecipe> GetCraftableRecipes(Inventory inventory);
         Dictionary<string, int> GetMissingMaterials(SimplifiedCraftingRecipe recipe, Inventory inventory);
@@ -303,6 +304,11 @@ namespace SketchBlade.Models
 
         public bool Craft(SimplifiedCraftingRecipe recipe, Inventory inventory)
         {
+            return Craft(recipe, inventory, null);
+        }
+
+        public bool Craft(SimplifiedCraftingRecipe recipe, Inventory inventory, Character? player)
+        {
             if (!CanCraft(recipe, inventory))
             {
                 LoggingService.LogWarning($"Cannot craft {recipe.Name} - insufficient materials");
@@ -338,20 +344,44 @@ namespace SketchBlade.Models
                     return false;
                 }
 
-                bool addResult = inventory.AddItem(resultItem, recipe.ResultQuantity);
-                if (addResult)
+                // Проверяем, можно ли экипировать предмет автоматически
+                bool autoEquipped = false;
+                if (player != null && resultItem.IsEquippable)
                 {
-                    var inventoryItemsAfterAdd = inventory.Items.Where(item => item != null).Select(item => $"{item.Name}x{item.StackSize}").ToList();
-                    LoggingService.LogInfo($"Предметы в инвентаре после добавления результата: {string.Join(", ", inventoryItemsAfterAdd)}");
-                    LoggingService.LogInfo($"Количество не-null предметов после добавления: {inventory.Items.Count(item => item != null)}");
-                    LoggingService.LogInfo($"Успешно создан предмет: {recipe.Name} x{recipe.ResultQuantity}");
+                    var equipSlot = resultItem.EquipSlot;
                     
-                    inventory.OnInventoryChanged();
-                    return true;
+                    // Проверяем, пустой ли слот для этого типа предмета
+                    bool slotIsEmpty = !player.EquippedItems.ContainsKey(equipSlot) || player.EquippedItems[equipSlot] == null;
+                    
+                    if (slotIsEmpty)
+                    {
+                        // Автоматически экипируем предмет
+                        if (player.EquipItem(resultItem))
+                        {
+                            autoEquipped = true;
+                            LoggingService.LogInfo($"Предмет {resultItem.Name} автоматически экипирован в слот {equipSlot}");
+                        }
+                    }
                 }
 
-                LoggingService.LogError($"Не удалось добавить созданный предмет {recipe.Name} в инвентарь");
-                return false;
+                // Если предмет не был экипирован автоматически, добавляем его в инвентарь
+                if (!autoEquipped)
+                {
+                    bool addResult = inventory.AddItem(resultItem, recipe.ResultQuantity);
+                    if (!addResult)
+                    {
+                        LoggingService.LogError($"Не удалось добавить созданный предмет {recipe.Name} в инвентарь");
+                        return false;
+                    }
+                }
+
+                var inventoryItemsAfterAdd = inventory.Items.Where(item => item != null).Select(item => $"{item.Name}x{item.StackSize}").ToList();
+                LoggingService.LogInfo($"Предметы в инвентаре после добавления результата: {string.Join(", ", inventoryItemsAfterAdd)}");
+                LoggingService.LogInfo($"Количество не-null предметов после добавления: {inventory.Items.Count(item => item != null)}");
+                LoggingService.LogInfo($"Успешно создан предмет: {recipe.Name} x{recipe.ResultQuantity}{(autoEquipped ? " (автоматически экипирован)" : "")}");
+                
+                inventory.OnInventoryChanged();
+                return true;
             }
             catch (Exception ex)
             {

@@ -108,8 +108,8 @@ namespace SketchBlade.ViewModels
                         break;
                 }
                 
-                // Save settings immediately after applying
-                CoreGameService.Instance.SaveSettings();
+                // Save game settings immediately after applying
+                CoreGameService.Instance.SaveGameSettings(Settings);
                 _gameState.SaveGame();
                 
                 // Принудительно обновляем все UI элементы
@@ -220,6 +220,9 @@ namespace SketchBlade.ViewModels
                 Settings.Language = Language.Russian;
                 Settings.Difficulty = Difficulty.Normal;
                 Settings.ShowCombatDamageNumbers = true;
+                
+                // Сохраняем настройки после сброса
+                CoreGameService.Instance.SaveGameSettings(Settings);
                 
                 // Обновляем экран после сброса
                 RefreshSettingsScreen();

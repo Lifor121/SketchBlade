@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Text.Json;
 using SketchBlade.Models;
+using SketchBlade.Utilities;
 
 namespace SketchBlade.Services
 {
@@ -12,7 +13,7 @@ namespace SketchBlade.Services
 
         public GameSaveManager()
         {
-            string saveDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Saves");
+            string saveDirectory = ResourcePathManager.SavesPath;
             Directory.CreateDirectory(saveDirectory);
             _saveFilePath = Path.Combine(saveDirectory, SAVE_FILE_NAME);
         }

@@ -5,13 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SketchBlade"
         xmlns:converters="clr-namespace:SketchBlade.Helpers.Converters"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
-        Title="SketchBlade" Height="700" Width="1000" WindowStartupLocation="CenterScreen"
+        Title="SketchBlade" Height="862" Width="1067" WindowStartupLocation="CenterScreen"
         KeyDown="MainWindow_KeyDown">
     <Window.Resources>
         <!-- Converters -->
         <converters:TranslationConverter x:Key="TranslationConverter"/>
-        
+
         <!-- Style for navigation buttons -->
         <Style x:Key="NavButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="#444444"/>
@@ -31,13 +32,13 @@
             </Style.Triggers>
         </Style>
     </Window.Resources>
-    
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        
+
         <!-- Navigation Bar - Visible only on InventoryView and WorldMapView -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Background="#333333">
             <StackPanel.Style>
@@ -53,19 +54,18 @@
                     </Style.Triggers>
                 </Style>
             </StackPanel.Style>
-            
+
             <Button Content="{Binding Source='Navigation.Inventory', Converter={StaticResource TranslationConverter}}"                     
                     Style="{StaticResource NavButtonStyle}"                    
                     Command="{Binding NavigateCommand}"                     
                     CommandParameter="InventoryView"/>
-                    
+
             <Button Content="{Binding Source='Navigation.WorldMap', Converter={StaticResource TranslationConverter}}"                     
                     Style="{StaticResource NavButtonStyle}"                    
                     Command="{Binding NavigateCommand}"                     
-                    CommandParameter="WorldMapView"
-                    Click="WorldMapButton_Click"/>
+                    CommandParameter="WorldMapView"/>
         </StackPanel>
-        
+
         <!-- Content Frame -->
         <Frame Grid.Row="1" x:Name="ContentFrame" NavigationUIVisibility="Hidden" 
                KeyboardNavigation.TabNavigation="None" 

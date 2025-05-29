@@ -197,7 +197,8 @@ namespace SketchBlade.Models
 
         public void AddToBattleLog(string message)
         {
-            BattleLog.Add($"{DateTime.Now:HH:mm:ss}: {message}");
+            // Логи боя отключены по просьбе пользователя
+            // BattleLog.Add($"{DateTime.Now:HH:mm:ss}: {message}");
         }
 
         public void Reset()

@@ -73,6 +73,13 @@ namespace SketchBlade.Models
         private PotionEffectType _currentColorEffect = PotionEffectType.None;
         [NonSerialized]
         private Timer? _colorEffectTimer;
+        [NonSerialized]
+        private bool _isPersistentEffect = false;
+        // Добавляем переменные для сохранения состояния персистентного эффекта
+        [NonSerialized]
+        private PotionEffectType _savedPersistentEffect = PotionEffectType.None;
+        [NonSerialized]
+        private bool _hasSavedPersistentEffect = false;
         
         private Dictionary<string, string> _equippedItemsData = new Dictionary<string, string>();
         
@@ -229,6 +236,7 @@ namespace SketchBlade.Models
         // Свойства для индивидуальных эффектов анимации
         public bool HasActiveColorEffect => _hasActiveColorEffect;
         public PotionEffectType CurrentColorEffect => _currentColorEffect;
+        public bool IsPersistentEffect => _isPersistentEffect;
         
         public string ImagePath 
         { 
@@ -273,10 +281,65 @@ namespace SketchBlade.Models
             } 
         }
         
-        public int Level { get; set; } = 1;
-        public int XP { get; set; } = 0;
-        public int XPToNextLevel { get; set; } = 100;
-        public int Money { get; set; } = 0;
+        private int _level = 1;
+        public int Level 
+        { 
+            get => _level; 
+            set 
+            { 
+                if (_level != value)
+                {
+                    _level = value; 
+                    OnPropertyChanged();
+                    LoggingService.LogDebug($"Player level changed to {value}");
+                }
+            } 
+        }
+        
+        private int _xp = 0;
+        public int XP 
+        { 
+            get => _xp; 
+            set 
+            { 
+                if (_xp != value)
+                {
+                    _xp = value; 
+                    OnPropertyChanged();
+                    LoggingService.LogDebug($"Player XP changed to {value}");
+                }
+            } 
+        }
+        
+        private int _xpToNextLevel = 100;
+        public int XPToNextLevel 
+        { 
+            get => _xpToNextLevel; 
+            set 
+            { 
+                if (_xpToNextLevel != value)
+                {
+                    _xpToNextLevel = value; 
+                    OnPropertyChanged();
+                }
+            } 
+        }
+        
+        private int _money = 0;
+        public int Money 
+        { 
+            get => _money; 
+            set 
+            { 
+                if (_money != value)
+                {
+                    _money = value; 
+                    OnPropertyChanged();
+                    LoggingService.LogDebug($"Player money changed to {value}");
+                }
+            } 
+        }
+        
         public string SpritePath { get; set; } = string.Empty;
         public bool IsBoss { get; set; } = false;
         
@@ -305,19 +368,25 @@ namespace SketchBlade.Models
                         return heroTranslation;
                     }
                 }
-                else if (Type == "Enemy")
+                else if (Type == "Enemy" || Type == "Boss")
                 {
-                    string[] locations = { "Village", "Forest", "Cave", "Ruins", "Castle" };
-                    
-                    foreach (var location in locations)
+                    // Используем конкретную локацию персонажа для получения правильного перевода
+                    string locationName = LocationType switch
                     {
-                        string enemyKey = $"Characters.Enemies.{location}.Regular";
-                        string enemyTranslation = LocalizationService.Instance.GetTranslation(enemyKey);
-                        
-                        if (!string.IsNullOrEmpty(enemyTranslation) && enemyTranslation != enemyKey)
-                        {
-                            return enemyTranslation;
-                        }
+                        LocationType.Village => "Village",
+                        LocationType.Forest => "Forest",
+                        LocationType.Cave => "Cave",
+                        LocationType.Ruins => "Ruins",
+                        LocationType.Castle => "Castle",
+                        _ => "Village"
+                    };
+                    
+                    string enemyKey = $"Characters.Enemies.{locationName}.Regular";
+                    string enemyTranslation = LocalizationService.Instance.GetTranslation(enemyKey);
+                    
+                    if (!string.IsNullOrEmpty(enemyTranslation) && enemyTranslation != enemyKey)
+                    {
+                        return enemyTranslation;
                     }
                 }
                 
@@ -735,22 +804,36 @@ namespace SketchBlade.Models
         }
         
         // Методы для управления цветовыми эффектами
-        public void StartColorEffect(PotionEffectType effectType, int durationMs = 2000)
+        public void StartColorEffect(PotionEffectType effectType, int durationMs = 2000, bool persistent = false)
         {
             try
             {
+                // Проверяем, есть ли активный персистентный эффект, который нужно сохранить
+                if (_hasActiveColorEffect && _isPersistentEffect && !persistent)
+                {
+                    // Сохраняем персистентный эффект для последующего восстановления
+                    _savedPersistentEffect = _currentColorEffect;
+                    _hasSavedPersistentEffect = true;
+                    LoggingService.LogInfo($"{Name} сохраняет персистентный эффект {_currentColorEffect} перед временным эффектом {effectType}");
+                }
+                
                 // Останавливаем предыдущий эффект
-                StopColorEffect();
+                StopColorEffect(false); // Передаем false, чтобы не сбрасывать сохраненный эффект
                 
                 _hasActiveColorEffect = true;
                 _currentColorEffect = effectType;
+                _isPersistentEffect = persistent;
                 OnPropertyChanged(nameof(HasActiveColorEffect));
                 OnPropertyChanged(nameof(CurrentColorEffect));
+                OnPropertyChanged(nameof(IsPersistentEffect));
                 
-                LoggingService.LogInfo($"{Name} начинает цветовой эффект {effectType} на {durationMs}мс");
+                LoggingService.LogInfo($"{Name} начинает цветовой эффект {effectType} на {durationMs}мс, persistent: {persistent}");
                 
-                // Запускаем таймер для остановки эффекта
-                _colorEffectTimer = new Timer(_ => StopColorEffect(), null, durationMs, Timeout.Infinite);
+                // Запускаем таймер для остановки эффекта только если это не персистентный эффект
+                if (!persistent)
+                {
+                    _colorEffectTimer = new Timer(_ => OnColorEffectTimerExpired(), null, durationMs, Timeout.Infinite);
+                }
             }
             catch (Exception ex)
             {
@@ -758,7 +841,31 @@ namespace SketchBlade.Models
             }
         }
         
-        public void StopColorEffect()
+        private void OnColorEffectTimerExpired()
+        {
+            // Вызывается когда временный эффект завершился
+            StopColorEffect(false); // Останавливаем текущий эффект
+            
+            // Проверяем, нужно ли восстановить сохраненный персистентный эффект
+            if (_hasSavedPersistentEffect)
+            {
+                LoggingService.LogInfo($"{Name} восстанавливает персистентный эффект {_savedPersistentEffect}");
+                
+                // Восстанавливаем сохраненный эффект
+                _hasActiveColorEffect = true;
+                _currentColorEffect = _savedPersistentEffect;
+                _isPersistentEffect = true;
+                _hasSavedPersistentEffect = false;
+                _savedPersistentEffect = PotionEffectType.None;
+                
+                // Уведомляем UI о восстановлении эффекта
+                OnPropertyChanged(nameof(HasActiveColorEffect));
+                OnPropertyChanged(nameof(CurrentColorEffect));
+                OnPropertyChanged(nameof(IsPersistentEffect));
+            }
+        }
+        
+        public void StopColorEffect(bool clearSavedEffect = true)
         {
             try
             {
@@ -773,8 +880,17 @@ namespace SketchBlade.Models
                     LoggingService.LogInfo($"{Name} останавливает цветовой эффект {_currentColorEffect}");
                     _hasActiveColorEffect = false;
                     _currentColorEffect = PotionEffectType.None;
+                    _isPersistentEffect = false;
                     OnPropertyChanged(nameof(HasActiveColorEffect));
                     OnPropertyChanged(nameof(CurrentColorEffect));
+                    OnPropertyChanged(nameof(IsPersistentEffect));
+                }
+                
+                // Очищаем сохраненный эффект только если это запрошено
+                if (clearSavedEffect)
+                {
+                    _hasSavedPersistentEffect = false;
+                    _savedPersistentEffect = PotionEffectType.None;
                 }
             }
             catch (Exception ex)
@@ -805,6 +921,40 @@ namespace SketchBlade.Models
             OnPropertyChanged(nameof(TotalDefense));
             OnPropertyChanged(nameof(IsDefeated));
             OnPropertyChanged(nameof(HealthPercent));
+        }
+
+        // Обработка статус-эффектов в конце хода
+        public void ProcessEndOfTurn()
+        {
+            if (_attackBonusTurnsRemaining > 0)
+            {
+                _attackBonusTurnsRemaining--;
+                if (_attackBonusTurnsRemaining <= 0)
+                {
+                    _temporaryAttackBonus = 0;
+                    OnPropertyChanged(nameof(TotalAttack));
+                    // Stop the persistent color effect when buff expires
+                    if (_currentColorEffect == PotionEffectType.Rage && _isPersistentEffect)
+                    {
+                        StopColorEffect(true); // Полностью останавливаем эффект включая сохраненные
+                    }
+                }
+            }
+
+            if (_defenseBonusTurnsRemaining > 0)
+            {
+                _defenseBonusTurnsRemaining--;
+                if (_defenseBonusTurnsRemaining <= 0)
+                {
+                    _temporaryDefenseBonus = 0;
+                    OnPropertyChanged(nameof(TotalDefense));
+                    // Stop the persistent color effect when buff expires
+                    if (_currentColorEffect == PotionEffectType.Defense && _isPersistentEffect)
+                    {
+                        StopColorEffect(true); // Полностью останавливаем эффект включая сохраненные
+                    }
+                }
+            }
         }
     }
 } 

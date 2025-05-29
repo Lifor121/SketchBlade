@@ -394,8 +394,22 @@ namespace SketchBlade.Services
 
                 for (int i = 0; i < enemyCount; i++)
                 {
-                    var enemyType = GetRandomEnemyType(location.Type);
-                    var enemy = CreateEnemy(enemyType, locationTier, playerLevel);
+                    LocationType enemyLocationType = location.Type;
+                    
+                    // 30% шанс сгенерировать моба из соседней локации (увеличен для тестирования)
+                    if (_random.NextDouble() < 0.30)
+                    {
+                        var neighborLocations = GetNeighborLocationTypes(location.Type);
+                        if (neighborLocations.Any())
+                        {
+                            enemyLocationType = neighborLocations[_random.Next(neighborLocations.Count)];
+                            LoggingService.LogInfo($"Generating enemy from neighbor location: {enemyLocationType} instead of {location.Type}");
+                        }
+                    }
+                    
+                    var enemyType = GetRandomEnemyType(enemyLocationType);
+                    var enemyTier = GetLocationTier(enemyLocationType);
+                    var enemy = CreateEnemy(enemyType, enemyTier, playerLevel);
                     enemies.Add(enemy);
                 }
 
@@ -414,11 +428,23 @@ namespace SketchBlade.Services
             {
                 var baseStats = GetEnemyBaseStats(enemyType);
                 var difficulty = (int)GetLocationDifficulty(locationTier - 1);
+                
+                // Определяем тип локации из уровня
+                LocationType locationType = locationTier switch
+                {
+                    1 => LocationType.Village,
+                    2 => LocationType.Forest,
+                    3 => LocationType.Cave,
+                    4 => LocationType.Ruins,
+                    5 => LocationType.Castle,
+                    _ => LocationType.Village
+                };
 
                 var enemy = new Character
                 {
                     Name = LocalizationService.Instance.GetTranslation($"Enemies.{enemyType}"),
-                    Type = enemyType,
+                    Type = "Enemy", // Устанавливаем правильный тип для локализации
+                    LocationType = locationType, // Добавляем LocationType для локализации
                     IsPlayer = false,
                     IsHero = false,
                     Level = Math.Max(1, playerLevel + _random.Next(-1, 2)),
@@ -472,11 +498,23 @@ namespace SketchBlade.Services
                 var heroName = $"{locationName} Guardian";
                 var recommendedLevel = GetRecommendedLevel(locationIndex);
                 var difficulty = (int)GetLocationDifficulty(locationIndex);
+                
+                // Определяем тип локации из индекса
+                LocationType locationType = locationIndex switch
+                {
+                    0 => LocationType.Village,
+                    1 => LocationType.Forest,
+                    2 => LocationType.Cave,
+                    3 => LocationType.Ruins,
+                    4 => LocationType.Castle,
+                    _ => LocationType.Village
+                };
 
                 var hero = new Character
                 {
                     Name = LocalizationService.Instance.GetTranslation($"Heroes.{locationName}"),
                     Type = $"{locationName}Hero",
+                    LocationType = locationType, // Добавляем LocationType для локализации
                     IsPlayer = false,
                     IsHero = true,
                     Level = recommendedLevel + 2,
@@ -635,6 +673,41 @@ namespace SketchBlade.Services
         {
             var armorTypes = new[] { ItemType.Helmet, ItemType.Chestplate, ItemType.Leggings };
             return armorTypes[_random.Next(armorTypes.Length)];
+        }
+
+        private List<LocationType> GetNeighborLocationTypes(LocationType currentLocationType)
+        {
+            var neighbors = new List<LocationType>();
+            var currentTier = GetLocationTier(currentLocationType);
+            
+            // Добавляем предыдущую локацию (если есть)
+            if (currentTier > 1)
+            {
+                var previousLocationType = GetLocationTypeByTier(currentTier - 1);
+                neighbors.Add(previousLocationType);
+            }
+            
+            // Добавляем следующую локацию (если есть)
+            if (currentTier < 5) // Максимальный уровень - Castle (5)
+            {
+                var nextLocationType = GetLocationTypeByTier(currentTier + 1);
+                neighbors.Add(nextLocationType);
+            }
+            
+            return neighbors;
+        }
+
+        private LocationType GetLocationTypeByTier(int tier)
+        {
+            return tier switch
+            {
+                1 => LocationType.Village,
+                2 => LocationType.Forest,
+                3 => LocationType.Cave,
+                4 => LocationType.Ruins,
+                5 => LocationType.Castle,
+                _ => LocationType.Village
+            };
         }
 
         #endregion

@@ -17,34 +17,43 @@ public partial class App : Application
 {
     protected override void OnStartup(StartupEventArgs e)
     {
+        base.OnStartup(e);
+
         try
         {
-            // ������������� ������� ����������� �� Debug ��� ������������ �����������
-            LoggingService.SetLogLevel(LoggingService.LogLevel.Debug);
-            
-            // ������������� ����������� ���������� ��� ����� ������
+            // Обработчики ошибок
+            this.DispatcherUnhandledException += Current_DispatcherUnhandledException;
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-            Current.DispatcherUnhandledException += Current_DispatcherUnhandledException;
+
+            // Инициализация ResourcePathManager и проверка внешней папки Resources
+            ResourcePathManager.EnsureResourceDirectoriesExist();
             
-            base.OnStartup(e);
-            
+            if (!ResourcePathManager.ResourcesDirectoryExists())
+            {
+                MessageBox.Show($"Папка Resources не найдена рядом с исполняемым файлом.\n" +
+                              $"Ожидаемое расположение: {ResourcePathManager.ResourcesBasePath}\n\n" +
+                              "Приложение может работать некорректно без необходимых ресурсов.",
+                              "Внимание: Ресурсы не найдены",
+                              MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+
+            // Инициализация основных сервисов
+            InitializeServices();
+
+            // Обеспечиваем наличие папок и файлов
             EnsureAssetsAvailable();
-            
-            // ������������� ����������� �������
-            _ = ResourceService.Instance.PreloadCriticalResourcesAsync();
-            
+
+            // Предзагрузка критических ресурсов
             PreloadAndFreezeImages();
-            
+
+            // Регистрация основных компонентов
             RegisterEssentialServices();
         }
         catch (Exception ex)
         {
-            LoggingService.LogError($"ERROR during startup: {ex.Message}", ex);
-            
-            MessageBox.Show($"Warning: Some assets may not load correctly. Error: {ex.Message}", 
-                          "SketchBlade Asset Warning", 
-                          MessageBoxButton.OK, 
-                          MessageBoxImage.Warning);
+            LoggingService.LogError("Error during application startup", ex);
+            MessageBox.Show($"Ошибка запуска приложения: {ex.Message}", "Критическая ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            Environment.Exit(1);
         }
     }
     
@@ -136,38 +145,8 @@ public partial class App : Application
     {
         try
         {
-            string execDir = AppDomain.CurrentDomain.BaseDirectory;
-            
-            // Проверяем наличие основных папок
-            string[] requiredDirectories = {
-                Path.Combine(execDir, "Resources"),
-                Path.Combine(execDir, "Resources", "Assets"),
-                Path.Combine(execDir, "Resources", "Assets", "Images"),
-                Path.Combine(execDir, "Resources", "Assets", "Images", "Locations"),
-                Path.Combine(execDir, "Resources", "Assets", "Images", "Characters"),
-                Path.Combine(execDir, "Resources", "Assets", "Images", "Enemies"),
-                Path.Combine(execDir, "Resources", "Assets", "Images", "UI"),
-                Path.Combine(execDir, "Resources", "Assets", "Images", "items"),
-                Path.Combine(execDir, "Resources", "Assets", "Images", "items", "weapons"),
-                Path.Combine(execDir, "Resources", "Assets", "Images", "items", "armor"),
-                Path.Combine(execDir, "Resources", "Assets", "Images", "items", "consumables"),
-                Path.Combine(execDir, "Resources", "Assets", "Images", "items", "materials"),
-                Path.Combine(execDir, "Resources", "Localizations"),
-                Path.Combine(execDir, "Resources", "Saves"),
-                Path.Combine(execDir, "Resources", "Logs")
-            };
-            
-            foreach (var dir in requiredDirectories)
-            {
-                if (!Directory.Exists(dir))
-                {
-                    Directory.CreateDirectory(dir);
-                    // LoggingService.LogDebug($"Created directory: {dir}");
-                }
-            }
-            
             // Проверяем наличие критически важного файла def.png
-            string defPngPath = Path.Combine(execDir, "Resources", "Assets", "Images", "def.png");
+            string defPngPath = AssetPaths.DEFAULT_IMAGE;
             if (!File.Exists(defPngPath))
             {
                 LoggingService.LogError($"CRITICAL: Default image (def.png) not found at {defPngPath}");
@@ -192,6 +171,9 @@ public partial class App : Application
             if (GameData != null)
             {
                 Application.Current.Resources["GameData"] = GameData;
+                
+                // После создания GameData применяем загруженные настройки
+                ApplyLoadedSettings(GameData);
             }
             
             // LoggingService.LogDebug("Essential services registration complete");
@@ -199,6 +181,27 @@ public partial class App : Application
         catch (Exception ex)
         {
             LoggingService.LogError($"Error registering essential services: {ex.Message}", ex);
+        }
+    }
+
+    private void ApplyLoadedSettings(Models.GameData gameData)
+    {
+        try
+        {
+            if (gameData?.Settings != null)
+            {
+                // Применяем язык к LocalizationService
+                LocalizationService.Instance.CurrentLanguage = gameData.Settings.Language;
+                
+                // Применяем язык к UI
+                UIService.Instance.ApplyLanguage(gameData.Settings.Language);
+                
+                LoggingService.LogInfo($"Applied loaded settings: Language={gameData.Settings.Language}, Difficulty={gameData.Settings.Difficulty}");
+            }
+        }
+        catch (Exception ex)
+        {
+            LoggingService.LogError($"Error applying loaded settings: {ex.Message}", ex);
         }
     }
 

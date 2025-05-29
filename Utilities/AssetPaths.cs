@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 
 namespace SketchBlade.Utilities
 {
@@ -13,14 +14,14 @@ namespace SketchBlade.Utilities
         #region Base Paths
         
         /// <summary>
-        /// Базовый путь к директории с ресурсами
+        /// Базовый путь к директории с ресурсами (внешняя папка Resources)
         /// </summary>
-        public const string BASE_ASSETS_PATH = "Resources/Assets/Images/";
+        public static string BASE_ASSETS_PATH => Path.Combine(ResourcePathManager.ImagesPath, "") + Path.DirectorySeparatorChar;
         
         /// <summary>
         /// Путь к изображению по умолчанию (используется при отсутствии других ресурсов)
         /// </summary>
-        public const string DEFAULT_IMAGE = BASE_ASSETS_PATH + "def.png";
+        public static string DEFAULT_IMAGE => Path.Combine(ResourcePathManager.ImagesPath, "def.png");
         
         #endregion
 
@@ -31,22 +32,22 @@ namespace SketchBlade.Utilities
         /// </summary>
         public static class Characters
         {
-            private const string BASE_PATH = BASE_ASSETS_PATH + "Characters/";
+            private static string BASE_PATH => Path.Combine(ResourcePathManager.ImagesPath, "Characters") + Path.DirectorySeparatorChar;
             
             /// <summary>
             /// Основной спрайт игрока
             /// </summary>
-            public const string PLAYER = BASE_PATH + "player.png";
+            public static string PLAYER => Path.Combine(BASE_PATH, "player.png");
             
             /// <summary>
             /// Спрайт NPC
             /// </summary>
-            public const string NPC = BASE_PATH + "npc.png";
+            public static string NPC => Path.Combine(BASE_PATH, "npc.png");
             
             /// <summary>
             /// Спрайт героя
             /// </summary>
-            public const string HERO = BASE_PATH + "hero.png";
+            public static string HERO => Path.Combine(BASE_PATH, "hero.png");
 
             /// <summary>
             /// Получить путь к спрайту персонажа по типу
@@ -74,13 +75,13 @@ namespace SketchBlade.Utilities
         /// </summary>
         public static class Weapons
         {
-            private const string BASE_PATH = BASE_ASSETS_PATH + "items/weapons/";
+            private static string BASE_PATH => Path.Combine(ResourcePathManager.ImagesPath, "items", "weapons") + Path.DirectorySeparatorChar;
             
             // Мечи по материалам
-            public const string WOODEN_SWORD = BASE_PATH + "wooden_sword.png";
-            public const string IRON_SWORD = BASE_PATH + "iron_sword.png";
-            public const string GOLDEN_SWORD = BASE_PATH + "golden_sword.png";
-            public const string LUMINITE_SWORD = BASE_PATH + "luminite_sword.png";
+            public static string WOODEN_SWORD => Path.Combine(BASE_PATH, "wooden_sword.png");
+            public static string IRON_SWORD => Path.Combine(BASE_PATH, "iron_sword.png");
+            public static string GOLDEN_SWORD => Path.Combine(BASE_PATH, "golden_sword.png");
+            public static string LUMINITE_SWORD => Path.Combine(BASE_PATH, "luminite_sword.png");
             
             /// <summary>
             /// Получить путь к мечу по префиксу материала
@@ -108,7 +109,7 @@ namespace SketchBlade.Utilities
             public static string GetWeaponPath(string weaponType, string material)
             {
                 var fileName = $"{material?.ToLower() ?? "wooden"}_{weaponType?.ToLower() ?? "sword"}.png";
-                return BASE_PATH + fileName;
+                return Path.Combine(BASE_PATH, fileName);
             }
         }
         
@@ -121,31 +122,31 @@ namespace SketchBlade.Utilities
         /// </summary>
         public static class Armor
         {
-            private const string BASE_PATH = BASE_ASSETS_PATH + "items/armor/";
+            private static string BASE_PATH => Path.Combine(ResourcePathManager.ImagesPath, "items", "armor") + Path.DirectorySeparatorChar;
             
             // Шлемы
-            public const string WOODEN_HELMET = BASE_PATH + "wooden_helmet.png";
-            public const string IRON_HELMET = BASE_PATH + "iron_helmet.png";
-            public const string GOLDEN_HELMET = BASE_PATH + "golden_helmet.png";
-            public const string LUMINITE_HELMET = BASE_PATH + "luminite_helmet.png";
+            public static string WOODEN_HELMET => Path.Combine(BASE_PATH, "wooden_helmet.png");
+            public static string IRON_HELMET => Path.Combine(BASE_PATH, "iron_helmet.png");
+            public static string GOLDEN_HELMET => Path.Combine(BASE_PATH, "golden_helmet.png");
+            public static string LUMINITE_HELMET => Path.Combine(BASE_PATH, "luminite_helmet.png");
             
             // Нагрудники
-            public const string WOODEN_CHESTPLATE = BASE_PATH + "wooden_chest.png";
-            public const string IRON_CHESTPLATE = BASE_PATH + "iron_chest.png";
-            public const string GOLDEN_CHESTPLATE = BASE_PATH + "golden_chest.png";
-            public const string LUMINITE_CHESTPLATE = BASE_PATH + "luminite_chest.png";
+            public static string WOODEN_CHESTPLATE => Path.Combine(BASE_PATH, "wooden_chest.png");
+            public static string IRON_CHESTPLATE => Path.Combine(BASE_PATH, "iron_chest.png");
+            public static string GOLDEN_CHESTPLATE => Path.Combine(BASE_PATH, "golden_chest.png");
+            public static string LUMINITE_CHESTPLATE => Path.Combine(BASE_PATH, "luminite_chest.png");
             
             // Поножи
-            public const string WOODEN_LEGGINGS = BASE_PATH + "wooden_legs.png";
-            public const string IRON_LEGGINGS = BASE_PATH + "iron_legs.png";
-            public const string GOLDEN_LEGGINGS = BASE_PATH + "golden_legs.png";
-            public const string LUMINITE_LEGGINGS = BASE_PATH + "luminite_legs.png";
+            public static string WOODEN_LEGGINGS => Path.Combine(BASE_PATH, "wooden_legs.png");
+            public static string IRON_LEGGINGS => Path.Combine(BASE_PATH, "iron_legs.png");
+            public static string GOLDEN_LEGGINGS => Path.Combine(BASE_PATH, "golden_legs.png");
+            public static string LUMINITE_LEGGINGS => Path.Combine(BASE_PATH, "luminite_legs.png");
             
             // Щиты
-            public const string WOODEN_SHIELD = BASE_PATH + "wooden_shield.png";
-            public const string IRON_SHIELD = BASE_PATH + "iron_shield.png";
-            public const string GOLDEN_SHIELD = BASE_PATH + "golden_shield.png";
-            public const string LUMINITE_SHIELD = BASE_PATH + "luminite_shield.png";
+            public static string WOODEN_SHIELD => Path.Combine(BASE_PATH, "wooden_shield.png");
+            public static string IRON_SHIELD => Path.Combine(BASE_PATH, "iron_shield.png");
+            public static string GOLDEN_SHIELD => Path.Combine(BASE_PATH, "golden_shield.png");
+            public static string LUMINITE_SHIELD => Path.Combine(BASE_PATH, "luminite_shield.png");
             
             /// <summary>
             /// Получить путь к броне по материалу и типу
@@ -158,7 +159,7 @@ namespace SketchBlade.Utilities
                 var material = materialPrefix?.ToLower() ?? "wooden";
                 var type = armorType?.ToLower() ?? "chest";
                 
-                return $"{BASE_PATH}{material}_{type}.png";
+                return Path.Combine(BASE_PATH, $"{material}_{type}.png");
             }
         }
         
@@ -171,17 +172,17 @@ namespace SketchBlade.Utilities
         /// </summary>
         public static class Consumables
         {
-            private const string BASE_PATH = BASE_ASSETS_PATH + "items/consumables/";
+            private static string BASE_PATH => Path.Combine(ResourcePathManager.ImagesPath, "items", "consumables") + Path.DirectorySeparatorChar;
             
             // Зелья
-            public const string HEALING_POTION = BASE_PATH + "healing_potion.png";
-            public const string RAGE_POTION = BASE_PATH + "rage_potion.png";
-            public const string INVULNERABILITY_POTION = BASE_PATH + "invulnerability_potion.png";
+            public static string HEALING_POTION => Path.Combine(BASE_PATH, "healing_potion.png");
+            public static string RAGE_POTION => Path.Combine(BASE_PATH, "rage_potion.png");
+            public static string INVULNERABILITY_POTION => Path.Combine(BASE_PATH, "invulnerability_potion.png");
             
             // Инструменты и разное
-            public const string BOMB = BASE_PATH + "bomb.png";
-            public const string PILLOW = BASE_PATH + "pillow.png";
-            public const string POISONED_SHURIKEN = BASE_PATH + "poisoned_shuriken.png";
+            public static string BOMB => Path.Combine(BASE_PATH, "bomb.png");
+            public static string PILLOW => Path.Combine(BASE_PATH, "pillow.png");
+            public static string POISONED_SHURIKEN => Path.Combine(BASE_PATH, "poisoned_shuriken.png");
             
             /// <summary>
             /// Получить путь к расходуемому предмету по названию
@@ -200,7 +201,7 @@ namespace SketchBlade.Utilities
                     "bomb" or "бомба" => BOMB,
                     "pillow" or "подушка" => PILLOW,
                     "poisoned_shuriken" or "отравленная_звездочка" => POISONED_SHURIKEN,
-                    _ => BASE_PATH + normalizedName + ".png"
+                    _ => Path.Combine(BASE_PATH, normalizedName + ".png")
                 };
             }
         }
@@ -214,28 +215,28 @@ namespace SketchBlade.Utilities
         /// </summary>
         public static class Materials
         {
-            private const string BASE_PATH = BASE_ASSETS_PATH + "items/materials/";
+            private static string BASE_PATH => Path.Combine(ResourcePathManager.ImagesPath, "items", "materials") + Path.DirectorySeparatorChar;
             
             // Базовые материалы
-            public const string WOOD = BASE_PATH + "wood.png";
-            public const string STICK = BASE_PATH + "stick.png";
-            public const string CLOTH = BASE_PATH + "cloth.png";
-            public const string HERB = BASE_PATH + "herb.png";
-            public const string FEATHER = BASE_PATH + "feather.png";
-            public const string FLASK = BASE_PATH + "flask.png";
+            public static string WOOD => Path.Combine(BASE_PATH, "wood.png");
+            public static string STICK => Path.Combine(BASE_PATH, "stick.png");
+            public static string CLOTH => Path.Combine(BASE_PATH, "cloth.png");
+            public static string HERB => Path.Combine(BASE_PATH, "herb.png");
+            public static string FEATHER => Path.Combine(BASE_PATH, "feather.png");
+            public static string FLASK => Path.Combine(BASE_PATH, "flask.png");
             
-            // Руды и слитки
-            public const string IRON_ORE = BASE_PATH + "iron_ore.png";
-            public const string IRON_INGOT = BASE_PATH + "iron_ingot.png";
-            public const string GOLD_ORE = BASE_PATH + "gold_ore.png";
-            public const string GOLD_INGOT = BASE_PATH + "gold_ingot.png";
+            // Металлы
+            public static string IRON_ORE => Path.Combine(BASE_PATH, "iron_ore.png");
+            public static string IRON_INGOT => Path.Combine(BASE_PATH, "iron_ingot.png");
+            public static string GOLD_ORE => Path.Combine(BASE_PATH, "gold_ore.png");
+            public static string GOLD_INGOT => Path.Combine(BASE_PATH, "gold_ingot.png");
             
-            // Редкие материалы
-            public const string CRYSTAL_DUST = BASE_PATH + "crystal_dust.png";
-            public const string GUNPOWDER = BASE_PATH + "gunpowder.png";
-            public const string POISON_EXTRACT = BASE_PATH + "poison_extract.png";
-            public const string LUMINITE_FRAGMENT = BASE_PATH + "luminite_fragment.png";
-            public const string LUMINITE = BASE_PATH + "luminite.png";
+            // Специальные материалы
+            public static string CRYSTAL_DUST => Path.Combine(BASE_PATH, "crystal_dust.png");
+            public static string GUNPOWDER => Path.Combine(BASE_PATH, "gunpowder.png");
+            public static string POISON_EXTRACT => Path.Combine(BASE_PATH, "poison_extract.png");
+            public static string LUMINITE_FRAGMENT => Path.Combine(BASE_PATH, "luminite_fragment.png");
+            public static string LUMINITE => Path.Combine(BASE_PATH, "luminite.png");
             
             /// <summary>
             /// Получить путь к материалу по названию
@@ -253,7 +254,7 @@ namespace SketchBlade.Utilities
                     "cloth" or "ткань" => CLOTH,
                     "herb" or "трава" => HERB,
                     "feather" or "перо" => FEATHER,
-                    "flask" or "фляга" => FLASK,
+                    "flask" or "колба" => FLASK,
                     "iron_ore" or "железная_руда" => IRON_ORE,
                     "iron_ingot" or "железный_слиток" => IRON_INGOT,
                     "gold_ore" or "золотая_руда" => GOLD_ORE,
@@ -263,7 +264,7 @@ namespace SketchBlade.Utilities
                     "poison_extract" or "ядовитый_экстракт" => POISON_EXTRACT,
                     "luminite_fragment" or "фрагмент_люминита" => LUMINITE_FRAGMENT,
                     "luminite" or "люминит" => LUMINITE,
-                    _ => BASE_PATH + normalizedName + ".png"
+                    _ => Path.Combine(BASE_PATH, normalizedName + ".png")
                 };
             }
         }
@@ -277,48 +278,53 @@ namespace SketchBlade.Utilities
         /// </summary>
         public static class Locations
         {
-            private const string BASE_PATH = BASE_ASSETS_PATH + "Locations/";
+            private static string BASE_PATH => Path.Combine(ResourcePathManager.ImagesPath, "Locations") + Path.DirectorySeparatorChar;
             
-            public const string VILLAGE = BASE_PATH + "village.png";
-            public const string FOREST = BASE_PATH + "forest.png";
-            public const string CAVE = BASE_PATH + "cave.png";
-            public const string RUINS = BASE_PATH + "ruins.png";
-            public const string CASTLE = BASE_PATH + "castle.png";
+            public static string VILLAGE => Path.Combine(BASE_PATH, "village.png");
+            public static string FOREST => Path.Combine(BASE_PATH, "forest.png");
+            public static string CAVE => Path.Combine(BASE_PATH, "cave.png");
+            public static string RUINS => Path.Combine(BASE_PATH, "ruins.png");
+            public static string CASTLE => Path.Combine(BASE_PATH, "castle.png");
             
             /// <summary>
-            /// Получить путь к локации по типу
+            /// Получить путь к спрайту локации по типу
             /// </summary>
-            /// <param name="locationType">Тип локации</param>
+            /// <param name="locationType">Тип локации (village, forest, cave, ruins, castle)</param>
             /// <returns>Путь к спрайту локации</returns>
             public static string GetLocationPath(string locationType)
             {
                 return locationType?.ToLower() switch
                 {
-                    "village" => VILLAGE,
-                    "forest" => FOREST,
-                    "cave" => CAVE,
-                    "ruins" => RUINS,
-                    "castle" => CASTLE,
+                    "village" or "деревня" => VILLAGE,
+                    "forest" or "лес" => FOREST,
+                    "cave" or "пещера" => CAVE,
+                    "ruins" or "руины" => RUINS,
+                    "castle" or "замок" => CASTLE,
                     _ => VILLAGE
                 };
             }
             
             /// <summary>
-            /// Получить путь к локации по названию
+            /// Получить путь к спрайту локации по имени
             /// </summary>
-            /// <param name="locationName">Название локации</param>
+            /// <param name="locationName">Имя локации</param>
             /// <returns>Путь к спрайту локации</returns>
             public static string GetLocationPathByName(string locationName)
             {
-                return locationName?.ToLower() switch
-                {
-                    "village" or "деревня" => VILLAGE,
-                    "forest" or "лес" => FOREST,
-                    "cave" or "пещера" => CAVE,
-                    "ancient ruins" or "руины" => RUINS,
-                    "dark castle" or "замок" => CASTLE,
-                    _ => VILLAGE
-                };
+                var normalizedName = locationName?.ToLower() ?? "";
+                
+                if (normalizedName.Contains("village") || normalizedName.Contains("деревн"))
+                    return VILLAGE;
+                if (normalizedName.Contains("forest") || normalizedName.Contains("лес"))
+                    return FOREST;
+                if (normalizedName.Contains("cave") || normalizedName.Contains("пещер"))
+                    return CAVE;
+                if (normalizedName.Contains("ruins") || normalizedName.Contains("руин"))
+                    return RUINS;
+                if (normalizedName.Contains("castle") || normalizedName.Contains("замок"))
+                    return CASTLE;
+                    
+                return VILLAGE;
             }
         }
         
@@ -327,25 +333,25 @@ namespace SketchBlade.Utilities
         #region Enemies
         
         /// <summary>
-        /// Пути к спрайтам врагов
+        /// Пути к спрайтам врагов и героев
         /// </summary>
         public static class Enemies
         {
-            private const string BASE_PATH = BASE_ASSETS_PATH + "Enemies/";
+            private static string BASE_PATH => Path.Combine(ResourcePathManager.ImagesPath, "Enemies") + Path.DirectorySeparatorChar;
             
             // Враги по локациям
-            public const string VILLAGE_ENEMY = BASE_PATH + "village_enemy.png";
-            public const string FOREST_ENEMY = BASE_PATH + "forest_enemy.png";
-            public const string CAVE_ENEMY = BASE_PATH + "cave_enemy.png";
-            public const string RUINS_ENEMY = BASE_PATH + "ruins_enemy.png";
-            public const string CASTLE_ENEMY = BASE_PATH + "castle_enemy.png";
+            public static string VILLAGE_ENEMY => Path.Combine(BASE_PATH, "village_enemy.png");
+            public static string FOREST_ENEMY => Path.Combine(BASE_PATH, "forest_enemy.png");
+            public static string CAVE_ENEMY => Path.Combine(BASE_PATH, "cave_enemy.png");
+            public static string RUINS_ENEMY => Path.Combine(BASE_PATH, "ruins_enemy.png");
+            public static string CASTLE_ENEMY => Path.Combine(BASE_PATH, "castle_enemy.png");
             
-            // Герои локаций
-            public const string VILLAGE_HERO = BASE_PATH + "village_hero.png";
-            public const string FOREST_HERO = BASE_PATH + "forest_hero.png";
-            public const string CAVE_HERO = BASE_PATH + "cave_hero.png";
-            public const string RUINS_HERO = BASE_PATH + "ruins_hero.png";
-            public const string CASTLE_HERO = BASE_PATH + "castle_hero.png";
+            // Герои по локациям
+            public static string VILLAGE_HERO => Path.Combine(BASE_PATH, "village_hero.png");
+            public static string FOREST_HERO => Path.Combine(BASE_PATH, "forest_hero.png");
+            public static string CAVE_HERO => Path.Combine(BASE_PATH, "cave_hero.png");
+            public static string RUINS_HERO => Path.Combine(BASE_PATH, "ruins_hero.png");
+            public static string CASTLE_HERO => Path.Combine(BASE_PATH, "castle_hero.png");
             
             /// <summary>
             /// Получить путь к спрайту врага по типу
@@ -356,11 +362,11 @@ namespace SketchBlade.Utilities
             {
                 return enemyType?.ToLower() switch
                 {
-                    "bandit" or "thief" => VILLAGE_ENEMY,
-                    "wolf" or "bear" or "goblin" => FOREST_ENEMY,
-                    "orc" or "troll" or "spider" => CAVE_ENEMY,
-                    "skeleton" or "wraith" or "golem" => RUINS_ENEMY,
-                    "knight" or "demon" or "dragon" => CASTLE_ENEMY,
+                    "village_enemy" => VILLAGE_ENEMY,
+                    "forest_enemy" => FOREST_ENEMY,
+                    "cave_enemy" => CAVE_ENEMY,
+                    "ruins_enemy" => RUINS_ENEMY,
+                    "castle_enemy" => CASTLE_ENEMY,
                     _ => VILLAGE_ENEMY
                 };
             }
@@ -372,45 +378,45 @@ namespace SketchBlade.Utilities
             /// <returns>Путь к спрайту героя</returns>
             public static string GetHeroPath(string locationName)
             {
-                return locationName?.ToLower() switch
-                {
-                    "village" => VILLAGE_HERO,
-                    "forest" => FOREST_HERO,
-                    "cave" => CAVE_HERO,
-                    "ruins" => RUINS_HERO,
-                    "castle" => CASTLE_HERO,
-                    _ => VILLAGE_HERO
-                };
+                var normalizedLocation = locationName?.ToLower() ?? "";
+                
+                if (normalizedLocation.Contains("village") || normalizedLocation.Contains("деревн"))
+                    return VILLAGE_HERO;
+                if (normalizedLocation.Contains("forest") || normalizedLocation.Contains("лес"))
+                    return FOREST_HERO;
+                if (normalizedLocation.Contains("cave") || normalizedLocation.Contains("пещер"))
+                    return CAVE_HERO;
+                if (normalizedLocation.Contains("ruins") || normalizedLocation.Contains("руин"))
+                    return RUINS_HERO;
+                if (normalizedLocation.Contains("castle") || normalizedLocation.Contains("замок"))
+                    return CASTLE_HERO;
+                    
+                return VILLAGE_HERO;
             }
             
             /// <summary>
-            /// Получить путь к врагу по типу локации
+            /// Получить путь к врагу или герою по типу локации
             /// </summary>
             /// <param name="locationType">Тип локации</param>
-            /// <param name="isHero">Является ли враг героем локации</param>
-            /// <returns>Путь к спрайту врага</returns>
+            /// <param name="isHero">Является ли героем</param>
+            /// <returns>Путь к спрайту</returns>
             public static string GetEnemyByLocationType(string locationType, bool isHero = false)
             {
-                var baseType = locationType?.ToLower() ?? "village";
+                var location = locationType?.ToLower() ?? "village";
                 
-                if (isHero)
+                return location switch
                 {
-                    return GetHeroPath(baseType);
-                }
-                
-                return baseType switch
-                {
-                    "village" => VILLAGE_ENEMY,
-                    "forest" => FOREST_ENEMY,
-                    "cave" => CAVE_ENEMY,
-                    "ruins" => RUINS_ENEMY,
-                    "castle" => CASTLE_ENEMY,
-                    _ => VILLAGE_ENEMY
+                    "village" => isHero ? VILLAGE_HERO : VILLAGE_ENEMY,
+                    "forest" => isHero ? FOREST_HERO : FOREST_ENEMY,
+                    "cave" => isHero ? CAVE_HERO : CAVE_ENEMY,
+                    "ruins" => isHero ? RUINS_HERO : RUINS_ENEMY,
+                    "castle" => isHero ? CASTLE_HERO : CASTLE_ENEMY,
+                    _ => isHero ? VILLAGE_HERO : VILLAGE_ENEMY
                 };
             }
             
             /// <summary>
-            /// Получить путь к спрайту врага по имени
+            /// Получить путь к врагу по имени
             /// </summary>
             /// <param name="enemyName">Имя врага</param>
             /// <returns>Путь к спрайту врага</returns>
@@ -418,16 +424,19 @@ namespace SketchBlade.Utilities
             {
                 var normalizedName = enemyName?.ToLower() ?? "";
                 
-                // Карта имен врагов к спрайтам
-                return normalizedName switch
-                {
-                    "village_enemy" or "village_hero" => VILLAGE_ENEMY,
-                    "forest_enemy" or "forest_hero" => FOREST_ENEMY,
-                    "cave_enemy" or "cave_hero" => CAVE_ENEMY,
-                    "ruins_enemy" or "ruins_hero" => RUINS_ENEMY,
-                    "castle_enemy" or "castle_hero" => CASTLE_ENEMY,
-                    _ => BASE_PATH + normalizedName + ".png"
-                };
+                // Проверяем по типу локации в имени
+                if (normalizedName.Contains("village") || normalizedName.Contains("деревн"))
+                    return normalizedName.Contains("hero") || normalizedName.Contains("герой") ? VILLAGE_HERO : VILLAGE_ENEMY;
+                if (normalizedName.Contains("forest") || normalizedName.Contains("лес"))
+                    return normalizedName.Contains("hero") || normalizedName.Contains("герой") ? FOREST_HERO : FOREST_ENEMY;
+                if (normalizedName.Contains("cave") || normalizedName.Contains("пещер"))
+                    return normalizedName.Contains("hero") || normalizedName.Contains("герой") ? CAVE_HERO : CAVE_ENEMY;
+                if (normalizedName.Contains("ruins") || normalizedName.Contains("руин"))
+                    return normalizedName.Contains("hero") || normalizedName.Contains("герой") ? RUINS_HERO : RUINS_ENEMY;
+                if (normalizedName.Contains("castle") || normalizedName.Contains("замок"))
+                    return normalizedName.Contains("hero") || normalizedName.Contains("герой") ? CASTLE_HERO : CASTLE_ENEMY;
+                    
+                return VILLAGE_ENEMY;
             }
         }
         
@@ -436,24 +445,24 @@ namespace SketchBlade.Utilities
         #region UI
         
         /// <summary>
-        /// Пути к элементам интерфейса
+        /// Пути к спрайтам UI элементов
         /// </summary>
         public static class UI
         {
-            private const string BASE_PATH = BASE_ASSETS_PATH + "UI/";
+            private static string BASE_PATH => Path.Combine(ResourcePathManager.ImagesPath, "UI") + Path.DirectorySeparatorChar;
             
-            public const string BUTTON_NORMAL = BASE_PATH + "button_normal.png";
-            public const string BUTTON_HOVER = BASE_PATH + "button_hover.png";
-            public const string BUTTON_PRESSED = BASE_PATH + "button_pressed.png";
-            public const string BACKGROUND = BASE_PATH + "background.png";
-            public const string PANEL = BASE_PATH + "panel.png";
-            public const string INVENTORY_SLOT = BASE_PATH + "inventory_slot.png";
+            public static string BUTTON_NORMAL => Path.Combine(BASE_PATH, "button_normal.png");
+            public static string BUTTON_HOVER => Path.Combine(BASE_PATH, "button_hover.png");
+            public static string BUTTON_PRESSED => Path.Combine(BASE_PATH, "button_pressed.png");
+            public static string BACKGROUND => Path.Combine(BASE_PATH, "background.png");
+            public static string PANEL => Path.Combine(BASE_PATH, "panel.png");
+            public static string INVENTORY_SLOT => Path.Combine(BASE_PATH, "inventory_slot.png");
             
             /// <summary>
-            /// Получить путь к элементу UI
+            /// Получить путь к UI элементу по названию
             /// </summary>
-            /// <param name="elementName">Название элемента UI</param>
-            /// <returns>Путь к спрайту элемента</returns>
+            /// <param name="elementName">Название элемента</param>
+            /// <returns>Путь к спрайту UI элемента</returns>
             public static string GetUIPath(string elementName)
             {
                 return elementName?.ToLower() switch
@@ -464,7 +473,7 @@ namespace SketchBlade.Utilities
                     "background" => BACKGROUND,
                     "panel" => PANEL,
                     "inventory_slot" => INVENTORY_SLOT,
-                    _ => BASE_PATH + elementName + ".png"
+                    _ => Path.Combine(BASE_PATH, elementName + ".png")
                 };
             }
         }
@@ -474,58 +483,42 @@ namespace SketchBlade.Utilities
         #region Utility Methods
         
         /// <summary>
-        /// Получить список всех критически важных ресурсов для предзагрузки
+        /// Получить список критически важных ресурсов для предзагрузки
         /// </summary>
-        /// <returns>Список путей к критически важным ресурсам</returns>
+        /// <returns>Коллекция путей к критически важным ресурсам</returns>
         public static IEnumerable<string> GetCriticalAssetPaths()
         {
-            return new[]
-            {
-                // Обязательные изображения
-                DEFAULT_IMAGE,
-                
-                // Основные персонажи
-                Characters.PLAYER,
-                Characters.NPC,
-                Characters.HERO,
-                
-                // Базовое оружие
-                Weapons.WOODEN_SWORD,
-                
-                // Базовые расходники
-                Consumables.HEALING_POTION,
-                
-                // Основные материалы
-                Materials.WOOD,
-                Materials.HERB,
-                
-                // Стартовая локация
-                Locations.VILLAGE,
-                
-                // Базовые враги
-                Enemies.VILLAGE_ENEMY,
-                Enemies.VILLAGE_HERO
-            };
+            yield return DEFAULT_IMAGE;
+            yield return Characters.PLAYER;
+            yield return Weapons.WOODEN_SWORD;
+            yield return Armor.WOODEN_CHESTPLATE;
+            yield return Consumables.HEALING_POTION;
+            yield return Materials.WOOD;
+            yield return Locations.VILLAGE;
+            yield return Enemies.VILLAGE_ENEMY;
+            yield return UI.BUTTON_NORMAL;
+            yield return UI.INVENTORY_SLOT;
         }
         
         /// <summary>
         /// Проверить, является ли ресурс критически важным
         /// </summary>
         /// <param name="assetPath">Путь к ресурсу</param>
-        /// <returns>true, если ресурс критически важен</returns>
+        /// <returns>True, если ресурс критически важен</returns>
         public static bool IsCriticalAsset(string assetPath)
         {
             if (string.IsNullOrEmpty(assetPath))
                 return false;
                 
-            return GetCriticalAssetPaths().Contains(assetPath);
+            var criticalAssets = GetCriticalAssetPaths();
+            return criticalAssets.Any(critical => string.Equals(critical, assetPath, StringComparison.OrdinalIgnoreCase));
         }
         
         /// <summary>
-        /// Проверить существование пути к ресурсу в файловой системе
+        /// Проверить существование ресурса
         /// </summary>
         /// <param name="assetPath">Путь к ресурсу</param>
-        /// <returns>true, если файл существует</returns>
+        /// <returns>True, если ресурс существует</returns>
         public static bool AssetExists(string assetPath)
         {
             if (string.IsNullOrEmpty(assetPath))
@@ -533,11 +526,7 @@ namespace SketchBlade.Utilities
                 
             try
             {
-                var fullPath = System.IO.Path.Combine(
-                    System.AppDomain.CurrentDomain.BaseDirectory, 
-                    assetPath
-                );
-                return System.IO.File.Exists(fullPath);
+                return File.Exists(assetPath);
             }
             catch
             {
@@ -546,34 +535,18 @@ namespace SketchBlade.Utilities
         }
         
         /// <summary>
-        /// Получить альтернативный путь для ресурса (fallback)
+        /// Получить резервный путь для отсутствующего ресурса
         /// </summary>
-        /// <param name="originalPath">Оригинальный путь</param>
-        /// <returns>Альтернативный путь или путь по умолчанию</returns>
+        /// <param name="originalPath">Оригинальный путь к ресурсу</param>
+        /// <returns>Путь к резервному ресурсу</returns>
         public static string GetFallbackPath(string originalPath)
         {
             if (string.IsNullOrEmpty(originalPath))
                 return DEFAULT_IMAGE;
                 
-            // Если оригинальный путь существует, возвращаем его
+            // Если оригинальный ресурс существует, возвращаем его
             if (AssetExists(originalPath))
                 return originalPath;
-                
-            // Пытаемся найти альтернативы по типу
-            if (originalPath.Contains("weapons/"))
-                return Weapons.WOODEN_SWORD;
-            else if (originalPath.Contains("armor/"))
-                return Armor.WOODEN_HELMET;
-            else if (originalPath.Contains("consumables/"))
-                return Consumables.HEALING_POTION;
-            else if (originalPath.Contains("materials/"))
-                return Materials.WOOD;
-            else if (originalPath.Contains("Characters/"))
-                return Characters.PLAYER;
-            else if (originalPath.Contains("Locations/"))
-                return Locations.VILLAGE;
-            else if (originalPath.Contains("Enemies/"))
-                return Enemies.VILLAGE_ENEMY;
                 
             // Возвращаем изображение по умолчанию
             return DEFAULT_IMAGE;

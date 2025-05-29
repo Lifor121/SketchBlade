@@ -14,7 +14,7 @@ namespace SketchBlade.Models
         private readonly BattleManager _battleManager;
 
         private DateTime _lastAutoSave = DateTime.MinValue;
-        private readonly TimeSpan _autoSaveInterval = TimeSpan.FromMinutes(2);
+        private readonly TimeSpan _autoSaveInterval = TimeSpan.FromSeconds(30);
 
         public GameState()
         {

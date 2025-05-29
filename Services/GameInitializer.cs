@@ -22,7 +22,7 @@ namespace SketchBlade.Services
         {
             gameData.Player = new Character
             {
-                Name = "Hero",
+                Name = LocalizationService.Instance.GetTranslation("Characters.PlayerName"),
                 MaxHealth = 100,
                 CurrentHealth = 100,
                 Attack = 10,
@@ -41,20 +41,14 @@ namespace SketchBlade.Services
             
             var startingItems = new List<(string name, int quantity)>
             {
-                ("Дерево", 20),           
-                ("Трава", 10),            
-                ("Палка", 5),             
-                ("Зелье лечения", 5),     // Увеличиваем количество для тестирования
-                ("Зелье ярости", 3),      // Добавляем зелье ярости
-                ("Зелье неуязвимости", 2), // Добавляем зелье неуязвимости
-                ("Бомба", 3),             // Добавляем бомбы
-                ("Подушка", 2),           // Добавляем подушки
-                ("Отравленный сюрикен", 4), // Добавляем сюрикены
-                ("Ткань", 5),          
-                ("Фляга", 3),           
-                ("Железная руда", 8),     
-                ("Железный слиток", 4),   
-                ("Золотой слиток", 2)  
+                ("Дерево", 10),
+                ("Зелье лечения", 6),
+                ("Зелье ярости", 1),
+                ("Зелье неуязвимости", 1),
+                ("Бомба", 1),
+                ("Подушка", 1),
+                ("Отравленный сюрикен", 1),
+                ("Деревянный меч", 1),
             };
             
             foreach (var (itemName, quantity) in startingItems)
@@ -190,20 +184,23 @@ namespace SketchBlade.Services
 
         private (string Name, int Health, int Attack, int Defense) GetEnemyData(LocationType locationType, bool isHero)
         {
+            // Базовые статы для обычных врагов
             var baseStats = locationType switch
             {
-                LocationType.Village => ("Крыса", 20, 5, 2),
-                LocationType.Forest => ("Волк", 40, 12, 5),
-                LocationType.Cave => ("Орк", 60, 18, 8),
-                LocationType.Ruins => ("Скелет", 80, 25, 12),
-                LocationType.Castle => ("Дракон", 120, 35, 18),
+                LocationType.Village => (GetLocalizedEnemyName(locationType, false), 20, 5, 2),
+                LocationType.Forest => (GetLocalizedEnemyName(locationType, false), 40, 12, 5),
+                LocationType.Cave => (GetLocalizedEnemyName(locationType, false), 60, 18, 8),
+                LocationType.Ruins => (GetLocalizedEnemyName(locationType, false), 80, 25, 12),
+                LocationType.Castle => (GetLocalizedEnemyName(locationType, false), 120, 35, 18),
                 _ => ("Неизвестный враг", 30, 8, 3)
             };
 
             if (isHero)
             {
+                // Для героев используем специальные названия из локализации
+                string heroName = GetLocalizedEnemyName(locationType, true);
                 return (
-                    $"Герой {baseStats.Item1}",
+                    heroName,
                     (int)(baseStats.Item2 * 1.5),
                     (int)(baseStats.Item3 * 1.3),
                     (int)(baseStats.Item4 * 1.2)
@@ -211,6 +208,28 @@ namespace SketchBlade.Services
             }
 
             return baseStats;
+        }
+
+        private string GetLocalizedEnemyName(LocationType locationType, bool isHero)
+        {
+            if (isHero)
+            {
+                string heroKey = locationType switch
+                {
+                    LocationType.Village => "Characters.Heroes.VillageElder",
+                    LocationType.Forest => "Characters.Heroes.ForestGuardian",
+                    LocationType.Cave => "Characters.Heroes.CaveTroll",
+                    LocationType.Ruins => "Characters.Heroes.GuardianGolem",
+                    LocationType.Castle => "Characters.Heroes.DarkKing",
+                    _ => "Characters.Heroes.VillageElder"
+                };
+                return LocalizationService.Instance.GetTranslation(heroKey);
+            }
+            else
+            {
+                string key = $"Characters.Enemies.{locationType}.Regular";
+                return LocalizationService.Instance.GetTranslation(key);
+            }
         }
 
         public bool ValidateInitialization(GameData gameData)

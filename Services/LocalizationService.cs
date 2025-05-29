@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Text.Json;
 using SketchBlade.Models;
+using SketchBlade.Utilities;
 
 namespace SketchBlade.Services
 {
@@ -34,8 +35,8 @@ namespace SketchBlade.Services
         private Dictionary<Language, Dictionary<string, string>> _itemTranslations = new();
         private Language _currentLanguage = Language.Russian;
 
-        private static readonly string RussianLocalizationFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Localizations", "russian.json");
-        private static readonly string EnglishLocalizationFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Localizations", "english.json");
+        private static string RussianLocalizationFile => Path.Combine(ResourcePathManager.LocalizationsPath, "russian.json");
+        private static string EnglishLocalizationFile => Path.Combine(ResourcePathManager.LocalizationsPath, "english.json");
 
         public event EventHandler? LanguageChanged;
 
@@ -358,7 +359,7 @@ namespace SketchBlade.Services
         {
             try
             {
-                var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Localizations", fileName);
+                var filePath = Path.Combine(ResourcePathManager.LocalizationsPath, fileName);
                 
                 if (File.Exists(filePath))
                 {

@@ -11,10 +11,66 @@ namespace SketchBlade.Models
     [Serializable]
     public class GameData : INotifyPropertyChanged
     {
+        [field: NonSerialized]
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public Character? Player { get; set; }
-        public Inventory Inventory { get; set; } = new Inventory();
+        private Character? _player;
+        public Character? Player 
+        { 
+            get => _player; 
+            set 
+            { 
+                if (_player != value)
+                {
+                    // Отписываемся от старого игрока
+                    if (_player != null)
+                    {
+                        _player.PropertyChanged -= OnPlayerPropertyChanged;
+                    }
+                    
+                    _player = value;
+                    
+                    // Подписываемся на нового игрока
+                    if (_player != null)
+                    {
+                        _player.PropertyChanged += OnPlayerPropertyChanged;
+                    }
+                    
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(PlayerHealth));
+                    OnPropertyChanged(nameof(PlayerStrength));
+                    OnPropertyChanged(nameof(PlayerDefense));
+                    OnPropertyChanged(nameof(PlayerDamage));
+                }
+            }
+        }
+
+        private Inventory _inventory = new Inventory();
+        public Inventory Inventory 
+        { 
+            get => _inventory; 
+            set 
+            { 
+                if (_inventory != value)
+                {
+                    // Отписываемся от старого инвентаря
+                    if (_inventory != null)
+                    {
+                        _inventory.PropertyChanged -= OnInventoryPropertyChanged;
+                        _inventory.InventoryChanged -= OnInventoryChanged;
+                    }
+                    
+                    _inventory = value ?? new Inventory();
+                    
+                    // Подписываемся на новый инвентарь
+                    _inventory.PropertyChanged += OnInventoryPropertyChanged;
+                    _inventory.InventoryChanged += OnInventoryChanged;
+                    
+                    OnPropertyChanged();
+                }
+            }
+        }
+        
         public ObservableCollection<Location> Locations { get; set; } = new ObservableCollection<Location>();
         public Location? CurrentLocation { get; set; }
         public int CurrentLocationIndex { get; set; } = 0;
@@ -39,12 +95,25 @@ namespace SketchBlade.Models
         private List<Item> _battleRewardItems = new List<Item>();
         public List<Item> BattleRewardItems 
         { 
-            get => _battleRewardItems;
+            get => _battleRewardItems; 
             set => SetProperty(ref _battleRewardItems, value);
         }
         public int BattleRewardGold { get; set; } = 0;
 
-        public int Gold { get; set; } = 0;
+        private int _gold = 0;
+        public int Gold 
+        { 
+            get => _gold; 
+            set 
+            {
+                if (_gold != value)
+                {
+                    _gold = value;
+                    OnPropertyChanged();
+                    LoggingService.LogDebug($"Gold changed to {value}");
+                }
+            }
+        }
 
         public object? CurrentScreenViewModel { get; set; }
 
@@ -58,6 +127,36 @@ namespace SketchBlade.Models
             Locations = new ObservableCollection<Location>();
             CurrentEnemies = new List<Character>();
             Settings = new GameSettings();
+            
+            // Загружаем настройки из файла при создании
+            CoreGameService.Instance.LoadGameSettings(Settings);
+            
+            // Подписываемся на изменения в инвентаре
+            _inventory.PropertyChanged += OnInventoryPropertyChanged;
+            _inventory.InventoryChanged += OnInventoryChanged;
+        }
+
+        private void OnPlayerPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            // Уведомляем об изменениях характеристик игрока
+            OnPropertyChanged(nameof(PlayerHealth));
+            OnPropertyChanged(nameof(PlayerStrength));
+            OnPropertyChanged(nameof(PlayerDefense));
+            OnPropertyChanged(nameof(PlayerDamage));
+            
+            LoggingService.LogDebug($"Player property changed: {e.PropertyName}");
+        }
+
+        private void OnInventoryPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            LoggingService.LogDebug($"Inventory property changed: {e.PropertyName}");
+            OnPropertyChanged(nameof(Inventory));
+        }
+
+        private void OnInventoryChanged(object? sender, EventArgs e)
+        {
+            LoggingService.LogDebug("Inventory contents changed");
+            OnPropertyChanged(nameof(Inventory));
         }
 
         public void Reset()
@@ -77,11 +176,16 @@ namespace SketchBlade.Models
             Inventory = new Inventory();
             Settings = new GameSettings();
             
+            // Загружаем настройки из файла после сброса
+            CoreGameService.Instance.LoadGameSettings(Settings);
+            
             // Уведомляем об изменении ключевых свойств
             OnPropertyChanged(nameof(Player));
             OnPropertyChanged(nameof(Inventory));
             OnPropertyChanged(nameof(Locations));
             OnPropertyChanged(nameof(CurrentLocation));
+            OnPropertyChanged(nameof(HasSaveGame));
+            OnPropertyChanged(nameof(Gold));
         }
 
         public GameData CreateSaveCopy()
@@ -121,6 +225,14 @@ namespace SketchBlade.Models
             
             var gameInitializer = new Services.GameInitializer();
             gameInitializer.InitializeNewGame(this);
+            
+            // После инициализации новой игры проверяем наличие сохранений на диске
+            // Это важно для корректного отображения кнопки "Продолжить"
+            CheckForSaveGame();
+            
+            // Автоматически сохраняем игру после инициализации
+            // Это гарантирует, что кнопка "Продолжить" будет активна сразу
+            SaveGame();
             
             LoggingService.LogInfo("=== ИГРА ИНИЦИАЛИЗИРОВАНА УСПЕШНО ===");
         }
@@ -163,6 +275,10 @@ namespace SketchBlade.Models
                 {
                     CopyFrom(loadedData);
                     HasSaveGame = true;
+                    
+                    // Загружаем настройки из файла после загрузки игры
+                    CoreGameService.Instance.LoadGameSettings(Settings);
+                    
                     LoggingService.LogInfo("Игра успешно загружена из оптимизированного формата");
                 }
                 else
@@ -229,8 +345,10 @@ namespace SketchBlade.Models
                 }
                 else
                 {
-                    // Обычная битва с мобами - просто отмечаем прогресс
+                    // Обычная битва с мобами - тоже сохраняем
                     LoggingService.LogInfo($"Battle won in {CurrentLocation.Name}, mobs defeated");
+                    SaveGame();
+                    LoggingService.LogInfo("Game saved after battle victory");
                 }
             }
             else

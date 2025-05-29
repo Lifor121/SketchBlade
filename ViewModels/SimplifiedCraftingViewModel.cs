@@ -307,9 +307,9 @@ namespace SketchBlade.ViewModels
                 //     LoggingService.LogInfo($"[CRAFT-SYSTEM]   ���������[{i}]: {item?.Name ?? "null"}");
                 // }
                 
-                // LoggingService.LogInfo($"[CRAFT-SYSTEM] �������� _craftingSystem.Craft()...");
-                bool success = _craftingSystem.Craft(SelectedRecipe, _gameState.Inventory);
-                // LoggingService.LogInfo($"[CRAFT-SYSTEM] _craftingSystem.Craft() ������: {success}");
+                // LoggingService.LogInfo($"[CRAFT-SYSTEM] Вызываем _craftingSystem.Craft()...");
+                bool success = _craftingSystem.Craft(SelectedRecipe, _gameState.Inventory, _gameState.Player);
+                // LoggingService.LogInfo($"[CRAFT-SYSTEM] _craftingSystem.Craft() вернул: {success}");
                 
                 if (success)
                 {

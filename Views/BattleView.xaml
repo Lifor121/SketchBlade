@@ -8,6 +8,7 @@
              xmlns:models="clr-namespace:SketchBlade.Models"
              xmlns:converters="clr-namespace:SketchBlade.Helpers.Converters"
              xmlns:system="clr-namespace:System;assembly=mscorlib"
+             xmlns:controls="clr-namespace:SketchBlade.Views.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="800">
     <UserControl.Resources>
@@ -22,6 +23,7 @@
         <converters:ImagePathToBitmapConverter x:Key="ImagePathToBitmapConverter"/>
         <converters:AttackingCharacterConverter x:Key="AttackingCharacterConverter"/>
         <converters:CharacterComparisonConverter x:Key="CharacterComparisonConverter"/>
+        <converters:QuantityToVisibilityConverter x:Key="QuantityToVisibilityConverter"/>
         
         <ControlTemplate x:Key="HealthBarTemplate" TargetType="ProgressBar">
             <Border BorderBrush="Gray" BorderThickness="1" Background="#222222">
@@ -89,9 +91,20 @@
         
         <!-- Header -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10">
-            <Button x:Name="BackToMapButton" Content="{Binding Source='Common.Back', Converter={StaticResource TranslationConverter}}" Width="120" Height="30" 
+            <Button x:Name="BackToMapButton" Content="{Binding Source='Battle.Flee', Converter={StaticResource TranslationConverter}}" Width="120" Height="30" 
                    Command="{Binding NavigateCommand}"
-                   CommandParameter="WorldMapView"/>
+                   CommandParameter="WorldMapView">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsPlayerLowHealth}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
             <TextBlock Text="{Binding Source='Battle.Title', Converter={StaticResource TranslationConverter}}" FontSize="24" FontWeight="Bold" Margin="20,0,0,0" VerticalAlignment="Center"/>
             <TextBlock Text="{Binding BattleStatus}" FontSize="18" Margin="20,0,0,0" VerticalAlignment="Center" 
                       Foreground="{StaticResource PrimaryBrush}"/>
@@ -191,8 +204,12 @@
                                         <Storyboard>
                                             <ColorAnimation 
                                                 Storyboard.TargetProperty="Background.(SolidColorBrush.Color)"
-                                                From="#FAFAFA" To="#FFB6C1" Duration="0:0:0.5" 
-                                                AutoReverse="True" RepeatBehavior="Forever"/>
+                                                From="#FAFAFA" To="#FFB6C1" Duration="0:0:1.2" 
+                                                AutoReverse="True" RepeatBehavior="Forever">
+                                                <ColorAnimation.EasingFunction>
+                                                    <QuadraticEase EasingMode="EaseInOut"/>
+                                                </ColorAnimation.EasingFunction>
+                                            </ColorAnimation>
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </MultiDataTrigger.EnterActions>
@@ -212,8 +229,12 @@
                                         <Storyboard>
                                             <ColorAnimation 
                                                 Storyboard.TargetProperty="Background.(SolidColorBrush.Color)"
-                                                From="#FAFAFA" To="#FFB6B6" Duration="0:0:0.8" 
-                                                AutoReverse="True" RepeatBehavior="Forever"/>
+                                                From="#FAFAFA" To="#FFB6B6" Duration="0:0:1.5" 
+                                                AutoReverse="True" RepeatBehavior="Forever">
+                                                <ColorAnimation.EasingFunction>
+                                                    <QuadraticEase EasingMode="EaseInOut"/>
+                                                </ColorAnimation.EasingFunction>
+                                            </ColorAnimation>
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </MultiDataTrigger.EnterActions>
@@ -233,8 +254,12 @@
                                         <Storyboard>
                                             <ColorAnimation 
                                                 Storyboard.TargetProperty="Background.(SolidColorBrush.Color)"
-                                                From="#FAFAFA" To="#B6D7FF" Duration="0:0:0.8" 
-                                                AutoReverse="True" RepeatBehavior="Forever"/>
+                                                From="#FAFAFA" To="#B6D7FF" Duration="0:0:1.5" 
+                                                AutoReverse="True" RepeatBehavior="Forever">
+                                                <ColorAnimation.EasingFunction>
+                                                    <QuadraticEase EasingMode="EaseInOut"/>
+                                                </ColorAnimation.EasingFunction>
+                                            </ColorAnimation>
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </MultiDataTrigger.EnterActions>
@@ -254,8 +279,12 @@
                                         <Storyboard>
                                             <ColorAnimation 
                                                 Storyboard.TargetProperty="Background.(SolidColorBrush.Color)"
-                                                From="#FAFAFA" To="#B6FFB6" Duration="0:0:0.5" 
-                                                AutoReverse="True"/>
+                                                From="#FAFAFA" To="#B6FFB6" Duration="0:0:1.2" 
+                                                AutoReverse="True" RepeatBehavior="Forever">
+                                                <ColorAnimation.EasingFunction>
+                                                    <QuadraticEase EasingMode="EaseInOut"/>
+                                                </ColorAnimation.EasingFunction>
+                                            </ColorAnimation>
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </MultiDataTrigger.EnterActions>
@@ -347,7 +376,7 @@
                    Background="{StaticResource BackgroundBrush}" Padding="15" CornerRadius="5" 
                    VerticalAlignment="Center" HorizontalAlignment="Center" MinWidth="180">
                 <StackPanel>
-                    <TextBlock Text="VS" FontSize="32" FontWeight="Bold" HorizontalAlignment="Center" 
+                    <TextBlock Text="{Binding Source='Battle.VS', Converter={StaticResource TranslationConverter}}" FontSize="32" FontWeight="Bold" HorizontalAlignment="Center" 
                              Foreground="{StaticResource AccentBrush}" Margin="0,0,0,10"/>
                     
                     <!-- Сообщение о выборе цели для предметов -->
@@ -357,7 +386,7 @@
                              Visibility="{Binding IsTargetSelectionMode, Converter={StaticResource BoolToVisibilityConverter}}"/>
                     
                     <!-- Кнопка отмены выбора цели -->
-                    <Button Content="Отменить" Width="80" Height="30" Margin="0,0,0,10"
+                    <Button Content="{Binding Source='Battle.Cancel', Converter={StaticResource TranslationConverter}}" Width="80" Height="30" Margin="0,0,0,10"
                            Command="{Binding CancelTargetSelectionCommand}"
                            Background="#FF5722" Foreground="White" FontWeight="Bold"
                            Visibility="{Binding IsTargetSelectionMode, Converter={StaticResource BoolToVisibilityConverter}}"/>
@@ -398,19 +427,13 @@
                         
                         <!-- Индикатор использования предмета -->
                         <TextBlock 
+                            Text="{Binding CurrentItemUsageMessage}"
                             Foreground="Blue"
                             FontWeight="Bold" 
                             FontSize="18" 
                             HorizontalAlignment="Center"
-                            Margin="0,5,0,10">
-                            <TextBlock.Text>
-                                <MultiBinding StringFormat="Использует: {0}">
-                                    <Binding Path="CurrentItemName"/>
-                                </MultiBinding>
-                            </TextBlock.Text>
-                            <TextBlock.Visibility>
-                                <Binding Path="IsUsingItem" Converter="{StaticResource BoolToVisibilityConverter}"/>
-                            </TextBlock.Visibility>
+                            Margin="0,5,0,10"
+                            Visibility="Collapsed">
                             <TextBlock.RenderTransform>
                                 <TransformGroup>
                                     <ScaleTransform ScaleX="1" ScaleY="1"/>
@@ -521,10 +544,23 @@
                                                     <TextBlock Text="{Binding Name}" TextWrapping="Wrap" 
                                                              HorizontalAlignment="Center" FontSize="10"
                                                              TextAlignment="Center"/>
+                                                    <!-- Добавляем отображение количества -->
+                                                    <Border Background="#AA000000" CornerRadius="2" Margin="0,1,0,0"
+                                                            HorizontalAlignment="Center" Padding="2,1"
+                                                            Visibility="{Binding StackSize, Converter={StaticResource QuantityToVisibilityConverter}}">
+                                                        <TextBlock Text="{Binding StackSize, StringFormat='x{0}'}" 
+                                                                 HorizontalAlignment="Center" FontSize="9"
+                                                                 FontWeight="Bold" Foreground="White"/>
+                                                    </Border>
                                                 </StackPanel>
                                                 <Border.ToolTip>
-                                                    <TextBlock Text="{Binding Description}" MaxWidth="250" 
-                                                             TextWrapping="Wrap"/>
+                                                    <StackPanel>
+                                                        <TextBlock Text="{Binding Description}" MaxWidth="250" 
+                                                                 TextWrapping="Wrap"/>
+                                                        <TextBlock Text="{Binding StackSize, StringFormat='Количество: {0}'}" 
+                                                                 FontWeight="Bold" Margin="0,5,0,0"
+                                                                 Visibility="{Binding StackSize, Converter={StaticResource QuantityToVisibilityConverter}}"/>
+                                                    </StackPanel>
                                                 </Border.ToolTip>
                                             </Border>
                                         </DataTemplate>
@@ -594,6 +630,13 @@
                                                 </MultiDataTrigger.Conditions>
                                                 <Setter Property="Cursor" Value="Hand"/>
                                                 <Setter Property="Background" Value="#FFEEEEEE"/>
+                                                <Setter Property="BorderBrush" Value="#FF4CAF50"/>
+                                                <Setter Property="BorderThickness" Value="3"/>
+                                                <Setter Property="Effect">
+                                                    <Setter.Value>
+                                                        <DropShadowEffect ShadowDepth="0" Color="#4CAF50" Opacity="0.8" BlurRadius="15"/>
+                                                    </Setter.Value>
+                                                </Setter>
                                             </MultiDataTrigger>
                                             
                                             <!-- Стиль для режима выбора цели предметов -->
@@ -681,8 +724,12 @@
                                                         <Storyboard>
                                                             <ColorAnimation 
                                                                 Storyboard.TargetProperty="Background.(SolidColorBrush.Color)"
-                                                                From="#FFFFFF" To="#FFB6C1" Duration="0:0:0.5" 
-                                                                AutoReverse="True" RepeatBehavior="Forever"/>
+                                                                From="#FFFFFF" To="#FFB6C1" Duration="0:0:1.2" 
+                                                                AutoReverse="True" RepeatBehavior="Forever">
+                                                                <ColorAnimation.EasingFunction>
+                                                                    <QuadraticEase EasingMode="EaseInOut"/>
+                                                                </ColorAnimation.EasingFunction>
+                                                            </ColorAnimation>
                                                         </Storyboard>
                                                     </BeginStoryboard>
                                                 </MultiDataTrigger.EnterActions>
@@ -702,8 +749,12 @@
                                                         <Storyboard>
                                                             <ColorAnimation 
                                                                 Storyboard.TargetProperty="Background.(SolidColorBrush.Color)"
-                                                                From="#FFFFFF" To="#FFB6B6" Duration="0:0:0.8" 
-                                                                AutoReverse="True" RepeatBehavior="Forever"/>
+                                                                From="#FFFFFF" To="#FFB6B6" Duration="0:0:1.5" 
+                                                                AutoReverse="True" RepeatBehavior="Forever">
+                                                                <ColorAnimation.EasingFunction>
+                                                                    <QuadraticEase EasingMode="EaseInOut"/>
+                                                                </ColorAnimation.EasingFunction>
+                                                            </ColorAnimation>
                                                         </Storyboard>
                                                     </BeginStoryboard>
                                                 </MultiDataTrigger.EnterActions>
@@ -723,8 +774,12 @@
                                                         <Storyboard>
                                                             <ColorAnimation 
                                                                 Storyboard.TargetProperty="Background.(SolidColorBrush.Color)"
-                                                                From="#FFFFFF" To="#B6D7FF" Duration="0:0:0.8" 
-                                                                AutoReverse="True" RepeatBehavior="Forever"/>
+                                                                From="#FFFFFF" To="#B6D7FF" Duration="0:0:1.5" 
+                                                                AutoReverse="True" RepeatBehavior="Forever">
+                                                                <ColorAnimation.EasingFunction>
+                                                                    <QuadraticEase EasingMode="EaseInOut"/>
+                                                                </ColorAnimation.EasingFunction>
+                                                            </ColorAnimation>
                                                         </Storyboard>
                                                     </BeginStoryboard>
                                                 </MultiDataTrigger.EnterActions>
@@ -744,8 +799,12 @@
                                                         <Storyboard>
                                                             <ColorAnimation 
                                                                 Storyboard.TargetProperty="Background.(SolidColorBrush.Color)"
-                                                                From="#FFFFFF" To="#B6FFB6" Duration="0:0:0.5" 
-                                                                AutoReverse="True"/>
+                                                                From="#FFFFFF" To="#B6FFB6" Duration="0:0:1.2" 
+                                                                AutoReverse="True" RepeatBehavior="Forever">
+                                                                <ColorAnimation.EasingFunction>
+                                                                    <QuadraticEase EasingMode="EaseInOut"/>
+                                                                </ColorAnimation.EasingFunction>
+                                                            </ColorAnimation>
                                                         </Storyboard>
                                                     </BeginStoryboard>
                                                 </MultiDataTrigger.EnterActions>
@@ -757,14 +816,14 @@
                                     </Style>
                                 </Border.Style>
                                 <StackPanel>
-                                    <TextBlock Text="{Binding TranslatedName}" FontSize="16" FontWeight="Bold" 
-                                             HorizontalAlignment="Center" Margin="0,0,0,5">
+                                    <TextBlock FontSize="16" FontWeight="Bold" 
+                                             HorizontalAlignment="Center" Margin="0,0,0,5"
+                                             Text="{Binding TranslatedName}">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding IsDefeated}" Value="True">
                                                         <Setter Property="Foreground" Value="#888888"/>
-                                                        <Setter Property="Text" Value="{Binding TranslatedName, StringFormat=\{0\} (Побежден)}"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
@@ -851,22 +910,6 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </StackPanel>
-            
-            <!-- Battle log panel -->
-            <Border Grid.Column="0" Grid.ColumnSpan="3" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
-                   Background="{StaticResource BackgroundBrush}" Margin="10" Padding="10"
-                   CornerRadius="5" HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                   Width="200" Height="150" Opacity="0.8">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <ItemsControl ItemsSource="{Binding BattleLog}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,0,0,5"/>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
-            </Border>
         </Grid>
         
         <!-- Action Bar -->
@@ -874,44 +917,16 @@
               BorderThickness="0,1,0,0" Padding="20,10">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                
-                <!-- Выбор целей - только показывать если несколько врагов и ход игрока -->
-                <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                    <StackPanel.Visibility>
-                        <MultiBinding Converter="{StaticResource MultiBoolToVisibilityConverter}">
-                            <Binding Path="IsPlayerTurn"/>
-                            <Binding Path="ShowEnemySelection"/>
-                        </MultiBinding>
-                    </StackPanel.Visibility>
-                    <TextBlock Text="{Binding Source='Battle.SelectTarget', Converter={StaticResource TranslationConverter}}" Margin="0,0,0,5"/>
-                    <ComboBox ItemsSource="{Binding Enemies}" 
-                            SelectedItem="{Binding SelectedEnemy}" 
-                            DisplayMemberPath="TranslatedName"
-                            Width="150">
-                        <ComboBox.ItemContainerStyle>
-                            <Style TargetType="ComboBoxItem">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsDefeated}" Value="True">
-                                        <Setter Property="IsEnabled" Value="False"/>
-                                        <Setter Property="Foreground" Value="Gray"/>
-                                        <Setter Property="FontStyle" Value="Italic"/>
-                                        <Setter Property="ContentStringFormat" Value="{}{0} ({Binding Source='Battle.Defeated', Converter={StaticResource TranslationConverter}})"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ComboBox.ItemContainerStyle>
-                    </ComboBox>
-                </StackPanel>
                 
                 <!-- Панель быстрого доступа для предметов -->
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" 
                          Visibility="{Binding IsPlayerTurn, Converter={StaticResource BoolToVisibilityConverter}}"
                          HorizontalAlignment="Center">
-                    <TextBlock Text="Быстрый доступ" Margin="0,0,0,5" HorizontalAlignment="Center" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding Source='Battle.QuickAccess', Converter={StaticResource TranslationConverter}}" Margin="0,0,0,5" HorizontalAlignment="Center" FontWeight="Bold"/>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                         <!-- Слот быстрого доступа 0 -->
                         <Border Width="50" Height="50" BorderBrush="#373737" BorderThickness="2" 
@@ -1069,77 +1084,49 @@
                     </StackPanel>
                 </StackPanel>
                 
-                <!-- Action Buttons -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button x:Name="AttackButton" 
-                            Command="{Binding AttackCommand}"
-                            Width="100" Height="40" Margin="5,0" 
-                            Content="{Binding Source='Battle.Attack', Converter={StaticResource TranslationConverter}}"
-                            Visibility="{Binding IsPlayerTurn, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                    
-                    <!-- Force End Turn button - only visible when not player turn and battle not over -->
-                    <Button x:Name="ForceEndTurnButton" 
-                            Command="{Binding ForceEndTurnCommand}"
-                            Width="120" Height="40" Margin="5,0" 
-                            Content="Завершить ход"
-                            Background="#FF5722" Foreground="White"
-                            FontSize="11" FontWeight="Bold"
-                            ToolTip="Принудительно завершить текущий ход (используйте при зависании)">
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                                <Style.Triggers>
-                                    <MultiDataTrigger>
-                                        <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding IsPlayerTurn}" Value="False"/>
-                                            <Condition Binding="{Binding IsBattleOver}" Value="False"/>
-                                        </MultiDataTrigger.Conditions>
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                    </MultiDataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                    
-                    <!-- Complete Battle button when battle is over -->
-                    <Button x:Name="CompleteButton" Content="{Binding Source='Battle.Complete', Converter={StaticResource TranslationConverter}}" 
-                            Command="{Binding EndBattleCommand}"
-                            Width="150" Height="45" Margin="5,0" 
-                            Background="#4CAF50" Foreground="White" 
-                            FontWeight="Bold" FontSize="14">
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsBattleOver}" Value="True">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                        <!-- Add hover effect and animation to draw attention -->
-                        <Button.Effect>
-                            <DropShadowEffect ShadowDepth="2" Color="Gold" Opacity="0.6" BlurRadius="10"/>
-                        </Button.Effect>
-                        <Button.Triggers>
-                            <EventTrigger RoutedEvent="Button.Loaded">
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation 
-                                            Storyboard.TargetProperty="Opacity" 
-                                            From="0.7" To="1.0" Duration="0:0:0.8"
-                                            AutoReverse="True" RepeatBehavior="Forever"/>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                        </Button.Triggers>
-                    </Button>
-                    
-                    <Button Content="{Binding Source='Battle.NextTurn', Converter={StaticResource TranslationConverter}}" Command="{Binding NextTurnCommand}" 
-                            Width="100" Height="40" Margin="5,0" 
-                            Visibility="{Binding CanAdvanceTurn, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                </StackPanel>
+                <!-- Complete Battle button when battle is over -->
+                <Button x:Name="CompleteButton" Grid.Column="2" Content="{Binding Source='Battle.Complete', Converter={StaticResource TranslationConverter}}" 
+                        Command="{Binding EndBattleCommand}"
+                        Width="150" Height="45" Margin="5,0" 
+                        HorizontalAlignment="Right"
+                        Background="#4CAF50" Foreground="White" 
+                        FontWeight="Bold" FontSize="14">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsBattleOver}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <!-- Add hover effect and animation to draw attention -->
+                    <Button.Effect>
+                        <DropShadowEffect ShadowDepth="2" Color="Gold" Opacity="0.6" BlurRadius="10"/>
+                    </Button.Effect>
+                    <Button.Triggers>
+                        <EventTrigger RoutedEvent="Button.Loaded">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation 
+                                        Storyboard.TargetProperty="Opacity" 
+                                        From="0.7" To="1.0" Duration="0:0:0.8"
+                                        AutoReverse="True" RepeatBehavior="Forever"/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Button.Triggers>
+                </Button>
             </Grid>
         </Border>
+        
+        <!-- Battle Notification Control -->
+        <controls:BattleNotification x:Name="BattleNotificationControl" 
+                                   Grid.Row="1" Grid.RowSpan="2"
+                                   HorizontalAlignment="Right" 
+                                   VerticalAlignment="Top"
+                                   Margin="0,20,20,0"
+                                   Visibility="Collapsed"/>
     </Grid>
 </UserControl>

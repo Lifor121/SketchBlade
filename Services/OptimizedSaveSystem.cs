@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using SketchBlade.Models;
 using SketchBlade.Services;
+using SketchBlade.Utilities;
 
 namespace SketchBlade.Services
 {
@@ -12,8 +14,9 @@ namespace SketchBlade.Services
     /// </summary>
     public class OptimizedSaveSystem
     {
-        private static readonly string SAVE_FILE = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Saves", "savegame.dat");
-        private static readonly string BACKUP_FILE = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Saves", "savegame.backup.dat");
+        // Конфигурация файлов
+        private static readonly string SAVE_FILE = Path.Combine(ResourcePathManager.SavesPath, "savegame.dat");
+        private static readonly string BACKUP_FILE = Path.Combine(ResourcePathManager.SavesPath, "savegame.backup.dat");
         
         /// <summary>
         /// Структура оптимизированного сохранения
@@ -218,7 +221,7 @@ namespace SketchBlade.Services
         {
             var player = new Character
             {
-                Name = "Hero", // Всегда фиксированное имя
+                Name = LocalizationService.Instance.GetTranslation("Characters.PlayerName"), // Локализованное имя
                 MaxHealth = playerData.MaxHealth,
                 CurrentHealth = playerData.CurrentHealth,
                 Attack = playerData.Attack,

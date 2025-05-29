@@ -3,12 +3,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Linq;
+using SketchBlade.Utilities;
 
 namespace SketchBlade.Services
 {
     public static class LoggingService
     {
-        private static readonly string LogFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Logs", "error_log.txt");
+        private static readonly string LogFilePath = Path.Combine(ResourcePathManager.LogsPath, "error_log.txt");
         private static readonly object LogLock = new object();
         private static LogLevel _currentLogLevel = LogLevel.Debug;
         

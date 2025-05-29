@@ -8,13 +8,13 @@
     <UseWPF>true</UseWPF>
     <RootNamespace>SketchBlade</RootNamespace>
     
-    <!-- Framework-dependent deployment settings -->
-    <SelfContained>false</SelfContained>
-    <!-- RuntimeIdentifier removed for framework-dependent deployment -->
-    <PublishSingleFile>false</PublishSingleFile>
+    <!-- Self-contained deployment settings -->
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishSingleFile>true</PublishSingleFile>
     <PublishTrimmed>false</PublishTrimmed>
-    <!-- IncludeNativeLibrariesForSelfExtract not needed for framework-dependent -->
-    <!-- EnableCompressionInSingleFile not needed for framework-dependent -->
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     
     <!-- Application settings -->
     <AssemblyTitle>SketchBlade</AssemblyTitle>
@@ -37,7 +37,13 @@
     </Compile>
   </ItemGroup>
 
+  <!-- Exclude Resources folder from being included in the application -->
   <ItemGroup>
+    <None Remove="Resources\**\*" />
+  </ItemGroup>
+
+  <!-- Ensure Resources directories exist in output only for development -->
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
     <Folder Include="Resources\Assets\Images\items\consumables\" Condition="!Exists('Resources\Assets\Images\items\consumables')" />
     <Folder Include="Resources\Assets\Images\items\weapons\" Condition="!Exists('Resources\Assets\Images\items\weapons')" />
     <Folder Include="Resources\Assets\Images\items\armor\" Condition="!Exists('Resources\Assets\Images\items\armor')" />
@@ -50,8 +56,8 @@
     <Folder Include="Resources\Logs\" Condition="!Exists('Resources\Logs')" />
   </ItemGroup>
 
-  <!-- Copy all resources to output directory -->
-  <ItemGroup>
+  <!-- Copy resources only in debug for development -->
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
     <None Update="Resources\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

@@ -80,7 +80,7 @@
     "SelectRecipe": "Select a recipe",
     "ItemName": "Item Name",
     "ItemDescription": "Item Description",
-    "Quantity": "Quantity: 1",
+    "Quantity": "Quantity: {0}",
     "Type": "Type:",
     "TypeValue": "Item Type",
     "Rarity": "Rarity:",
@@ -303,7 +303,11 @@
     "YourTurn": "Your Turn",
     "CriticalHit": "Critical Hit!",
     "Missed": "Missed!",
-    "Damage": "Damage"
+    "Damage": "Damage",
+    "QuickAccess": "Quick Access",
+    "Cancel": "Cancel",
+    "VS": "VS",
+    "Using": "Using: {0}"
   },
   "WorldMap": {
     "Title": "World Map",
@@ -346,6 +350,7 @@
   },
   "Characters": {
     "Player": "Hero",
+    "PlayerName": "Hero",
     "Enemies": {
       "Village": {
         "Regular": "Village Bandit"
