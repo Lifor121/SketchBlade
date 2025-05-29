@@ -48,12 +48,12 @@
                     
                     <!-- Visual representation of current location -->
                     <Border Grid.Row="0" Margin="10" HorizontalAlignment="Center" VerticalAlignment="Center" 
-                            MaxWidth="250" MaxHeight="200" Background="White">
+                            MaxWidth="400" MaxHeight="350" Background="White">
                         <Image x:Name="LocationImage" 
                                Source="{Binding CurrentLocation.SpritePath, Converter={StaticResource StringToImageConverter}, FallbackValue={StaticResource DefaultImage}, TargetNullValue={StaticResource DefaultImage}}"
                                RenderOptions.BitmapScalingMode="HighQuality"
                                Stretch="Uniform"
-                               MaxWidth="250" MaxHeight="200"
+                               MaxWidth="400" MaxHeight="350"
                                Width="Auto" Height="Auto">
                             <Image.ToolTip>
                                 <TextBlock Text="{Binding CurrentLocation.Name}"/>
@@ -148,55 +148,11 @@
                         <!-- Description -->
                         <TextBlock Text="{Binding CurrentLocation.TranslatedDescription}" 
                                    TextWrapping="Wrap" Margin="0,0,0,15"/>
-                        
-                        <!-- Location status information -->
-                        <StackPanel Orientation="Horizontal" Margin="0,5">
-                            <TextBlock Text="{Binding Source='WorldMap.Status', Converter={StaticResource TranslationConverter}}" FontWeight="Bold"/>
-                            <TextBlock Text="{Binding Source='WorldMap.Unlocked', Converter={StaticResource TranslationConverter}}" Foreground="Green" 
-                                       Visibility="{Binding CurrentLocation.IsUnlocked, Converter={StaticResource CustomBoolToVisibilityConverter}}"/>
-                            <TextBlock Text="{Binding Source='WorldMap.Locked', Converter={StaticResource TranslationConverter}}" Foreground="Gray" 
-                                       Visibility="{Binding CurrentLocation.IsUnlocked, Converter={StaticResource CustomBoolToVisibilityConverter}, ConverterParameter=inverse}"/>
-                        </StackPanel>
-                        
-                        <!-- Status indicators as per README -->
-                        <Border BorderBrush="LightGray" BorderThickness="1" Padding="10" Margin="0,10,0,0">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                
-                                <!-- Completion status -->
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Source='WorldMap.Completion', Converter={StaticResource TranslationConverter}}" FontWeight="Bold"/>
-                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Source='WorldMap.Completed', Converter={StaticResource TranslationConverter}}" Foreground="Green" 
-                                           Visibility="{Binding CurrentLocation.IsCompleted, Converter={StaticResource CustomBoolToVisibilityConverter}}"/>
-                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Source='WorldMap.Available', Converter={StaticResource TranslationConverter}}" Foreground="Blue" 
-                                           Visibility="{Binding CanTravelToLocation, Converter={StaticResource CustomBoolToVisibilityConverter}}"/>
-                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Source='WorldMap.Locked', Converter={StaticResource TranslationConverter}}" Foreground="Gray" 
-                                           Visibility="{Binding IsLocationLocked, Converter={StaticResource CustomBoolToVisibilityConverter}}"/>
-                                
-                                <!-- Unlock requirements -->
-                                <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
-                                           Text="{Binding Source='WorldMap.UnlockRequirement', Converter={StaticResource TranslationConverter}}" 
-                                           Visibility="{Binding IsLocationLocked, Converter={StaticResource CustomBoolToVisibilityConverter}}"
-                                           Margin="0,5,0,0"/>
-                            </Grid>
-                        </Border>
                     </StackPanel>
                 </ScrollViewer>
                 
                 <!-- Action buttons as per README -->
                 <StackPanel Grid.Row="2" Orientation="Vertical" Margin="0,0,0,10">
-                    <!-- Убираем кнопку "Путешествовать" - используем только навигацию стрелками -->
-                    <!--<Button Content="{Binding Source='WorldMap.Travel', Converter={StaticResource TranslationConverter}}" Width="180" Height="40" HorizontalAlignment="Left"
-                            Command="{Binding TravelToLocationCommand}"
-                            IsEnabled="{Binding CanTravelToLocation}"
-                            Margin="0,0,0,10"/>-->
-                    
                     <Button Content="{Binding Source='WorldMap.FightHero', Converter={StaticResource TranslationConverter}}" Width="180" Height="40" HorizontalAlignment="Left"
                             Command="{Binding FightHeroCommand}"
                             IsEnabled="{Binding CanFightHero}"
@@ -210,31 +166,6 @@
             </Grid>
         </Grid>
         
-        <!-- Legend as described in README -->
-        <Border Grid.Row="2" BorderBrush="LightGray" BorderThickness="0,1,0,0" Padding="10">
-            <Grid>
-                <WrapPanel>
-                    <StackPanel Orientation="Horizontal" Margin="0,0,15,0">
-                        <Rectangle Width="15" Height="15" Fill="Green" Margin="0,0,5,0"/>
-                        <TextBlock Text="{Binding Source='WorldMap.Completed', Converter={StaticResource TranslationConverter}}" VerticalAlignment="Center"/>
-                    </StackPanel>
-                    
-                    <StackPanel Orientation="Horizontal" Margin="0,0,15,0">
-                        <Rectangle Width="15" Height="15" Fill="Blue" Margin="0,0,5,0"/>
-                        <TextBlock Text="{Binding Source='WorldMap.Available', Converter={StaticResource TranslationConverter}}" VerticalAlignment="Center"/>
-                    </StackPanel>
-                    
-                    <StackPanel Orientation="Horizontal" Margin="0,0,15,0">
-                        <Rectangle Width="15" Height="15" Fill="Gray" Margin="0,0,5,0"/>
-                        <TextBlock Text="{Binding Source='WorldMap.Locked', Converter={StaticResource TranslationConverter}}" VerticalAlignment="Center"/>
-                    </StackPanel>
-                    
-                    <StackPanel Orientation="Horizontal">
-                        <Rectangle Width="15" Height="15" Fill="White" Stroke="Yellow" StrokeThickness="2" Margin="0,0,5,0"/>
-                        <TextBlock Text="{Binding Source='WorldMap.Selected', Converter={StaticResource TranslationConverter}}" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </WrapPanel>
-            </Grid>
-        </Border>
+        <!-- Removed legend as per user request -->
     </Grid>
 </UserControl> 

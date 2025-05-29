@@ -9,6 +9,7 @@ using SketchBlade.Helpers;
 using SketchBlade.Services;
 using System.Text.Json.Serialization;
 using SketchBlade.Utilities;
+using System.Threading;
 
 namespace SketchBlade.Models
 {
@@ -64,6 +65,14 @@ namespace SketchBlade.Models
         private bool _isStunned = false;
         [NonSerialized]
         private int _stunTurnsRemaining = 0;
+        
+        // Добавляем поля для индивидуальных эффектов анимации
+        [NonSerialized]
+        private bool _hasActiveColorEffect = false;
+        [NonSerialized]
+        private PotionEffectType _currentColorEffect = PotionEffectType.None;
+        [NonSerialized]
+        private Timer? _colorEffectTimer;
         
         private Dictionary<string, string> _equippedItemsData = new Dictionary<string, string>();
         
@@ -216,6 +225,10 @@ namespace SketchBlade.Models
         public int PoisonTurnsRemaining => _poisonTurnsRemaining;
         public int StunTurnsRemaining => _stunTurnsRemaining;
         public int PoisonDamage => _poisonDamage;
+        
+        // Свойства для индивидуальных эффектов анимации
+        public bool HasActiveColorEffect => _hasActiveColorEffect;
+        public PotionEffectType CurrentColorEffect => _currentColorEffect;
         
         public string ImagePath 
         { 
@@ -718,6 +731,55 @@ namespace SketchBlade.Models
                 }
                 OnPropertyChanged(nameof(IsStunned));
                 OnPropertyChanged(nameof(StunTurnsRemaining));
+            }
+        }
+        
+        // Методы для управления цветовыми эффектами
+        public void StartColorEffect(PotionEffectType effectType, int durationMs = 2000)
+        {
+            try
+            {
+                // Останавливаем предыдущий эффект
+                StopColorEffect();
+                
+                _hasActiveColorEffect = true;
+                _currentColorEffect = effectType;
+                OnPropertyChanged(nameof(HasActiveColorEffect));
+                OnPropertyChanged(nameof(CurrentColorEffect));
+                
+                LoggingService.LogInfo($"{Name} начинает цветовой эффект {effectType} на {durationMs}мс");
+                
+                // Запускаем таймер для остановки эффекта
+                _colorEffectTimer = new Timer(_ => StopColorEffect(), null, durationMs, Timeout.Infinite);
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogError($"Ошибка при запуске цветового эффекта для {Name}: {ex.Message}", ex);
+            }
+        }
+        
+        public void StopColorEffect()
+        {
+            try
+            {
+                if (_colorEffectTimer != null)
+                {
+                    _colorEffectTimer.Dispose();
+                    _colorEffectTimer = null;
+                }
+                
+                if (_hasActiveColorEffect)
+                {
+                    LoggingService.LogInfo($"{Name} останавливает цветовой эффект {_currentColorEffect}");
+                    _hasActiveColorEffect = false;
+                    _currentColorEffect = PotionEffectType.None;
+                    OnPropertyChanged(nameof(HasActiveColorEffect));
+                    OnPropertyChanged(nameof(CurrentColorEffect));
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogError($"Ошибка при остановке цветового эффекта для {Name}: {ex.Message}", ex);
             }
         }
         

@@ -70,6 +70,7 @@
   },
   "Crafting": {
     "Title": "Crafting",
+    "Recipe": "Recipe:",
     "RecipeBook": "Recipe Book",
     "Craft": "Craft",
     "RequiredMaterials": "Required Materials",

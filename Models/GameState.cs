@@ -125,9 +125,24 @@ namespace SketchBlade.Models
                 var heroDefeated = CurrentEnemies.Any(e => e.IsHero && e.IsDefeated);
                 if (heroDefeated)
                 {
+                    CurrentLocation.HeroDefeated = true;
                     CurrentLocation.IsCompleted = true;
-                    UnlockNextLocation();
+                    
+                    CurrentLocation.CompleteLocation(_gameData);
+                    
+                    LoggingService.LogInfo($"Hero defeated in {CurrentLocation.Name}, location completed");
+                    
+                    SaveGame();
+                    LoggingService.LogInfo("Game saved after hero defeat and location unlock");
                 }
+                else
+                {
+                    LoggingService.LogInfo($"Battle won in {CurrentLocation.Name}, mobs defeated");
+                }
+            }
+            else
+            {
+                LoggingService.LogInfo($"Battle completed with victory: {isVictory}");
             }
 
             CurrentEnemies.Clear();

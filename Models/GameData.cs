@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Linq;
 using SketchBlade.Services;
 
 namespace SketchBlade.Models
@@ -200,10 +201,44 @@ namespace SketchBlade.Models
 
         public void StartBattleWithHero(Location location)
         {
-            if (location.Hero == null) return;
+            if (Player == null || location?.Hero == null) return;
             
             CurrentEnemies.Clear();
             CurrentEnemies.Add(location.Hero);
+        }
+
+        public void CompleteBattle(bool isVictory)
+        {
+            if (isVictory && CurrentLocation != null)
+            {
+                var heroDefeated = CurrentEnemies.Any(e => e.IsHero && e.IsDefeated);
+                if (heroDefeated)
+                {
+                    // Помечаем героя как побежденного в локации
+                    CurrentLocation.HeroDefeated = true;
+                    CurrentLocation.IsCompleted = true;
+                    
+                    // Используем встроенную логику разблокировки локации
+                    CurrentLocation.CompleteLocation(this);
+                    
+                    LoggingService.LogInfo($"Hero defeated in {CurrentLocation.Name}, location completed");
+                    
+                    // Принудительно сохраняем игру после важного события
+                    SaveGame();
+                    LoggingService.LogInfo("Game saved after hero defeat and location unlock");
+                }
+                else
+                {
+                    // Обычная битва с мобами - просто отмечаем прогресс
+                    LoggingService.LogInfo($"Battle won in {CurrentLocation.Name}, mobs defeated");
+                }
+            }
+            else
+            {
+                LoggingService.LogInfo($"Battle completed with victory: {isVictory}");
+            }
+
+            CurrentEnemies.Clear();
         }
 
         private void CopyFrom(GameData source)

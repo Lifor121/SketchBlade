@@ -7,12 +7,12 @@
              xmlns:local="clr-namespace:SketchBlade.Views.Controls"
              xmlns:converters="clr-namespace:SketchBlade.Helpers.Converters"
              mc:Ignorable="d" 
-             MaxWidth="250">
+             MaxWidth="300" MinWidth="200">
     <UserControl.Resources>
         <converters:TranslationConverter x:Key="TranslationConverter"/>
     </UserControl.Resources>
     
-    <Border Background="#333333" CornerRadius="4" BorderBrush="#666666" BorderThickness="1" Padding="8,6">
+    <Border Background="#333333" CornerRadius="4" BorderBrush="#666666" BorderThickness="1" Padding="10,8">
         <StackPanel>
             <!-- Item Name with rarity color -->
             <TextBlock x:Name="ItemNameText" Text="Название предмета" 
@@ -53,13 +53,13 @@
             <!-- Recipe Section (only shown for crafting) -->
             <StackPanel x:Name="RecipePanel" Visibility="Collapsed" Margin="0,4,0,0">
                 <Separator Background="#555555" Margin="0,0,0,4"/>
-                <TextBlock Text="Рецепт:" FontWeight="Bold" FontSize="12" Foreground="#FFD700" Margin="0,0,0,4"/>
+                <TextBlock Text="{Binding Source='Crafting.Recipe', Converter={StaticResource TranslationConverter}}" FontWeight="Bold" FontSize="12" Foreground="#FFD700" Margin="0,0,0,4"/>
                 
                 <!-- Materials Grid -->
                 <ItemsControl x:Name="RecipeMaterialsControl">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <WrapPanel Orientation="Horizontal" MaxWidth="220"/>
+                            <WrapPanel Orientation="Horizontal" MaxWidth="280"/>
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
@@ -91,7 +91,7 @@
                 </ItemsControl>
             </StackPanel>
             
-            <!-- Description -->
+            <!-- Description (only shown when no recipe) -->
             <TextBlock x:Name="ItemDescriptionText" Text="Описание предмета" 
                      Foreground="#BBBBBB" TextWrapping="Wrap" FontSize="11" Margin="0,2,0,0"/>
         </StackPanel>

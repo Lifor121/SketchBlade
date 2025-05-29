@@ -81,10 +81,9 @@ namespace SketchBlade.Views.Controls
         {
             if (_item == null) return;
             
-            // Set basic information
-            ItemNameText.Text = _item.Name;
+            // Set basic information with localization
+            ItemNameText.Text = GetLocalizedItemName(_item);
             ItemTypeText.Text = GetItemTypeDisplayName(_item.Type);
-            ItemDescriptionText.Text = _item.Description;
             
             // Set name color based on rarity
             ItemNameText.Foreground = GetRarityBrush(_item.Rarity);
@@ -137,6 +136,9 @@ namespace SketchBlade.Views.Controls
 
             // Show recipe if available
             UpdateRecipeDisplay();
+            
+            // Hide description for all items
+            ItemDescriptionText.Visibility = Visibility.Collapsed;
         }
 
         private void UpdateRecipeDisplay()
@@ -245,6 +247,98 @@ namespace SketchBlade.Views.Controls
                 return "";
                 
             return LocalizationService.Instance.GetTranslation($"ItemMaterials.{material}");
+        }
+
+        private string GetLocalizedItemName(Item item)
+        {
+            // Маппинг русских названий на английские ключи
+            string englishKey = GetEnglishKeyForItem(item.Name);
+            
+            if (!string.IsNullOrEmpty(englishKey))
+            {
+                var localized = LocalizationService.Instance.GetTranslation($"Items.{englishKey}.Name");
+                if (!string.IsNullOrEmpty(localized) && !localized.StartsWith("Items."))
+                    return localized;
+            }
+            
+            // Fallback to original name
+            return item.Name;
+        }
+
+        private string GetLocalizedItemDescription(Item item)
+        {
+            // Маппинг русских названий на английские ключи
+            string englishKey = GetEnglishKeyForItem(item.Name);
+            
+            if (!string.IsNullOrEmpty(englishKey))
+            {
+                var localized = LocalizationService.Instance.GetTranslation($"Items.{englishKey}.Description");
+                if (!string.IsNullOrEmpty(localized) && !localized.StartsWith("Items."))
+                    return localized;
+            }
+            
+            // Fallback to original description
+            return item.Description;
+        }
+
+        private string GetEnglishKeyForItem(string itemName)
+        {
+            // Маппинг русских названий на английские ключи локализации
+            var nameMapping = new Dictionary<string, string>
+            {
+                // Материалы
+                { "Дерево", "Wood" },
+                { "Палка", "Stick" },
+                { "Ткань", "Cloth" },
+                { "Трава", "Herb" },
+                { "Перо", "Feather" },
+                { "Фляга", "Flask" },
+                { "Фляга с водой", "WaterFlask" },
+                { "Железная руда", "IronOre" },
+                { "Железный слиток", "IronIngot" },
+                { "Золотая руда", "GoldOre" },
+                { "Золотой слиток", "GoldIngot" },
+                { "Кристаллическая пыль", "CrystalDust" },
+                { "Порох", "Gunpowder" },
+                { "Экстракт яда", "PoisonExtract" },
+                { "Фрагмент люминита", "LuminiteFragment" },
+                { "Люминит", "Luminite" },
+                
+                // Оружие
+                { "Деревянный меч", "WoodenSword" },
+                { "Железный меч", "IronSword" },
+                { "Золотой меч", "GoldenSword" },
+                { "Люминитовый меч", "LuminiteSword" },
+                
+                // Броня
+                { "Деревянный шлем", "WoodenHelmet" },
+                { "Деревянный нагрудник", "WoodenChestplate" },
+                { "Деревянные поножи", "WoodenLeggings" },
+                { "Железный шлем", "IronHelmet" },
+                { "Железный нагрудник", "IronChestplate" },
+                { "Железные поножи", "IronLeggings" },
+                { "Золотой шлем", "GoldenHelmet" },
+                { "Золотой нагрудник", "GoldenChestplate" },
+                { "Золотые поножи", "GoldenLeggings" },
+                { "Люминитовый шлем", "LuminiteHelmet" },
+                { "Люминитовый нагрудник", "LuminiteChestplate" },
+                { "Люминитовые поножи", "LuminiteLeggings" },
+                
+                // Щиты
+                { "Железный щит", "IronShield" },
+                { "Золотой щит", "GoldenShield" },
+                { "Люминитовый щит", "LuminiteShield" },
+                
+                // Расходуемые предметы
+                { "Зелье лечения", "HealingPotion" },
+                { "Зелье ярости", "RagePotion" },
+                { "Зелье неуязвимости", "InvulnerabilityPotion" },
+                { "Подушка", "Pillow" },
+                { "Отравленный сюрикен", "PoisonedShuriken" },
+                { "Бомба", "Bomb" }
+            };
+
+            return nameMapping.TryGetValue(itemName, out string englishKey) ? englishKey : string.Empty;
         }
     }
 

@@ -1707,8 +1707,73 @@ namespace SketchBlade.Views.Controls
                     _tooltip.SetItem(Item);
                 }
 
+                // Получаем позицию курсора и размеры окна
                 Point cursorPos = Mouse.GetPosition(parentWindow);
-                _tooltip.Margin = new Thickness(cursorPos.X + 15, cursorPos.Y + 15, 0, 0);
+                double windowWidth = parentWindow.ActualWidth;
+                double windowHeight = parentWindow.ActualHeight;
+                
+                // Обновляем макет tooltip чтобы получить его актуальные размеры
+                _tooltip.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                double tooltipWidth = _tooltip.DesiredSize.Width;
+                double tooltipHeight = _tooltip.DesiredSize.Height;
+                
+                // Используем актуальные размеры если tooltip уже отрисован
+                if (_tooltip.ActualWidth > 0 && _tooltip.ActualHeight > 0)
+                {
+                    tooltipWidth = _tooltip.ActualWidth;
+                    tooltipHeight = _tooltip.ActualHeight;
+                }
+                
+                // Если tooltip еще не отрендерился, используем примерные размеры
+                if (tooltipWidth == 0 || tooltipHeight == 0)
+                {
+                    tooltipWidth = 300; // MaxWidth из XAML
+                    tooltipHeight = 180; // Примерная высота с учетом увеличенных отступов
+                }
+                
+                // Рассчитываем оптимальную позицию
+                double tooltipX = cursorPos.X + 15;
+                double tooltipY = cursorPos.Y + 15;
+                
+                // Проверяем, не выходит ли tooltip за правую границу экрана
+                if (tooltipX + tooltipWidth > windowWidth)
+                {
+                    // Размещаем tooltip слева от курсора
+                    tooltipX = cursorPos.X - tooltipWidth - 15;
+                    
+                    // Если все еще не помещается, размещаем у правого края
+                    if (tooltipX < 0)
+                    {
+                        tooltipX = windowWidth - tooltipWidth - 10;
+                    }
+                }
+                
+                // Проверяем, не выходит ли tooltip за нижнюю границу экрана
+                if (tooltipY + tooltipHeight > windowHeight)
+                {
+                    // Размещаем tooltip выше курсора
+                    tooltipY = cursorPos.Y - tooltipHeight - 15;
+                    
+                    // Если все еще не помещается, размещаем у нижнего края
+                    if (tooltipY < 0)
+                    {
+                        tooltipY = windowHeight - tooltipHeight - 10;
+                    }
+                }
+                
+                // Проверяем, не выходит ли tooltip за левую границу экрана
+                if (tooltipX < 0)
+                {
+                    tooltipX = 10;
+                }
+                
+                // Проверяем, не выходит ли tooltip за верхнюю границу экрана
+                if (tooltipY < 0)
+                {
+                    tooltipY = 10;
+                }
+
+                _tooltip.Margin = new Thickness(tooltipX, tooltipY, 0, 0);
                 _tooltip.HorizontalAlignment = HorizontalAlignment.Left;
                 _tooltip.VerticalAlignment = VerticalAlignment.Top;
 

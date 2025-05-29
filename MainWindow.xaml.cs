@@ -159,7 +159,10 @@ public partial class MainWindow : Window
                         screenName => NavigateToScreen(screenName));
                 }
                 
-                // 4. ������� ����� ����������������� ������������� ����� ���� ��������
+                // ИСПРАВЛЕНИЕ: Обновляем состояние карты после возвращения с битвы
+                _mapViewModel.RefreshView();
+                
+                // 4.       
                 var worldMapView = new WorldMapView { DataContext = _mapViewModel };
                 worldMapView.Visibility = Visibility.Visible;
                 worldMapView.Opacity = 1.0;
